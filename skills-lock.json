@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "screenshot-to-code": {
+      "source": "furqanistic/aura-skills",
+      "sourceType": "github",
+      "skillPath": "skills/screenshot-to-code/SKILL.md",
+      "computedHash": "824645f3e3970165b588a6a386b5eb3e5b6e4cdbc3abcfbe44b27b7cd58e710d"
+    }
+  }
+}
