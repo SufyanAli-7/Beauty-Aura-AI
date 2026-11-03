@@ -82,7 +82,7 @@ export const secondaryItems = [
     name: "My Projects",
     href: "/dashboard/projects",
     icon: FolderKanban,
-    badge: "12",
+    badge: null,
   },
   {
     name: "Templates",

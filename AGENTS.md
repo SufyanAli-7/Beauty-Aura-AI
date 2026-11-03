@@ -80,6 +80,21 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Workspace Gallery Recent Transformations Empty State Implementation
+- **Dashboard Overview (`app/dashboard/page.tsx`):**
+  - Updated the **`Workspace Gallery / Recent Transformations`** section to display a dedicated empty state container when no transformations exist (`recentProjects.length === 0`).
+  - Empty state features:
+    - Dashed warm orange border container (`border-2 border-dashed border-orange-200/90 bg-white/70 rounded-3xl p-8 sm:p-12`).
+    - Illustrated warm icon badge (`FolderKanban` + `Sparkles` floating indicator).
+    - Clear messaging: *"No transformations yet — Your gallery is empty right now. Pick an AI Studio above to create your first virtual fitting, skin analysis, or portrait makeover."*
+    - Direct Call-to-Action buttons: `+ Create First Transformation` (leading to `/dashboard/fashion`) and `Browse Templates` (leading to `/dashboard/templates`).
+    - Quick inspiration tag links: `👗 Virtual Try-On`, `✨ Skin Analysis`, and `💄 Makeup Transfer`.
+  - Updated the top Quick Stats card for **`My Projects`** from `12` to `0 Saved`.
+  - Updated the header counter indicator to `0 Transformations`.
+- **Sidebar Badge Alignment (`components/dashboard/dashboard-sidebar.tsx`):**
+  - Removed the mock `"12"` badge next to **`My Projects`** in the sidebar navigation to stay consistent with the empty state.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero errors across all 16 static routes. Visual verification passed in Chrome DevTools MCP.
+
 ### [2026-11-03] - Dashboard Layout with Sidebar, AI Tools Navigation, Remaining Credits & Top Header
 - **Dashboard Sidebar Component (`components/dashboard/dashboard-sidebar.tsx`):**
   - **Header:** Features official app logo emblem (`/beauty-aura-logo.png`), brand typography `BeautyAura.ai` ("Fashion & Beauty Lab"), and home link.

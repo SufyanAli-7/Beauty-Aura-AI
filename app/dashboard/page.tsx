@@ -85,36 +85,14 @@ export default function DashboardPage() {
     },
   ];
 
-  const recentProjects = [
-    {
-      title: "Velvet Evening Gown Fitting",
-      category: "Fashion Try-On",
-      date: "10 mins ago",
-      image: "/fashion-looks/fashion-3.png",
-      status: "Completed",
-    },
-    {
-      title: "Golden Hour Studio Relighting",
-      category: "AI Extras",
-      date: "1 hour ago",
-      image: "/ai-photo-editing-images/photo-lightining.jpg",
-      status: "Completed",
-    },
-    {
-      title: "Groomed Stubble & Lineup",
-      category: "Hair & Beard",
-      date: "Yesterday",
-      image: "/ai-photo-editing-images/beard-try-on.jpg",
-      status: "Completed",
-    },
-    {
-      title: "Paris Fashion Week Red Carpet Makeup",
-      category: "Beauty",
-      date: "2 days ago",
-      image: "/ai-photo-editing-images/ai-makeup-try-on.jpg",
-      status: "Completed",
-    },
-  ];
+  // Currently no transformations (empty state active)
+  const recentProjects: Array<{
+    title: string;
+    category: string;
+    date: string;
+    image: string;
+    status: string;
+  }> = [];
 
   return (
     <div className="space-y-8 pb-12">
@@ -192,7 +170,7 @@ export default function DashboardPage() {
               My Projects
             </div>
             <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-zinc-900">12</span>
+              <span className="text-2xl font-black text-zinc-900">0</span>
               <span className="text-xs font-semibold text-zinc-500">Saved</span>
             </div>
           </div>
@@ -306,50 +284,117 @@ export default function DashboardPage() {
             </h3>
           </div>
 
-          <Link
-            href="/dashboard/projects"
-            className="text-xs font-bold text-[#FF5500] hover:underline flex items-center gap-1"
-          >
-            <span>View All (12)</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <span className="text-xs font-semibold text-zinc-400">
+            0 Transformations
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {recentProjects.map((project, idx) => (
-            <div
-              key={idx}
-              className="group overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-200 hover:shadow-md transition"
-            >
-              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-stone-100 mb-2.5">
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  sizes="25vw"
-                  className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute top-2 right-2 rounded-full bg-emerald-500/90 text-white text-[9px] font-bold px-2 py-0.5 backdrop-blur-xs flex items-center gap-1">
-                  <CheckCircle2 className="h-2.5 w-2.5" />
-                  <span>{project.status}</span>
+        {recentProjects.length === 0 ? (
+          /* Empty State View */
+          <div className="relative overflow-hidden rounded-3xl border-2 border-dashed border-orange-200/90 bg-white/70 p-8 sm:p-12 text-center shadow-xs backdrop-blur-xs transition hover:border-orange-300">
+            {/* Subtle warm ambient circles */}
+            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-orange-400/10 blur-2xl" />
+            <div className="pointer-events-none absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-amber-400/10 blur-2xl" />
+
+            <div className="relative z-10 max-w-md mx-auto space-y-4">
+              {/* Illustrated Icon Badge */}
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 border border-orange-200 shadow-sm">
+                <FolderKanban className="h-9 w-9 text-[#FF5500]" />
+                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-xs border border-orange-200">
+                  <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <h4 className="text-xs font-bold text-zinc-900 truncate">
-                  {project.title}
+              {/* Typography */}
+              <div className="space-y-1.5">
+                <h4 className="text-lg sm:text-xl font-extrabold text-zinc-900 tracking-tight">
+                  No transformations yet
                 </h4>
-                <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                  <span>{project.category}</span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-2.5 w-2.5" />
-                    {project.date}
-                  </span>
-                </div>
+                <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
+                  Your gallery is empty right now. Pick an AI Studio above to create your first virtual fitting, skin analysis, or portrait makeover.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href="/dashboard/fashion"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 hover:shadow-orange-500/35 transition cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 stroke-[2.5]" />
+                  <span>Create First Transformation</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/templates"
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] hover:border-orange-300 transition cursor-pointer"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
+                  <span>Browse Templates</span>
+                </Link>
+              </div>
+
+              {/* Quick Inspiration Links */}
+              <div className="pt-4 border-t border-orange-100/70 flex flex-wrap items-center justify-center gap-2 text-[11px] text-zinc-400">
+                <span className="font-semibold text-zinc-500">Popular to try:</span>
+                <Link
+                  href="/dashboard/fashion"
+                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
+                >
+                  👗 Virtual Try-On
+                </Link>
+                <Link
+                  href="/dashboard/skin-face"
+                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
+                >
+                  ✨ Skin Analysis
+                </Link>
+                <Link
+                  href="/dashboard/beauty"
+                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
+                >
+                  💄 Makeup Transfer
+                </Link>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {recentProjects.map((project, idx) => (
+              <div
+                key={idx}
+                className="group overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-200 hover:shadow-md transition"
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-stone-100 mb-2.5">
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    sizes="25vw"
+                    className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute top-2 right-2 rounded-full bg-emerald-500/90 text-white text-[9px] font-bold px-2 py-0.5 backdrop-blur-xs flex items-center gap-1">
+                    <CheckCircle2 className="h-2.5 w-2.5" />
+                    <span>{project.status}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-zinc-900 truncate">
+                    {project.title}
+                  </h4>
+                  <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                    <span>{project.category}</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-2.5 w-2.5" />
+                      {project.date}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
