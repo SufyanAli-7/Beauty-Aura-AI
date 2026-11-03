@@ -3,7 +3,8 @@
  * Communicates with the YouCam Beauty MCP Server via Streamable HTTP (JSON-RPC over SSE).
  */
 
-const YOUCAM_URL = "https://mcp-api-01.makeupar.com/mcp/beauty";
+const YOUCAM_BEAUTY_URL = "https://mcp-api-01.makeupar.com/mcp/beauty";
+const YOUCAM_FASHION_URL = "https://mcp-api-01.makeupar.com/mcp/fashion";
 const YOUCAM_API_KEY =
   process.env.NEXT_YOUCAM_API_KEY ||
   "sk-XFFGN1JU3BgzDBhQ6tVn-9A0Qy5FHbscuZoTlo_UHVeyeH3cMe8dJi2qFj5PKBsp";
@@ -19,18 +20,27 @@ export interface YouCamCallResult {
 
 /**
  * Initializes an MCP session and calls a YouCam MCP tool.
+ * Supports both "beauty" and "fashion" servers.
  */
 export async function callYouCamMCP(
   toolName: string,
   args: Record<string, any>,
-  timeoutMs = 60000
+  timeoutMs = 60000,
+  serverType: "beauty" | "fashion" | string = "beauty"
 ): Promise<YouCamCallResult> {
+  const targetUrl =
+    serverType === "fashion"
+      ? YOUCAM_FASHION_URL
+      : serverType.startsWith("http")
+      ? serverType
+      : YOUCAM_BEAUTY_URL;
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     // 1. Initialize MCP session
-    const initResponse = await fetch(YOUCAM_URL, {
+    const initResponse = await fetch(targetUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${YOUCAM_API_KEY}`,
@@ -67,7 +77,7 @@ export async function callYouCamMCP(
       toolHeaders["mcp-session-id"] = sessionId;
     }
 
-    const toolResponse = await fetch(YOUCAM_URL, {
+    const toolResponse = await fetch(targetUrl, {
       method: "POST",
       headers: toolHeaders,
       body: JSON.stringify({
@@ -154,8 +164,8 @@ export async function callYouCamMCP(
 
     // If task is still processing or needs manual polling
     if (!extractedUrl && taskId && (status === "running" || status === "processing")) {
-      console.log(`[YouCam MCP] Task ${taskId} is still running. Initiating polling...`);
-      const polled = await pollTaskStatus(taskId, toolName, sessionId);
+      console.log(`[YouCam MCP] Task ${taskId} is still running. Initiating polling on ${targetUrl}...`);
+      const polled = await pollTaskStatus(taskId, toolName, sessionId, 15, 3000, targetUrl);
       if (polled.imageUrl) {
         extractedUrl = polled.imageUrl;
         status = "success";
@@ -197,7 +207,8 @@ async function pollTaskStatus(
   taskType: string,
   sessionId?: string | null,
   maxAttempts = 15,
-  intervalMs = 3000
+  intervalMs = 3000,
+  targetUrl = YOUCAM_BEAUTY_URL
 ): Promise<{ imageUrl?: string; status?: string }> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
@@ -209,7 +220,7 @@ async function pollTaskStatus(
       };
       if (sessionId) toolHeaders["mcp-session-id"] = sessionId;
 
-      const res = await fetch(YOUCAM_URL, {
+      const res = await fetch(targetUrl, {
         method: "POST",
         headers: toolHeaders,
         body: JSON.stringify({

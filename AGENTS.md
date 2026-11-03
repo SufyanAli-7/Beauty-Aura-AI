@@ -67,14 +67,43 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
+  - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
+  - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
   - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
-  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty MCP tools with automated polling and S3 resolution.
+  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty & Fashion MCP tools with automated polling and S3 resolution.
   - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
+  - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-03] - Fashion AI Studio Implementation (4 Tools, MCP Integration, UI Alignment & Canvas Height Lock)
+- **4 Fashion AI Tools Implemented:**
+  - Integrated all four requested Fashion AI tools into the Studio:
+    1. **AI Clothes Virtual Try-On** (`AI-Clothes-Virtual-Try-On`): Couture floor-length gown, tailored navy blazer, classic denim, and high-fashion streetwear ensemble. Garment categories supported: Full Body, Upper Body, Lower Body, Outerwear, Auto Detect.
+    2. **AI Bag Virtual Try-On** (`AI-Bag-Virtual-Try-On`): Designer leather tote, crossbody, evening clutch, and structured shoulder bag with gender & aesthetic style parameters (`parisian_chic`, `urban_chic`, `mediterranean_chic`, `art_deco_style`, `random`).
+    3. **AI Shoes Virtual Try-On** (`AI-Shoes-Virtual-Try-On`): Trending white sneakers, combat boots, classic loafers, and stiletto heels.
+    4. **AI Hat Virtual Try-On** (`AI-Hat-Virtual-Try-On`): Wool fedoras, streetwear baseball caps, vintage bucket hats, and knit beanies with gender & aesthetic style parameters (`urban_fashion`, `sporty_casual`, `vacation_casual`, `warm_cozy`, `bohemian`, `random`).
+- **YouCam Fashion MCP Server Integration (`lib/youcam-client.ts` & `app/api/fashion/generate/route.ts`):**
+  - Expanded `lib/youcam-client.ts` to support both `beauty` and `fashion` server endpoints dynamically (`https://mcp-api-01.makeupar.com/mcp/fashion`).
+  - **Explicit Resource Disclosure**: Checked YouCam Fashion MCP server (`resources/list`, `tools/list`) and confirmed that YouCam does **NOT** provide a pre-hosted catalog of clothes, bags, shoes, or hats (only fabric textures). Connected high-fashion curated reference looks + custom photo uploads.
+  - Handles automatic upload and S3 resolution of local relative project assets (`/fashion-looks/`, `/fashion-samples/`) and base64 user uploads to InSForge storage (`generated-images` bucket).
+  - Handles background polling and automated retrieval of Amazon S3 result images.
+  - Automatically downloads generated outputs and persists them permanently in InSForge Storage (`transformations/{userId}/{timestamp}-fashion-{toolId}.jpg`).
+  - Logs full metadata and parameters to `public.transformations`.
+  - Atomically deducts 5 user credits per generation call.
+- **Frontend Fashion Studio (`app/dashboard/fashion/page.tsx`):**
+  - Exact design, aesthetic, and layout matching the Beauty Studio:
+    - 4 selectable tool cards with active orange ring, icons, badges, and thumbnails.
+    - Source image section with "Upload Photo" tab first and 4 full-body/portrait sample models (`Amara`, `Sophia`, `Elena`, `Lucas`).
+    - Dynamic Choose Look section with outfit grids, style dropdowns, category pills, and custom garment/accessory upload.
+    - Live Studio Canvas viewport with 4K output spec, loading states, Before/After compare split slider, and direct lossless download.
+    - Left column scrollable container with slim scrollbar dynamically matching Live Studio Canvas height via `ResizeObserver` (exact 669.7px pixel match).
+- **Production Build & Live Test:**
+  - Build verified with zero errors across all 19 routes (`npm run build`).
+  - Live test confirmed: API returned `status: 200`, `success: true`, credit deducted (5 credits), and image stored permanently.
 
 ### [2026-11-03] - Beauty AI Studio Options 1-3 Scrollbar & Viewport Canvas Height Lock
 - **Left Options (1, 2, 3) Internal Scroll Container:**
@@ -433,3 +462,24 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Client SDK & Env:** Installed `@insforge/sdk`, fetched public `ANON_KEY` via CLI secrets, created `.env.local`, and initialized `lib/insforge.ts`.
 - **Build Check:** Ran `npm run build` to confirm Turbopack and TypeScript compile cleanly with zero errors.
 - **Protocol:** Added mandatory `AGENTS.md` update protocol for all subsequent AI agent sessions.
+
+<!-- BEGIN:nextjs-agent-feedback -->
+
+## Report Next.js feedback
+
+The project owner enabled `experimental.agentFeedback`, authorizing this feedback pass. When enabled, `next dev` writes this block and restores it if removed. Commit `AGENTS.md` with your work to keep the tree clean.
+
+During the current user request, retain anonymized facts as feedback candidates for meaningful or recurring Next.js issues:
+
+- Crashes, hangs, OOMs, or unexpected slowness
+- Incorrect behavior, output, errors, or diagnostics
+- Missing, unclear, or conflicting documentation
+- Unexpected CLI, codemod, Skill, or upgrade behavior and non-obvious workarounds
+
+Continue the current user request without reporting immediately. Routine debugging is not feedback. Verify changes before retaining them as feedback candidates. Never retain code, logs, paths, URLs, secrets, personal information, or project-specific data.
+
+Retain qualifying friction even if it is later fixed or worked around; record the final outcome during the reporting pass.
+
+Before the final response, run one reporting pass. If candidates remain, from this file's directory run `npx --no-install next internal agent-feedback-instructions` once without piping or truncating its output. Follow its output or error guidance. If a network sandbox blocks it, retry with network access; if it still returns no output, continue normally.
+
+<!-- END:nextjs-agent-feedback -->
