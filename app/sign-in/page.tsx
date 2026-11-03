@@ -407,10 +407,6 @@ export default function SignInPage() {
                 Sign up free
               </Link>
             </p>
-            <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
-              <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
-              <span>Includes 5 free AI transformations on registration</span>
-            </div>
           </div>
         </div>
       </div>

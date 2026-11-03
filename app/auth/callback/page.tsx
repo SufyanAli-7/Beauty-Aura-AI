@@ -108,7 +108,7 @@ function CallbackContent() {
 
           <h2 className="mt-6 text-xl font-bold text-zinc-900">Finalizing Your Sign-In</h2>
           <p className="mt-2 text-sm text-zinc-600">
-            Syncing your BeautyAura profile and activating your 5 free AI transformation credits...
+            Syncing your BeautyAura profile and opening your creative studio...
           </p>
         </div>
       </div>

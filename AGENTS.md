@@ -80,6 +80,24 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Mobile Navbar Studio Button Next to Hamburger Icon
+- **Navbar Mobile View (`components/landing/navbar.tsx`):**
+  - Updated mobile top bar so that when a user is signed in, a vibrant **"Studio"** button with `Sparkles` icon is displayed right next to the hamburger icon (in the exact position where "Try Free" appears when logged out).
+  - Maintained "Try Free" button for guests/logged-out visitors.
+- **Production Build:** Verified 100% clean compilation (`npm run build`).
+
+### [2026-11-03] - Remove Free Credits Callouts & Replace Navbar Credits with Studio Pill
+- **Sign In Page (`app/sign-in/page.tsx`):**
+  - Removed "Includes 5 free AI transformations on registration" pill from the card footer.
+- **Sign Up Page (`app/sign-up/page.tsx`):**
+  - Removed "5 Free credits immediately credited • No credit card required" pill above the submit button.
+  - Updated card subtitle to "Get instant access to AI Virtual Try-On, Hairstyles & Creative Studio."
+- **OAuth Callback Page (`app/auth/callback/page.tsx`):**
+  - Updated status copy to "Syncing your BeautyAura profile and opening your creative studio..."
+- **Navbar Logged-In State (`components/landing/navbar.tsx`):**
+  - Replaced the "5 Credits" desktop pill and "5 cr" mobile badge with an interactive **"Studio"** action pill (`Sparkles` icon + link to `#features`), allowing logged-in users to directly jump into the studio tools.
+- **Production Build:** Verified 100% clean compilation (`npm run build`).
+
 ### [2026-11-03] - Fix Sign-Up Success State Retention & Sign-In Form Input Clearing
 - **Sign-Up Form Lifecycle Reset (`app/sign-up/page.tsx`):**
   - Resolved issue where navigating back to `/sign-up` after logout still showed the "Account Created & Verified!" banner due to Next.js client component state retention across soft navigations.

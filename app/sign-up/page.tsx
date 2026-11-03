@@ -233,7 +233,7 @@ export default function SignUpPage() {
               Create your account
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-zinc-600">
-              Get instant access to AI Virtual Try-On, Hairstyles &amp; 5 free transformation credits.
+              Get instant access to AI Virtual Try-On, Hairstyles &amp; Creative Studio.
             </p>
           </div>
 
@@ -379,12 +379,6 @@ export default function SignUpPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                </div>
-
-                {/* Features Pill */}
-                <div className="rounded-xl bg-orange-50/70 border border-orange-100 p-2.5 flex items-center gap-2 text-[11px] text-zinc-700">
-                  <ShieldCheck className="h-4 w-4 text-[#FF5500] shrink-0" />
-                  <span>5 Free credits immediately credited • No credit card required</span>
                 </div>
 
                 {/* Submit button */}
