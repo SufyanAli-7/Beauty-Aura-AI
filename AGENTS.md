@@ -67,9 +67,11 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`)
 - **Key Files & Folders:**
   - `app/`: Next.js App Router (entry page `app/page.tsx`, layout `app/layout.tsx`, styles `app/globals.css`).
+  - `components/landing/`: Modular landing page sections (`navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`, `quick-try-modal.tsx`).
   - `components/ui/`: Reusable UI components (accordion, button, card, dialog, input, etc.).
   - `hooks/`: React hooks (`use-mobile.ts`, `use-highlighted-code.ts`).
   - `lib/`: Helpers (`lib/utils.ts`, `lib/highlighter.tsx`, `lib/insforge.ts`).
+  - `public/`: High-resolution assets (`ai-photo-editing-images/`, `fashion-looks/`, `normal-headshot/`, `eye-lens/`, `beauty-looks/`).
   - `.insforge/project.json`: InsForge CLI configuration.
   - `.env.local`: Local environment variables (`NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`).
   - `.agents/skills/`: Project-level agent skills directory.
@@ -77,6 +79,26 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-02] - AI Photo & Virtual Try-On Landing Page Implementation (/screenshot-to-code)
+- **Screenshot-to-Code Recreation:** Recreated the high-fidelity landing page matching the provided UI mockup (Sketchify concept layout adapted to the user's AI Photo Editor & Virtual Try-On application).
+- **Modular Component Architecture:**
+  - `components/landing/navbar.tsx`: Header navigation, brand badge `GlamMorph.ai`, category links, credits pill, and responsive mobile/tablet drawer.
+  - `components/landing/hero.tsx`: High-impact headline, subtitle, interactive pill upload bar, central Before/After showcase with rotating AI sync badge, and 4 floating cards with signature offset wireframe borders.
+  - `components/landing/stats-banner.tsx`: Vibrant full-width orange stats strip (`50K+ Active Users`, `4.9 ★ Rating`, `1.2M+ Photos Transformed`).
+  - `components/landing/feature-intro.tsx`: "Try your first 5 transformations Completely Free" banner with CTA buttons.
+  - `components/landing/feature-card.tsx` & `feature-alternating.tsx`: 4 alternating feature blocks with watercolor brush script titles, badges, and offset wireframe layers:
+    1. Virtual Try-On (`/ai-photo-editing-images/ai-virtual-cloth-try-on.webp`)
+    2. Skin & Face AI (`/ai-photo-editing-images/ai-skin-analaysis.webp`)
+    3. Hair & Beard Studio (`/ai-photo-editing-images/beard-try-on.jpg`)
+    4. Glamour & Makeup Transfer (`/ai-photo-editing-images/ai-makeup-try-on.jpg`)
+  - `components/landing/services-grid.tsx`: 4 soft cream service cards with custom gradient icons covering Virtual Wardrobe, Skin & Body Contouring, Hair & Beard Makeover, and Studio Retouch.
+  - `components/landing/testimonials.tsx`: Community reviews with terracotta and dark espresso cards, quotation badges, avatars, and 5-star ratings.
+  - `components/landing/pricing.tsx`: Transparent pricing section with monthly/yearly toggle, 3 plans (Basic $19/wk, Plus $1,199/yr elevated orange card, Advanced $89/mo), and trust badges.
+  - `components/landing/footer.tsx`: Deep espresso brown `#1C0D06` footer with brand info, quick links, contact details, newsletter input, and copyright.
+  - `components/landing/quick-try-modal.tsx`: Interactive preview modal allowing users to test before/after styles across categories and download results.
+- **Styling & Fonts:** Integrated Google Font `Caveat` for artistic handwritten headings (`.font-script`), added custom brush watercolor accents, and verified full responsiveness across mobile (375px), tablet (768px), and desktop (1280px+).
+- **Build Verification:** Tested and passed full production build (`npm run build`) with zero TypeScript or styling errors.
 
 ### [2026-11-02] - Initial InsForge Setup & Configuration
 - **InsForge Skills:** Installed `insforge`, `insforge-cli`, `insforge-debug`, `insforge-integrations`, and `find-skills` via `npx -y @insforge/cli link`. Mounted junctions in `.agents/skills` and `~/.gemini/config/skills`.
