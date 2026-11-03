@@ -43,7 +43,7 @@ export function FeatureCard({
             reversed ? "lg:col-start-2" : "lg:col-start-1"
           }`}
         >
-          <div className="relative mx-auto aspect-[4/3] sm:aspect-[16/11] max-w-lg">
+          <div className="relative mx-auto aspect-[1200/850] max-w-lg">
             {/* Background offset wireframe outlines */}
             <div
               className={`absolute inset-0 rounded-3xl border border-amber-300/60 pointer-events-none transition-transform duration-500 ${
@@ -63,7 +63,7 @@ export function FeatureCard({
                   src={imageSrc}
                   alt={imageAlt}
                   fill
-                  className="object-cover object-top transition-transform duration-700 hover:scale-105"
+                  className="object-cover object-center transition-transform duration-700 hover:scale-105"
                 />
 
                 {/* Subtle top badge */}

@@ -80,6 +80,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Image Cropping & Aspect Ratio Optimization Across All Cards
+- **Hero Showcase Slider Aspect Ratio:** Changed the main image container aspect ratio from `aspect-[16/10]` to `aspect-[1200/850]`, perfectly matching the 1.414 native aspect ratio of all showcase assets (`ai-makeup-transfer.jpg`, `photo-enhance.jpg`, `hairstyle.jpg`, `object-remove.jpg`, etc.). Eliminated all vertical head, chin, arrow, and label cropping.
+- **Hero Floating Cards Landscape Optimization:** Replaced fixed height containers (`h-40`, `h-32`) with `aspect-[1200/850]` and `object-center`. Preview images (`object-remove.jpg`, `hairstyle.jpg`, `photo-colorize.jpg`, `photo-lightining.jpg`) now display the full before/after scene without slicing people in half or clipping the edges.
+- **Feature Intro Age Progression Card:** Adjusted `aspect-4/3` to `aspect-[1148/646]` (exact 16:9) matching `ai-age.webp`. All age transition stages from young to old are now 100% visible without horizontal edge clipping.
+- **Feature Alternating Cards:** Updated `feature-card.tsx` to `aspect-[1200/850]` and `object-cover object-center` to preserve complete dresses, body silhouettes, and retouching details without bottom clipping.
+
 ### [2026-11-03] - Navbar Width Alignment for Hero Floating Cards & Virtual Try-On Border Unification
 - **Hero Floating Cards Navbar Alignment:** In [`components/landing/hero.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/hero.tsx), removed all negative horizontal offsets (`-left-8`, `-right-8`, etc.) that were causing the floating preview cards to stretch past the page edges. Aligned all 4 floating cards strictly to `left-0 xl:left-2` (matching the Navbar Logo) and `right-0 xl:right-2` (matching the Navbar "Get Started" button) within the `max-w-7xl` container.
 - **Wireframe & Border Unification (Virtual Try-On Style):**

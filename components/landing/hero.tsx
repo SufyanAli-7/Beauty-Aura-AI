@@ -175,15 +175,15 @@ export function Hero() {
         {/* Central Showcase with Signature Floating Sketch Cards */}
         <div className="relative mt-12 lg:mt-16">
           {/* Floating Decorative Preview Card 1: Hairstyle Preview (Top Left) */}
-          <div className="hidden lg:block absolute -top-4 left-0 xl:left-2 z-20 w-40 xl:w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-4 left-0 xl:left-2 z-20 w-44 xl:w-48 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[-6deg] translate-x-[-4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-40 xl:h-44 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative aspect-[1200/850] w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/hairstyle.jpg"
                   alt="Hairstyle Studio Preview"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
                 <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
                   Hairstyle
@@ -193,15 +193,15 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 2: Photo Colorize (Bottom Left) */}
-          <div className="hidden lg:block absolute -bottom-6 left-0 xl:left-2 z-20 w-36 xl:w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-6 left-0 xl:left-2 z-20 w-40 xl:w-44 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[4deg] translate-x-[4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-32 xl:h-36 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative aspect-[1200/850] w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/photo-colorize.jpg"
                   alt="Colorize Restoration Preview"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
                 <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
                   Colorize
@@ -211,15 +211,15 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 3: Object Erase (Top Right) */}
-          <div className="hidden lg:block absolute -top-4 right-0 xl:right-2 z-20 w-40 xl:w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-4 right-0 xl:right-2 z-20 w-44 xl:w-48 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[6deg] translate-x-[4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-40 xl:h-44 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative aspect-[1200/850] w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/object-remove.jpg"
                   alt="Object Erase Preview"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
                 <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
                   Object Erase
@@ -229,15 +229,15 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 4: Studio Lighting (Bottom Right) */}
-          <div className="hidden lg:block absolute -bottom-6 right-0 xl:right-2 z-20 w-36 xl:w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-6 right-0 xl:right-2 z-20 w-40 xl:w-44 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[-4deg] translate-x-[-4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-32 xl:h-36 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative aspect-[1200/850] w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/photo-lightining.jpg"
                   alt="Photo Lighting Preview"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
                 <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
                   Lighting
@@ -255,7 +255,7 @@ export function Hero() {
             <div className="relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-2.5 sm:p-3 shadow-xl shadow-orange-950/5">
               {/* Single Prominent Showcase Image Container */}
               <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/30">
-                <div className="relative aspect-[16/10] sm:aspect-[16/10] w-full overflow-hidden">
+                <div className="relative aspect-[1200/850] w-full overflow-hidden">
                   <Image
                     key={current.image}
                     src={current.image}

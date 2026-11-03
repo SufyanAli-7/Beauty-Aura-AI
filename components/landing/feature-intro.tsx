@@ -53,12 +53,12 @@ export function FeatureIntro() {
 
             {/* Main Rounded Photo Card */}
             <div className="relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-2.5 shadow-xl shadow-orange-950/5">
-              <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-orange-50/50">
+              <div className="relative aspect-[1148/646] w-full overflow-hidden rounded-2xl bg-orange-50/50">
                 <Image
                   src="/ai-photo-editing-images/ai-age.webp"
                   alt="AI Age Transformation & Photo Styling"
                   fill
-                  className="object-cover transition-transform duration-500 hover:scale-105"
+                  className="object-cover object-center transition-transform duration-500 hover:scale-105"
                   sizes="(min-width: 1280px) 512px, (min-width: 1024px) 448px, 100vw"
                 />
                 
