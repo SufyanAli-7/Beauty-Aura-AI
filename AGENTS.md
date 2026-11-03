@@ -80,6 +80,15 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Aspect Ratio & Crop Elimination Across All Feature Cards (Virtual Try-On to End)
+- **Feature Alternating Cards (`FeatureCard`):** Added dynamic `aspectRatio` and `subImageAspect` props to `feature-card.tsx`.
+- **Card-by-Card Native Ratio Alignment:**
+  1. **Virtual Try-On:** Main image set to exact `aspect-[1200/849]` (1.41) with `w-28 h-28 aspect-square` blazer swatch.
+  2. **Skin & Face AI:** Main image set to `aspect-[528/352]` (3:2 = 1.50) with `w-32 sm:w-36 aspect-[1148/646]` skin analysis chart badge (eliminating badge text cut-off).
+  3. **Hair & Beard Studio:** Main image set to `aspect-[1148/646]` (16:9 = 1.78), showing 100% of the before/after beard comparison without side slicing. Sub-badge set to `w-32 sm:w-36 aspect-[570/319]` preserving all hair dye palette swatches.
+  4. **Glamour & Makeup Transfer:** Main image set to `aspect-[1148/646]` (16:9 = 1.78) with `w-24 h-24 aspect-square` contact lens preview, completely uncropped.
+- **Production Build:** Verified 100% clean compilation (`npm run build`).
+
 ### [2026-11-03] - Image Cropping & Aspect Ratio Optimization Across All Cards
 - **Hero Showcase Slider Aspect Ratio:** Changed the main image container aspect ratio from `aspect-[16/10]` to `aspect-[1200/850]`, perfectly matching the 1.414 native aspect ratio of all showcase assets (`ai-makeup-transfer.jpg`, `photo-enhance.jpg`, `hairstyle.jpg`, `object-remove.jpg`, etc.). Eliminated all vertical head, chin, arrow, and label cropping.
 - **Hero Floating Cards Landscape Optimization:** Replaced fixed height containers (`h-40`, `h-32`) with `aspect-[1200/850]` and `object-center`. Preview images (`object-remove.jpg`, `hairstyle.jpg`, `photo-colorize.jpg`, `photo-lightining.jpg`) now display the full before/after scene without slicing people in half or clipping the edges.

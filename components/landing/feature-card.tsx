@@ -15,6 +15,8 @@ export interface FeatureCardProps {
   subImageAlt?: string;
   reversed?: boolean;
   actionText?: string;
+  aspectRatio?: string;
+  subImageAspect?: string;
 }
 
 export function FeatureCard({
@@ -29,6 +31,8 @@ export function FeatureCard({
   subImageAlt,
   reversed = false,
   actionText = "Try this look free",
+  aspectRatio = "aspect-[1200/850]",
+  subImageAspect = "w-28 h-28 aspect-square",
 }: FeatureCardProps) {
   return (
     <div id={id} className="relative py-12 sm:py-16">
@@ -43,7 +47,7 @@ export function FeatureCard({
             reversed ? "lg:col-start-2" : "lg:col-start-1"
           }`}
         >
-          <div className="relative mx-auto aspect-[1200/850] max-w-lg">
+          <div className={`relative mx-auto ${aspectRatio} w-full max-w-xl`}>
             {/* Background offset wireframe outlines */}
             <div
               className={`absolute inset-0 rounded-3xl border border-amber-300/60 pointer-events-none transition-transform duration-500 ${
@@ -79,14 +83,14 @@ export function FeatureCard({
               <div
                 className={`absolute -bottom-5 ${
                   reversed ? "-left-5" : "-right-5"
-                } z-10 hidden sm:block w-28 h-28 rounded-2xl border-2 border-white bg-white p-1.5 shadow-lg shadow-orange-900/10 transition-transform hover:scale-110 duration-300`}
+                } z-10 hidden sm:block ${subImageAspect} rounded-2xl border-2 border-white bg-white p-1.5 shadow-lg shadow-orange-900/10 transition-transform hover:scale-110 duration-300`}
               >
-                <div className="relative h-full w-full overflow-hidden rounded-xl">
+                <div className="relative h-full w-full overflow-hidden rounded-xl bg-orange-50/40">
                   <Image
                     src={subImageSrc}
                     alt={subImageAlt || "Detail preview"}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                   />
                 </div>
               </div>

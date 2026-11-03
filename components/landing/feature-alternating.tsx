@@ -17,6 +17,8 @@ export function FeatureAlternating() {
       subImageAlt: "Tailored blazer swatch",
       reversed: false,
       actionText: "Try on outfits now",
+      aspectRatio: "aspect-[1200/849]",
+      subImageAspect: "w-28 h-28 aspect-square",
     },
     {
       id: "skin-face-ai",
@@ -31,6 +33,8 @@ export function FeatureAlternating() {
       subImageAlt: "Skin analysis swatch",
       reversed: true,
       actionText: "Analyze skin & glow",
+      aspectRatio: "aspect-[528/352]",
+      subImageAspect: "w-32 sm:w-36 aspect-[1148/646]",
     },
     {
       id: "hair-beard-studio",
@@ -45,6 +49,8 @@ export function FeatureAlternating() {
       subImageAlt: "Hair color palette swatch",
       reversed: false,
       actionText: "Experiment with hairstyles",
+      aspectRatio: "aspect-[1148/646]",
+      subImageAspect: "w-32 sm:w-36 aspect-[570/319]",
     },
     {
       id: "makeup-beauty",
@@ -59,6 +65,8 @@ export function FeatureAlternating() {
       subImageAlt: "Eye contact lens preview",
       reversed: true,
       actionText: "Transfer makeup look",
+      aspectRatio: "aspect-[1148/646]",
+      subImageAspect: "w-24 h-24 aspect-square",
     },
   ];
 
