@@ -79,6 +79,29 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Custom Dropdown Styling & Mobile View Live Studio Canvas Ordering (Beauty & Fashion)
+- **Custom Dropdown Component Implementation (`app/dashboard/fashion/page.tsx`):**
+  - Replaced native OS `<select>` elements in Fashion Style (Bag Try-On) and Aesthetic Style (Hat Try-On) with custom styled `CustomDropdown` component.
+  - Features:
+    - Warm orange theme trigger button (`border-orange-200/90`, hover: `border-orange-300 bg-orange-50/20`, active/open: `border-[#FF5500] ring-2 ring-[#FF5500]/25 shadow-orange-500/10`).
+    - Floating options popup (`border-orange-200/90 bg-white/95 backdrop-blur-md shadow-xl`) with smooth fade-in animation.
+    - Active item highlight with orange gradient, bold text, and Lucide `Check` icon indicator (`stroke-[2.5] text-[#FF5500]`).
+    - Full outside click handling (`useRef` + `mousedown` event listener) and chevron icon rotation.
+- **Mobile View Layout & Canvas Position Fix (`app/dashboard/beauty/page.tsx` & `app/dashboard/fashion/page.tsx`):**
+  - Resolved mobile layout bug where the Live Studio Canvas rendered overlapping or above Option 3 on small screens.
+  - Dynamically conditioned the left column's `maxHeight` via `isDesktop` state:
+    - On desktop (`lg:`, width >= 1024px): `maxHeight` matches `canvasHeight` for synchronized scrolling and canvas height lock.
+    - On mobile (< 1024px): `maxHeight` is `undefined`, allowing options 1, 2, and 3 to expand naturally to full height.
+  - Set explicit flex/grid ordering:
+    - Left column (Controls & Customization): `order-1 lg:order-none`.
+    - Right column (Live Studio Canvas): `order-2 lg:order-none`.
+    - Canvas is now cleanly placed at the very bottom (last) in mobile view after all options and the primary Generate button.
+  - Added smooth auto-scroll to the canvas when the user taps Generate on mobile view.
+- **Verification:**
+  - Emulated mobile (`375x812`) and desktop (`1440x900`) viewports in Chrome DevTools MCP.
+  - Verified `rightColTop >= leftColBottom` (no overlap, `isRightAfterLeft: true`).
+  - Production build compiled with zero errors across all 19 routes (`npm run build`).
+
 ### [2026-11-03] - Fashion AI Studio Implementation (4 Tools, MCP Integration, UI Alignment & Canvas Height Lock)
 - **4 Fashion AI Tools Implemented:**
   - Integrated all four requested Fashion AI tools into the Studio:

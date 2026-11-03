@@ -252,6 +252,16 @@ export default function BeautyStudioPage() {
   // Reference & state to match Left Options (1, 2, 3) scroll container height with Live Studio Canvas
   const canvasCardRef = useRef<HTMLDivElement>(null);
   const [canvasHeight, setCanvasHeight] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
+  }, []);
 
   useEffect(() => {
     if (!canvasCardRef.current) return;
@@ -432,6 +442,10 @@ export default function BeautyStudioPage() {
     setIsGenerating(true);
     setGenerationStep("Initializing Beauty AI Engine...");
 
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && canvasCardRef.current) {
+      canvasCardRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+
     try {
       // Step A: Prepare Look Payload based on selected tool
       let lookData: any = {};
@@ -570,8 +584,8 @@ export default function BeautyStudioPage() {
             LEFT COLUMN: Controls & Customization (Scrollable Options 1, 2, 3)
            ========================================================================= */}
         <div
-          style={canvasHeight ? { maxHeight: `${canvasHeight}px` } : { maxHeight: "740px" }}
-          className="lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
+          style={isDesktop && canvasHeight ? { maxHeight: `${canvasHeight}px` } : undefined}
+          className="order-1 lg:order-none lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
         >
           {/* 1. CHOOSE & CUSTOMIZE: 3 Selectable Tool Cards */}
           <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-3.5">
@@ -1244,7 +1258,7 @@ export default function BeautyStudioPage() {
         {/* =========================================================================
             RIGHT COLUMN: Generated Result / Studio Viewport
            ========================================================================= */}
-        <div className="lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
           <div
             ref={canvasCardRef}
             className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 sm:p-5 shadow-lg flex flex-col justify-between min-h-[580px] sm:min-h-[660px]"

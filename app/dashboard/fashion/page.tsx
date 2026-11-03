@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   Footprints,
   Crown,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -254,6 +255,115 @@ const HAT_LOOKS = [
   },
 ];
 
+// Dropdown Options
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+const BAG_STYLE_OPTIONS: DropdownOption[] = [
+  { value: "style_parisian_chic", label: "Parisian Chic" },
+  { value: "style_urban_chic", label: "Urban Chic" },
+  { value: "style_mediterranean_chic", label: "Mediterranean" },
+  { value: "style_art_deco_style", label: "Art Deco Style" },
+  { value: "random", label: "Dynamic / Random" },
+];
+
+const HAT_STYLE_OPTIONS: DropdownOption[] = [
+  { value: "style_urban_fashion", label: "Urban Fashion" },
+  { value: "style_sporty_casual", label: "Sporty Casual" },
+  { value: "style_vacation_casual", label: "Vacation Casual" },
+  { value: "style_warm_cozy", label: "Warm & Cozy" },
+  { value: "style_bohemian", label: "Bohemian" },
+  { value: "random", label: "Dynamic / Random" },
+];
+
+// Styled Custom Dropdown Component
+function CustomDropdown({
+  value,
+  onChange,
+  options,
+  placeholder = "Select style...",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: DropdownOption[];
+  placeholder?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find((opt) => opt.value === value) || options[0];
+
+  return (
+    <div ref={dropdownRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "w-full flex items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 text-xs font-bold text-zinc-900 transition-all cursor-pointer shadow-2xs",
+          isOpen
+            ? "border-[#FF5500] ring-2 ring-[#FF5500]/25 shadow-orange-500/10"
+            : "border-orange-200/90 hover:border-orange-300 hover:bg-orange-50/20"
+        )}
+      >
+        <span className="truncate">{selectedOption?.label || placeholder}</span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 text-zinc-500 transition-transform duration-200 shrink-0",
+            isOpen && "rotate-180 text-[#FF5500]"
+          )}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1.5 overflow-hidden rounded-2xl border border-orange-200/90 bg-white/95 p-1.5 shadow-xl shadow-orange-950/10 backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+          <div className="space-y-0.5 max-h-56 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]">
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-semibold transition cursor-pointer text-left",
+                    isSelected
+                      ? "bg-gradient-to-r from-orange-50 via-amber-50/50 to-orange-50/20 text-[#FF5500] font-bold"
+                      : "text-zinc-700 hover:bg-orange-50/60 hover:text-zinc-900"
+                  )}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {isSelected && (
+                    <Check className="h-3.5 w-3.5 text-[#FF5500] stroke-[2.5] shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FashionStudioPage() {
   const { user, credits, setCredits } = useAuth();
 
@@ -316,6 +426,16 @@ export default function FashionStudioPage() {
   // Reference & state to synchronize left options height with Live Studio Canvas
   const canvasCardRef = useRef<HTMLDivElement>(null);
   const [canvasHeight, setCanvasHeight] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
+  }, []);
 
   useEffect(() => {
     if (!canvasCardRef.current) return;
@@ -503,6 +623,10 @@ export default function FashionStudioPage() {
     setIsGenerating(true);
     setGenerationStep("Initializing Fashion AI Engine...");
 
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && canvasCardRef.current) {
+      canvasCardRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+
     try {
       // Step A: Prepare Look Payload based on selected tool
       let lookData: any = {};
@@ -650,8 +774,8 @@ export default function FashionStudioPage() {
             LEFT COLUMN: Controls & Customization (Scrollable Options 1, 2, 3)
            ========================================================================= */}
         <div
-          style={canvasHeight ? { maxHeight: `${canvasHeight}px` } : { maxHeight: "740px" }}
-          className="lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
+          style={isDesktop && canvasHeight ? { maxHeight: `${canvasHeight}px` } : undefined}
+          className="order-1 lg:order-none lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
         >
           {/* 1. CHOOSE & CUSTOMIZE: 4 Selectable Fashion AI Tool Cards */}
           <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-3.5">
@@ -1079,17 +1203,11 @@ export default function FashionStudioPage() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-zinc-700">Fashion Style</label>
-                    <select
+                    <CustomDropdown
                       value={bagStyle}
-                      onChange={(e) => setBagStyle(e.target.value)}
-                      className="w-full rounded-xl border border-orange-200 bg-white p-1.5 text-xs font-bold text-zinc-900 cursor-pointer outline-none focus:ring-1 focus:ring-[#FF5500]"
-                    >
-                      <option value="style_parisian_chic">Parisian Chic</option>
-                      <option value="style_urban_chic">Urban Chic</option>
-                      <option value="style_mediterranean_chic">Mediterranean</option>
-                      <option value="style_art_deco_style">Art Deco Style</option>
-                      <option value="random">Dynamic / Random</option>
-                    </select>
+                      onChange={setBagStyle}
+                      options={BAG_STYLE_OPTIONS}
+                    />
                   </div>
                 </div>
 
@@ -1234,18 +1352,11 @@ export default function FashionStudioPage() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-zinc-700">Aesthetic Style</label>
-                    <select
+                    <CustomDropdown
                       value={hatStyle}
-                      onChange={(e) => setHatStyle(e.target.value)}
-                      className="w-full rounded-xl border border-orange-200 bg-white p-1.5 text-xs font-bold text-zinc-900 cursor-pointer outline-none focus:ring-1 focus:ring-[#FF5500]"
-                    >
-                      <option value="style_urban_fashion">Urban Fashion</option>
-                      <option value="style_sporty_casual">Sporty Casual</option>
-                      <option value="style_vacation_casual">Vacation Casual</option>
-                      <option value="style_warm_cozy">Warm &amp; Cozy</option>
-                      <option value="style_bohemian">Bohemian</option>
-                      <option value="random">Dynamic / Random</option>
-                    </select>
+                      onChange={setHatStyle}
+                      options={HAT_STYLE_OPTIONS}
+                    />
                   </div>
                 </div>
 
@@ -1384,7 +1495,7 @@ export default function FashionStudioPage() {
         {/* =========================================================================
             RIGHT COLUMN: Generated Result / Studio Viewport
            ========================================================================= */}
-        <div className="lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
           <div
             ref={canvasCardRef}
             className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 sm:p-5 shadow-lg flex flex-col justify-between min-h-[580px] sm:min-h-[660px]"
