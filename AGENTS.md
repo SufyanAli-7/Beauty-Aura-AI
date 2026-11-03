@@ -80,6 +80,56 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Beauty AI Studio Source Portrait Image & Lens Palette Refinements
+- **Source Portrait Section (`app/dashboard/beauty/page.tsx`):**
+  - **Upload Photo First:** Set "Upload Photo" as the primary first tab in the tab switcher, active by default. "Sample Portraits (5)" is placed as the second tab.
+  - **Full Face Visibility for Sample Portraits:**
+    - Fixed portrait cropping where chin and mouth were previously cut off by changing the image container to `aspect-[3/4]` with `object-cover object-center`.
+    - Repositioned portrait model names (`Elena`, `Sophia`, `Amara`, `Mia`, `Lucas`) cleanly below each card instead of overlaying them on the lower chin area.
+- **Lens Palette Asset Integration (`app/dashboard/beauty/page.tsx`):**
+  - Replaced generic CSS color swatches with the real optical contact lens assets from `public/eye-lens/`:
+    1. `Hazel Olive` (`/eye-lens/webp_eye_len_01.png`)
+    2. `Rose Petal` (`/eye-lens/webp_eye_len_02.png`)
+    3. `Galaxy Violet` (`/eye-lens/webp_eye_len_03.png`)
+    4. `Amber Gold` (`/eye-lens/webp_eye_len_04.png`)
+    5. `Lavender Mist` (`/eye-lens/webp_eye_len_05_a2cb4f207a.png`)
+    6. `Ocean Aqua` (`/eye-lens/webp_eye_len_06_a6bc280531.png`)
+  - Styled with circular optical pupils on `bg-zinc-950` backing with subtle hover zoom and active ring selection.
+- **Controls Streamlining:**
+  - Completely removed the *Transformation Intensity* and *Skin Texture Retention* sliders for a cleaner, faster workflow.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero errors across all 16 static routes.
+
+### [2026-11-03] - Beauty AI Studio Two-Column UI/UX Implementation
+- **Beauty Studio Layout (`app/dashboard/beauty/page.tsx`):**
+  - Implemented the full two-column Studio interface for the Beauty category.
+  - **Left Column (Controls & Customization):**
+    1. **Choose & Customize:**
+       - Selectable cards for all 3 requested Beauty AI tools:
+         - **AI Makeup Transfer** (`/ai-photo-editing-images/ai-makeup-transfer.jpg`)
+         - **AI Makeup Virtual Try-On** (`/ai-photo-editing-images/ai-makeup-try-on.jpg`)
+         - **AI Eye Color Virtual Try-On** (`/ai-photo-editing-images/eye-color-try-on.webp`)
+       - Distinct active state with glowing orange border (`ring-2 ring-[#FF5500]`), gradient background, and active checkmark badge.
+    2. **Source Image Section:**
+       - Dual selection switcher:
+         - **Sample Portraits:** Interactive 5-headshot grid (`Elena`, `Sophia`, `Amara`, `Mia`, `Lucas` from `/normal-headshot/`).
+         - **Upload Photo:** Drag-and-drop zone with dotted orange borders and local file browser.
+       - Selected image preview card with facial centering status and clear option.
+    3. **Choose Look (Dynamic Per Tool):**
+       - **AI Makeup Transfer:** Selectable reference looks grid (`Golden Glamour`, `Smokey Velvet`, `Sunset Coral`, `Editorial Crimson` from `/makeup-transfer/`).
+       - **AI Makeup Virtual Try-On:** Curated style presets (`French Girl Nude`, `Red Carpet Siren`, `K-Beauty Dewy Glow`, `Warm Latte Mocha`) + clickable Lipstick Shade Palette swatches (`Scarlet Crimson`, `French Nude`, `Petal Pink`, `Warm Mocha`, `Plum Berry`, `Coral Sunset`).
+       - **AI Eye Color Virtual Try-On:** Optical contact lens color swatches from `/beauty-looks/eye-color/` (`Sapphire`, `Emerald`, `Amber`, `Hazel`, `Violet`, `Azure`, `Gray`, `Honey`).
+       - Sliders for Transformation Intensity and Skin Texture Retention.
+       - Primary CTA button: `"Generate Transformation (1 Credit)"`.
+  - **Right Column (Generated Result / Studio Viewport):**
+    - Dedicated spacious canvas with dark studio backing (`4K HD Output`).
+    - **Pre-Generation State:** Shows the loaded source portrait with *"Your result will appear here"* prompt and quick preview button.
+    - **Post-Generation State:** Displays the generated result prominently with 3 view modes:
+      - `Result Only`
+      - `Interactive Split Compare Slider` (draggable before/after divider handle)
+      - `Original Photo`
+    - Action bar with Reset and `"Download 4K Result"` lossless export buttons.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) and visual inspection in Chrome DevTools MCP.
+
 ### [2026-11-03] - Workspace Gallery Recent Transformations Empty State Implementation
 - **Dashboard Overview (`app/dashboard/page.tsx`):**
   - Updated the **`Workspace Gallery / Recent Transformations`** section to display a dedicated empty state container when no transformations exist (`recentProjects.length === 0`).
