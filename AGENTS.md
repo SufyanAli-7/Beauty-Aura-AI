@@ -76,6 +76,16 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Beauty AI Studio Options 1-3 Scrollbar & Viewport Canvas Height Lock
+- **Left Options (1, 2, 3) Internal Scroll Container:**
+  - Placed options 1 (Choose Tool), 2 (Source Portrait), and 3 (Choose Look) inside a dedicated scrollable container with a custom slim scrollbar (`overflow-y-auto`, `[scrollbar-width:thin]`, warm orange scrollbar thumb).
+  - Dynamically bound the left column's `maxHeight` via `ResizeObserver` to match the exact live pixel height of the **Live Studio Canvas** on the right (670px in pre-generation state, 739px in post-generation state).
+- **Page Height Capped at Live Studio Canvas:**
+  - Removed excessive bottom padding (`pb-16` -> `pb-2`) and added `lg:sticky lg:top-24` to the canvas viewport.
+  - The overall page document height dropped from 1704px down to 872px (fitting fully within a 900px viewport).
+  - The page no longer scrolls into empty space past the bottom of the Live Studio Canvas; the right viewport remains permanently pinned and visible while options 1, 2, and 3 scroll smoothly on the left.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero errors across all 18 routes. Live height matching and scrolling verified via Chrome DevTools MCP (`isExactMatch: true`).
+
 ### [2026-11-03] - Dashboard Header & Sidebar Logo Height Synchronization (80px / h-20)
 - **Top Header & Sidebar Logo Section Height Alignment:**
   - Resolved alignment mismatch where the sidebar logo section was ~80px (`py-4` + text lines) while the top dashboard header was 64px (`h-16`), creating an uneven step in the horizontal dividing border.
