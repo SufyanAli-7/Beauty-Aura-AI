@@ -80,6 +80,50 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Dashboard Layout with Sidebar, AI Tools Navigation, Remaining Credits & Top Header
+- **Dashboard Sidebar Component (`components/dashboard/dashboard-sidebar.tsx`):**
+  - **Header:** Features official app logo emblem (`/beauty-aura-logo.png`), brand typography `BeautyAura.ai` ("Fashion & Beauty Lab"), and home link.
+  - **Navigation Structure:**
+    - **Dashboard Option:** Top-level overview (`/dashboard`).
+    - **AI Tools Section Header:** Tagged with "5 Studios".
+    - **Under AI Tools Categories:**
+      1. `AI Skin & Face Analysis` (`/dashboard/skin-face`)
+      2. `Beauty` (`/dashboard/beauty`)
+      3. `Fashion` (`/dashboard/fashion`)
+      4. `Hair & Beard` (`/dashboard/hair-beard`)
+      5. `AI Extras` (`/dashboard/extras`)
+    - **Workspace Options:**
+      - `My Projects` (`/dashboard/projects`)
+      - `Templates` (`/dashboard/templates`)
+      - `Billing` (`/dashboard/billing`)
+  - **Sidebar Bottom:**
+    - **Remaining Credits Card:** Displays available credit balance (e.g. `5 / 25 credits`), visual meter progress bar, `Free Plan Tier Renews monthly`, and interactive `Refill >` button linking to `/dashboard/billing`.
+    - **User Profile Row:** Displays profile avatar (image or initial gradient circle), user name, user email, and quick sign-out action button.
+- **Dashboard Top Header Component (`components/dashboard/dashboard-header.tsx`):**
+  - Mobile menu toggle (`Menu` hamburger icon) triggering the sliding drawer.
+  - Dynamic breadcrumb path / page title reflecting current studio.
+  - Global search bar with `⌘K` keyboard shortcut and accessible label.
+  - Quick action button `+ New Transformation` with warm orange gradient.
+  - `⚡ 5 Credits` balance pill with link to billing.
+  - Notifications bell with unread indicator and interactive dropdown.
+  - **User Profile Avatar on the Right Side:** Clickable avatar trigger opening an interactive profile dropdown with user name, email, plan tier, links to Dashboard, Projects, Billing, Landing page, and Sign Out.
+- **Dashboard Layout (`app/dashboard/layout.tsx`):**
+  - Persistent desktop sidebar (`lg:w-72 xl:w-80`) and mobile drawer overlay (`isMobileOpen`).
+  - Warm cream canvas background (`bg-[#FAF7F2]`) matching the BeautyAura aesthetic.
+- **Complete Sub-Pages:**
+  - `app/dashboard/page.tsx`: Creative Studio hub with welcome greeting, quick statistics, 5 studio cards with real thumbnails, and recent projects gallery.
+  - `app/dashboard/skin-face/page.tsx`: AI Skin & Face Analysis workspace with tool tabs, 4K preview, and diagnostic sliders.
+  - `app/dashboard/beauty/page.tsx`: Beauty studio with viral makeup transfer, eye lens optical colors, and lipstick shade palette.
+  - `app/dashboard/fashion/page.tsx`: Virtual fitting room with garment drape, bags, shoes, and sizing fit controls.
+  - `app/dashboard/hair-beard/page.tsx`: Hair & Beard salon with cuts, grooming lineup, hair dye swatches, and density sliders.
+  - `app/dashboard/extras/page.tsx`: AI Extras with 4K clarity upscaler, inpainting object erase, and studio relighting.
+  - `app/dashboard/projects/page.tsx`: My Projects gallery with category filtering, resolutions, file sizes, and download actions.
+  - `app/dashboard/templates/page.tsx`: Ready-to-use aesthetic style formulas with ratings and usage counts.
+  - `app/dashboard/billing/page.tsx`: Available balance display, instant top-up credit packs, monthly/yearly subscription plans, and invoice history.
+- **Navbar Integration (`components/landing/navbar.tsx`):**
+  - Connected desktop and mobile "Studio" buttons to `/dashboard`.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) and visual validation in Chrome DevTools MCP.
+
 ### [2026-11-03] - Mobile Navbar Studio Button Next to Hamburger Icon
 - **Navbar Mobile View (`components/landing/navbar.tsx`):**
   - Updated mobile top bar so that when a user is signed in, a vibrant **"Studio"** button with `Sparkles` icon is displayed right next to the hamburger icon (in the exact position where "Try Free" appears when logged out).

@@ -79,7 +79,7 @@ export function Navbar() {
             <div className="flex items-center gap-2.5">
               {/* Studio Action Pill */}
               <Link
-                href="#features"
+                href="/dashboard"
                 className="group inline-flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3.5 py-1.5 text-xs font-semibold text-zinc-800 transition hover:bg-orange-100 hover:border-orange-300"
               >
                 <Sparkles className="h-3.5 w-3.5 text-[#FF5500] transition-transform group-hover:scale-110" />
@@ -143,7 +143,7 @@ export function Navbar() {
         <div className="flex lg:hidden items-center gap-2">
           {user ? (
             <Link
-              href="#features"
+              href="/dashboard"
               className="group inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
             >
               <Sparkles className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
@@ -221,7 +221,7 @@ export function Navbar() {
                       <p className="text-xs text-zinc-500 truncate">{user.email}</p>
                     </div>
                     <Link
-                      href="#features"
+                      href="/dashboard"
                       onClick={() => setMobileMenuOpen(false)}
                       className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#FF5500] border border-orange-200"
                     >
