@@ -194,8 +194,8 @@ export function DashboardSidebar({
   const sidebarContent = (
     <div className="flex h-full flex-col justify-between bg-white backdrop-blur-md">
       {/* 1. Header with App Logo and App Name */}
-      <div className="border-b border-orange-100/80 px-5 py-4 shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="flex h-20 items-center border-b border-orange-100/80 px-5 shrink-0">
+        <div className="flex w-full items-center justify-between">
           <Link
             href="/dashboard"
             onClick={onMobileClose}

@@ -87,7 +87,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-orange-100/80 bg-white/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-orange-100/80 bg-white/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
       {/* Left: Mobile Toggle & Page Title / Breadcrumb */}
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Mobile menu trigger */}
