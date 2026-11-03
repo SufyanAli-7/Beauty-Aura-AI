@@ -103,7 +103,7 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
                 <span className="hidden sm:inline-block text-xs font-semibold text-orange-600">
                   Instant
                 </span>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF5500] to-[#FFA033] text-white shadow-md transition-transform group-hover:scale-110">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF5500] to-[#FFA033] text-white shadow-md transition-transform group-hover:scale-110 border-0 border-none outline-none ring-0">
                   <Wand2 className="h-4 w-4" />
                 </div>
               </div>
@@ -120,8 +120,9 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
             ].map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all border-0 border-none outline-none ring-0 ${
                   activeTab === tab.id
                     ? "bg-[#FF5500] text-white shadow-md shadow-orange-500/25 scale-105"
                     : "bg-white text-zinc-600 hover:bg-orange-50 hover:text-[#FF5500] border border-orange-100"
@@ -241,9 +242,9 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
                   </div>
                 </div>
 
-                {/* Center Sync / AI Transformation Floating Badge */}
+                {/* Center Sync / AI Transformation Floating Badge - Zero border / outline */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center pointer-events-none">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-tr from-[#FF5500] to-[#FFA433] text-white shadow-xl shadow-orange-600/30 animate-pulse">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF5500] to-[#FFA433] text-white shadow-xl shadow-orange-600/35 animate-pulse border-0 border-none outline-none ring-0">
                     <RefreshCw className="h-6 w-6" />
                   </div>
                 </div>
@@ -257,7 +258,7 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
                       fill
                       className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute top-3 right-3 rounded-full bg-[#FF5500] px-3 py-1 text-xs font-semibold text-white shadow-md shadow-orange-500/30 backdrop-blur-md flex items-center gap-1">
+                    <div className="absolute top-3 right-3 rounded-full bg-[#FF5500] px-3 py-1 text-xs font-semibold text-white shadow-md shadow-orange-500/30 backdrop-blur-md flex items-center gap-1 border-0 border-none outline-none ring-0">
                       <Sparkles className="h-3 w-3" />
                       After: AI Enhanced
                     </div>
@@ -266,7 +267,7 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
                     <span className="text-xs font-semibold text-[#FF5500] truncate">
                       {current.afterLabel}
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border-0 outline-none ring-0">
                       Studio AI
                     </span>
                   </div>
@@ -283,10 +284,11 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
                 </div>
 
                 <button
+                  type="button"
                   onClick={onOpenQuickTry}
-                  className="group inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50/80 px-4 py-1.5 text-xs font-semibold text-[#FF5500] transition-all hover:bg-orange-100 hover:border-orange-400"
+                  className="group inline-flex items-center gap-2 rounded-full border-0 border-none outline-none ring-0 bg-orange-100/90 hover:bg-orange-200/90 px-4 py-1.5 text-xs font-semibold text-[#FF5500] transition-all cursor-pointer"
                 >
-                  <span>Turn photos into fashion art with GlamMorph</span>
+                  <span>Turn photos into fashion art with BeautyAura</span>
                   <span className="text-zinc-400">|</span>
                   <span className="font-bold underline underline-offset-2">Explore Studio &gt;</span>
                 </button>
@@ -297,7 +299,7 @@ export function Hero({ onOpenQuickTry }: HeroProps) {
           {/* Bottom Descriptive Caption from Mockup */}
           <div className="mx-auto mt-8 max-w-xl text-center">
             <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
-              GlamMorph helps you try on any outfit, enhance skin naturally, shape hair &amp; beard, and produce studio-level fashion portraits you&apos;ll love sharing, printing, and gifting.
+              BeautyAura helps you try on any outfit, enhance skin naturally, shape hair &amp; beard, and produce studio-level fashion portraits you&apos;ll love sharing, printing, and gifting.
             </p>
           </div>
         </div>

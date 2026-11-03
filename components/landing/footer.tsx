@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowUpRight, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowUpRight, Mail, Phone, MapPin } from "lucide-react";
+import { Logo } from "./logo";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -22,13 +23,8 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           {/* Col 1: Brand & Bio (4 cols on lg) */}
           <div className="lg:col-span-4 flex flex-col space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-[#FF5500] to-[#FF881A] shadow-md shadow-orange-600/30">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-white">
-                GlamMorph<span className="text-[#FF5500]">.ai</span>
-              </span>
+            <Link href="/" className="inline-flex items-center">
+              <Logo dark />
             </Link>
 
             <p className="text-xs sm:text-sm text-stone-300/80 leading-relaxed max-w-sm">
@@ -77,7 +73,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 text-[#FF5500] shrink-0" />
-                <span>support@glammorph.ai</span>
+                <span>support@beautyaura.ai</span>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 text-[#FF5500] shrink-0" />
@@ -111,7 +107,7 @@ export function Footer() {
                 <button
                   type="submit"
                   aria-label="Subscribe to newsletter"
-                  className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#FF5500] text-white transition hover:bg-[#E64C00] shadow-sm cursor-pointer"
+                  className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#FF5500] text-white transition hover:bg-[#E64C00] shadow-sm cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </button>
@@ -127,7 +123,7 @@ export function Footer() {
 
         {/* Bottom copyright line (matching mockup) */}
         <div className="mt-14 border-t border-stone-800/80 pt-6 text-center text-xs text-stone-400">
-          <p>© 2026 GlamMorph. All rights reserved.</p>
+          <p>© 2026 BeautyAura. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -31,17 +31,18 @@ export function FeatureIntro({ onOpenQuickTry }: FeatureIntroProps) {
 
           {/* Action Buttons */}
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Button
+            <button
+              type="button"
               onClick={onOpenQuickTry}
-              className="h-11 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 hover:from-[#E64C00] hover:to-[#FF6A00] transition-all cursor-pointer"
+              className="group inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
             >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Try Your First 5 Transformations Free
-            </Button>
+              <Sparkles className="h-4 w-4" />
+              <span>Try Your First 5 Transformations Free</span>
+            </button>
 
             <a
               href="#features"
-              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-orange-200/90 bg-white px-5 text-sm font-semibold text-zinc-800 transition hover:bg-orange-50 hover:border-orange-300"
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-orange-200/90 bg-white px-5 text-sm font-semibold text-zinc-800 transition hover:bg-orange-50 hover:border-orange-300 outline-none ring-0"
             >
               Explore all Features
               <ArrowUpRight className="h-4 w-4 text-[#FF5500]" />

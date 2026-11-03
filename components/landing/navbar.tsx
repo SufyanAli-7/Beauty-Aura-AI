@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, Menu, X, ArrowUpRight, Shirt, Scissors, Wand2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X, ArrowUpRight, LogIn } from "lucide-react";
+import { Logo } from "./logo";
 
 interface NavbarProps {
   onOpenQuickTry?: () => void;
@@ -15,19 +15,9 @@ export function Navbar({ onOpenQuickTry }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-orange-100/60 bg-white/90 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand Logo */}
-        <Link href="/" className="group flex items-center gap-2.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FF5500] via-[#FF6A00] to-[#FFA133] shadow-md shadow-orange-500/25 transition-transform group-hover:scale-105">
-            <Sparkles className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-bold tracking-tight text-zinc-900 group-hover:text-[#FF5500] transition-colors">
-              GlamMorph<span className="text-[#FF5500]">.ai</span>
-            </span>
-            <span className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
-              AI Fashion & Beauty Studio
-            </span>
-          </div>
+        {/* Brand Logo - BeautyAura.ai */}
+        <Link href="/" className="group flex items-center">
+          <Logo />
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -70,34 +60,46 @@ export function Navbar({ onOpenQuickTry }: NavbarProps) {
           </Link>
         </nav>
 
-        {/* Right CTA Button */}
+        {/* Right CTA Actions */}
         <div className="hidden items-center gap-3 lg:flex">
+          {/* Log in Button */}
           <button
+            type="button"
             onClick={onOpenQuickTry}
-            className="group flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/80 px-3.5 py-2 text-xs font-semibold text-[#FF5500] transition hover:bg-orange-100 hover:border-orange-300"
+            className="group flex items-center gap-2 rounded-full border border-orange-200/90 bg-orange-50/80 px-4 py-2 text-xs font-semibold text-[#FF5500] transition hover:bg-orange-100 hover:border-orange-300 cursor-pointer"
           >
-            <span className="inline-block h-2 w-2 rounded-full bg-[#FF5500] animate-pulse" />
-            5 Free Credits
+            <LogIn className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            <span>Log in</span>
           </button>
 
-          <Button
+          {/* Get Started Button - Clean, flush, zero white outline / border */}
+          <button
+            type="button"
             onClick={onOpenQuickTry}
-            className="group h-10 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 hover:from-[#E64C00] hover:to-[#FF6A00] hover:shadow-orange-500/30 transition-all cursor-pointer"
+            className="group inline-flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-5 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
           >
-            Get Started
+            <span>Get Started</span>
             <ArrowUpRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Button>
+          </button>
         </div>
 
         {/* Mobile/Tablet menu button */}
         <div className="flex lg:hidden items-center gap-2">
-          <Button
+          <button
+            type="button"
             onClick={onOpenQuickTry}
-            size="sm"
-            className="rounded-full bg-[#FF5500] text-xs font-semibold text-white shadow-sm hover:bg-[#E64C00]"
+            className="rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1.5 text-xs font-semibold text-[#FF5500]"
           >
-            Try Free
-          </Button>
+            Log in
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenQuickTry}
+            className="rounded-full bg-[#FF5500] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#E64C00] border-0 outline-none ring-0"
+          >
+            Get Started
+          </button>
 
           <button
             type="button"
@@ -150,17 +152,30 @@ export function Navbar({ onOpenQuickTry }: NavbarProps) {
               Pricing
             </Link>
 
-            <div className="pt-2">
-              <Button
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenQuickTry?.();
                 }}
-                className="w-full h-11 rounded-full bg-[#FF5500] text-sm font-semibold text-white hover:bg-[#E64C00] shadow-md shadow-orange-500/25"
+                className="w-full flex h-11 items-center justify-center gap-2 rounded-full border border-orange-200 bg-orange-50/80 text-sm font-semibold text-[#FF5500]"
               >
-                Get Started Free
-                <ArrowUpRight className="ml-1.5 h-4 w-4" />
-              </Button>
+                <LogIn className="h-4 w-4" />
+                <span>Log in</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenQuickTry?.();
+                }}
+                className="w-full flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#FF5500] text-sm font-semibold text-white hover:bg-[#E64C00] shadow-md shadow-orange-500/25 border-0 outline-none ring-0"
+              >
+                <span>Get Started Free</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>

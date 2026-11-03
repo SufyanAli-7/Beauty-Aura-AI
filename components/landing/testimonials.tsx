@@ -34,7 +34,7 @@ export function Testimonials() {
             What Our Community Says
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-zinc-600 leading-relaxed font-normal">
-            Hear from our amazing community of fashion creators, barbers, photographers, and beauty enthusiasts transforming their photos with GlamMorph.
+            Hear from our amazing community of fashion creators, barbers, photographers, and beauty enthusiasts transforming their photos with BeautyAura.
           </p>
         </div>
 

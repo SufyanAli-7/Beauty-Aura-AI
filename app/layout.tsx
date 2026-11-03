@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GlamMorph AI — AI Virtual Try-On, Skin, Hair & Photo Studio",
+  title: "BeautyAura.ai — AI Virtual Try-On, Skin, Hair & Photo Studio",
   description:
     "AI Photo Editor for Skin and Face Body, Fashion, Virtual Try-On, Hair and Beard, Image Editing, and all kinds of fashion and beauty-related photo editing.",
 };

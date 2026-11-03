@@ -136,14 +136,15 @@ export function QuickTryModal({ isOpen, onClose }: QuickTryModalProps) {
             ].map((cat) => (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => {
                   setActiveCategory(cat.id as any);
                   setSelectedSample(0);
                   setProcessed(false);
                 }}
-                className={`rounded-full px-4 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-full px-4 py-2 text-xs font-semibold transition-all border-0 border-none outline-none ring-0 ${
                   activeCategory === cat.id
-                    ? "bg-[#FF5500] text-white shadow-md shadow-orange-500/20"
+                    ? "bg-[#FF5500] text-white shadow-md shadow-orange-500/20 border-0 border-none outline-none ring-0"
                     : "bg-zinc-100 text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500]"
                 }`}
               >
@@ -262,13 +263,14 @@ export function QuickTryModal({ isOpen, onClose }: QuickTryModalProps) {
               Regenerate Style
             </Button>
 
-            <Button
+            <button
+              type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none rounded-full bg-[#FF5500] text-xs font-semibold text-white hover:bg-[#E64C00] shadow-md shadow-orange-500/20"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center h-10 px-5 rounded-full bg-[#FF5500] hover:bg-[#E64C00] text-xs font-semibold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
             >
               <Download className="mr-1.5 h-3.5 w-3.5" />
-              Download High-Res
-            </Button>
+              <span>Download High-Res</span>
+            </button>
           </div>
         </div>
       </div>

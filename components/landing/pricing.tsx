@@ -38,8 +38,9 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
           <div className="mt-8 flex items-center justify-center">
             <div className="flex items-center rounded-full border border-orange-200 bg-white p-1.5 shadow-sm">
               <button
+                type="button"
                 onClick={() => setBillingCycle("monthly")}
-                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all border-0 border-none outline-none ring-0 ${
                   billingCycle === "monthly"
                     ? "bg-[#FF5500] text-white shadow-md shadow-orange-500/25"
                     : "text-zinc-600 hover:text-zinc-900"
@@ -48,8 +49,9 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
                 Monthly
               </button>
               <button
+                type="button"
                 onClick={() => setBillingCycle("yearly")}
-                className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-semibold transition-all border-0 border-none outline-none ring-0 ${
                   billingCycle === "yearly"
                     ? "bg-[#FF5500] text-white shadow-md shadow-orange-500/25"
                     : "text-zinc-600 hover:text-zinc-900"
@@ -116,12 +118,13 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
             </div>
 
             <div className="mt-8 pt-4">
-              <Button
+              <button
+                type="button"
                 onClick={onOpenQuickTry}
-                className="w-full h-11 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:from-[#E64C00] hover:to-[#FF6A00] cursor-pointer"
+                className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -178,8 +181,9 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
 
             <div className="mt-8 pt-4">
               <button
+                type="button"
                 onClick={onOpenQuickTry}
-                className="w-full h-12 rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer"
+                className="w-full flex h-12 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
               </button>
@@ -237,12 +241,13 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
             </div>
 
             <div className="mt-8 pt-4">
-              <Button
+              <button
+                type="button"
                 onClick={onOpenQuickTry}
-                className="w-full h-11 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:from-[#E64C00] hover:to-[#FF6A00] cursor-pointer"
+                className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </Button>
+              </button>
             </div>
           </div>
         </div>

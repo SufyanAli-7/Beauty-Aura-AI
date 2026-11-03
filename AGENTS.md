@@ -67,7 +67,7 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`)
 - **Key Files & Folders:**
   - `app/`: Next.js App Router (entry page `app/page.tsx`, layout `app/layout.tsx`, styles `app/globals.css`).
-  - `components/landing/`: Modular landing page sections (`navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`, `quick-try-modal.tsx`).
+  - `components/landing/`: Modular landing page sections (`logo.tsx`, `navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`, `quick-try-modal.tsx`).
   - `components/ui/`: Reusable UI components (accordion, button, card, dialog, input, etc.).
   - `hooks/`: React hooks (`use-mobile.ts`, `use-highlighted-code.ts`).
   - `lib/`: Helpers (`lib/utils.ts`, `lib/highlighter.tsx`, `lib/insforge.ts`).
@@ -79,6 +79,25 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-03] - Nano Banana AI Generated Logo & Global Orange Button Border/Outline Removal
+- **Nano Banana AI Generated Logo:**
+  - Invoked the image-generator subagent (DeepMind Nano Banana image model) to generate an ultra-luxury, high-end commercial brand mark for `BeautyAura.ai`.
+  - Saved `public/beauty-aura-logo.png` (luxury 3D satin ribbon monogram 'B' with glowing aura halo and central star radiance) and `public/beauty-aura-logo-minimal.png`.
+  - Updated [`components/landing/logo.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/logo.tsx) to integrate the new emblem with dark and light theme responsiveness.
+- **Global Orange Button Outline & Border Removal:**
+  - Audited and updated all orange buttons across the entire app (`border-0 border-none outline-none ring-0 focus:outline-none`).
+  - Sections polished: Hero (upload wand button, category filter pills, Explore Studio link, central sync transform badge), Feature Intro ("Try Your First 5 Transformations Free"), Alternating Feature Cards ("Try this look free"), Pricing (Card 1, Card 2, Card 3 trial CTA buttons, billing toggle), Quick Try Modal ("Download High-Res" button, category switcher pills), and Footer (newsletter submit arrow button).
+- **Build Verification:** Tested `npm run build` with 100% clean compilation and verified visually.
+
+### [2026-11-03] - Rebranding to BeautyAura.ai, Professional Logo & Navbar Refinements
+- **Rebranding:** Renamed application across all files, layout metadata, and copy from `GlamMorph` to **`BeautyAura.ai`** (`Fashion & Beauty Lab`).
+- **Professional Logo Component:** Created [`components/landing/logo.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/logo.tsx) featuring a custom luxury radiant aura monogram emblem (`#FF4500` - `#FFA033` gradient) with concentric aura rings, intertwined petals, and a central diamond star radiance.
+- **Navbar Button Cleanup:**
+  - Removed all white borders, outlines, rings, and padding clips from the "Get Started" button (`border-0 border-none outline-none ring-0`) for a flush, seamless finish.
+  - Replaced the "5 Free Credits" badge button with a dedicated **"Log in"** button with login icon (`LogIn`).
+  - Updated both desktop navigation and responsive mobile/tablet drawer menus.
+- **Verification:** Successfully rebuilt with `npm run build` (zero errors) and verified in Chrome DevTools MCP.
 
 ### [2026-11-02] - AI Photo & Virtual Try-On Landing Page Implementation (/screenshot-to-code)
 - **Screenshot-to-Code Recreation:** Recreated the high-fidelity landing page matching the provided UI mockup (Sketchify concept layout adapted to the user's AI Photo Editor & Virtual Try-On application).
