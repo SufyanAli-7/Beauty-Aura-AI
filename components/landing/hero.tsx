@@ -175,10 +175,10 @@ export function Hero() {
         {/* Central Showcase with Signature Floating Sketch Cards */}
         <div className="relative mt-12 lg:mt-16">
           {/* Floating Decorative Preview Card 1: Hairstyle Preview (Top Left) */}
-          <div className="hidden lg:block absolute -top-6 left-0 lg:-left-2 xl:-left-8 2xl:-left-12 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-4 left-0 xl:left-2 z-20 w-40 xl:w-44 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[-6deg] translate-x-[-4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-44 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative h-40 xl:h-44 w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/hairstyle.jpg"
                   alt="Hairstyle Studio Preview"
@@ -193,10 +193,10 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 2: Photo Colorize (Bottom Left) */}
-          <div className="hidden lg:block absolute -bottom-10 left-0 lg:-left-2 xl:-left-8 2xl:-left-12 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-6 left-0 xl:left-2 z-20 w-36 xl:w-40 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[4deg] translate-x-[4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-36 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative h-32 xl:h-36 w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/photo-colorize.jpg"
                   alt="Colorize Restoration Preview"
@@ -211,10 +211,10 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 3: Object Erase (Top Right) */}
-          <div className="hidden lg:block absolute -top-6 right-0 lg:-right-2 xl:-right-8 2xl:-right-12 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-4 right-0 xl:right-2 z-20 w-40 xl:w-44 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[6deg] translate-x-[4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-44 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative h-40 xl:h-44 w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/object-remove.jpg"
                   alt="Object Erase Preview"
@@ -229,10 +229,10 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 4: Studio Lighting (Bottom Right) */}
-          <div className="hidden lg:block absolute -bottom-10 right-0 lg:-right-2 xl:-right-8 2xl:-right-12 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-6 right-0 xl:right-2 z-20 w-36 xl:w-40 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[-4deg] translate-x-[-4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
-              <div className="relative h-36 w-full overflow-hidden rounded-xl bg-orange-50">
+              <div className="relative h-32 xl:h-36 w-full overflow-hidden rounded-xl bg-orange-50">
                 <Image
                   src="/ai-photo-editing-images/photo-lightining.jpg"
                   alt="Photo Lighting Preview"
@@ -248,11 +248,11 @@ export function Hero() {
 
           {/* Main Single Showcase Card (One prominent image showing selected transformation) */}
           <div className="relative mx-auto max-w-3xl">
-            {/* Outer offset wireframe outline frame (signature design motif from mockup) */}
-            <div className="absolute -inset-3.5 rounded-3xl border border-amber-300/50 -rotate-[1deg] pointer-events-none hidden sm:block" />
-            <div className="absolute -inset-1.5 rounded-3xl border border-orange-200/60 rotate-[1deg] pointer-events-none hidden sm:block" />
+            {/* Background offset wireframe outlines (exact match with Virtual Try-On card) */}
+            <div className="absolute inset-0 rounded-3xl border border-amber-300/60 pointer-events-none transition-transform duration-500 rotate-[3deg] translate-x-[8px] translate-y-[-6px]" />
+            <div className="absolute inset-0 rounded-3xl border border-orange-200/70 pointer-events-none transition-transform duration-500 rotate-[-2deg] translate-x-[-6px] translate-y-[8px]" />
 
-            <div className="relative overflow-hidden rounded-3xl border border-orange-200/90 bg-white p-3 sm:p-5 shadow-2xl shadow-orange-900/10">
+            <div className="relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-2.5 sm:p-3 shadow-xl shadow-orange-950/5">
               {/* Single Prominent Showcase Image Container */}
               <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/30">
                 <div className="relative aspect-[16/10] sm:aspect-[16/10] w-full overflow-hidden">

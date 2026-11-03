@@ -47,12 +47,13 @@ export function FeatureIntro() {
 
           {/* Right Column: AI Age Progression Image Showcase (Web / Desktop only, hidden on mobile) */}
           <div className="hidden lg:block relative shrink-0 w-full max-w-md xl:max-w-lg">
-            {/* Signature Offset Sketchbook Wireframe Borders */}
-            <div className="absolute -inset-3.5 rounded-3xl border border-amber-300/60 rotate-[2.5deg] pointer-events-none" />
-            <div className="absolute -inset-1.5 rounded-3xl border border-orange-200/70 -rotate-[1.5deg] pointer-events-none" />
+            {/* Background offset wireframe outlines (exact match with Virtual Try-On card) */}
+            <div className="absolute inset-0 rounded-3xl border border-amber-300/60 pointer-events-none transition-transform duration-500 rotate-[3deg] translate-x-[8px] translate-y-[-6px]" />
+            <div className="absolute inset-0 rounded-3xl border border-orange-200/70 pointer-events-none transition-transform duration-500 rotate-[-2deg] translate-x-[-6px] translate-y-[8px]" />
 
-            <div className="relative overflow-hidden rounded-3xl border border-orange-200/90 bg-white p-3 shadow-xl shadow-orange-950/5">
-              <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-orange-50">
+            {/* Main Rounded Photo Card */}
+            <div className="relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-2.5 shadow-xl shadow-orange-950/5">
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-orange-50/50">
                 <Image
                   src="/ai-photo-editing-images/ai-age.webp"
                   alt="AI Age Transformation & Photo Styling"
