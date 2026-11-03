@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,9 +46,10 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 selection:bg-orange-500 selection:text-white">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
 }
-

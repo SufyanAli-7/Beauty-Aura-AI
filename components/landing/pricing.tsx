@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Check, Sparkles, Zap, Flame, ShieldCheck, Clock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -114,12 +115,12 @@ export function Pricing() {
             </div>
 
             <div className="mt-8 pt-4">
-              <a
-                href="#features"
+              <Link
+                href="/sign-up"
                 className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -175,12 +176,12 @@ export function Pricing() {
             </div>
 
             <div className="mt-8 pt-4">
-              <a
-                href="#features"
+              <Link
+                href="/sign-up"
                 className="w-full flex h-12 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -235,12 +236,12 @@ export function Pricing() {
             </div>
 
             <div className="mt-8 pt-4">
-              <a
-                href="#features"
+              <Link
+                href="/sign-up"
                 className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </a>
+              </Link>
             </div>
           </div>
         </div>

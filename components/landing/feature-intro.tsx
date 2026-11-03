@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export function FeatureIntro() {
@@ -27,13 +28,13 @@ export function FeatureIntro() {
 
             {/* Action Buttons */}
             <div className="mt-6 flex flex-wrap items-center gap-4">
-              <a
-                href="#features"
+              <Link
+                href="/sign-up"
                 className="group inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 <Sparkles className="h-4 w-4" />
                 <span>Try Your First 5 Transformations Free</span>
-              </a>
+              </Link>
 
               <a
                 href="#features"

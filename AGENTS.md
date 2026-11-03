@@ -45,9 +45,9 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - `find-skills`: Discovering additional agent skills on demand.
 
 ### Current Backend State
-- **Database:** Postgres (0 tables configured yet).
+- **Database:** Postgres (`public.users` table configured with RLS and `auth.users` synchronization trigger).
 - **Storage:** S3-compatible object storage (0 buckets configured yet).
-- **Auth:** OAuth (Google, GitHub) + Email/Password verification enabled.
+- **Auth:** OAuth (Google, GitHub) + Email/Password verification enabled (code method OTP).
 - **Functions:** 0 edge functions deployed yet.
 
 ### Key InsForge Code Patterns
@@ -79,6 +79,53 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-03] - Fix Sign-Up Success State Retention & Sign-In Form Input Clearing
+- **Sign-Up Form Lifecycle Reset (`app/sign-up/page.tsx`):**
+  - Resolved issue where navigating back to `/sign-up` after logout still showed the "Account Created & Verified!" banner due to Next.js client component state retention across soft navigations.
+  - Added comprehensive `useEffect` mount & unmount cleanup hook resetting `isSuccess`, `isVerificationStep`, `name`, `email`, `password`, and `otpCode`.
+  - Added redirect timeout cleanup ref to prevent delayed state updates from firing after navigation.
+  - Added `autoComplete="off"` and input field level autocomplete attributes.
+  - Added automatic redirect if an authenticated user lands on `/sign-up`.
+- **Sign-In Form Input Clearing (`app/sign-in/page.tsx`):**
+  - Resolved issue where previous email and password inputs remained populated after logging out and returning to `/sign-in`.
+  - Added `useEffect` mount & unmount cleanup clearing `email`, `password`, `otpCode`, `errorMessage`, and `requiresVerification`.
+  - Explicitly cleared email and password state right upon successful authentication before pushing to `/`.
+  - Added `autoComplete="off"` on form and `autoComplete="current-password"` to avoid lingering browser autofill.
+  - Added automatic redirect if an authenticated user lands on `/sign-in`.
+- **Navbar Sign Out Enhancement (`components/landing/navbar.tsx`):**
+  - Updated both desktop and mobile sign-out handlers to call `router.refresh()` after `signOut()` to invalidate Next.js client router caches.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) and validated in Chrome DevTools MCP.
+
+### [2026-11-03] - InSForge Authentication: Sign In, Sign Up, Google OAuth, and Database User Synchronization
+- **InSForge Database Migration & `users` Table:**
+  - Created and applied migration `migrations/20261103075356_create-users.sql`.
+  - Created `public.users` table (`id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE`, `email TEXT NOT NULL`, `name TEXT`, `avatar_url TEXT`, `created_at TIMESTAMPTZ`, `updated_at TIMESTAMPTZ`).
+  - Implemented Row Level Security (RLS) policies for `authenticated` and `anon` roles (`Users can read own profile`, `Users can insert own profile`, `Users can update own profile`).
+  - Added PostgreSQL trigger `public.handle_new_user()` executed `AFTER INSERT OR UPDATE ON auth.users` to automatically populate `public.users` whenever a user registers in `auth.users`.
+- **Application-Level User Sync (`lib/auth-context.tsx`):**
+  - Added `syncUserToDatabase()` ensuring bulletproof two-way persistence: upon initial sign up, email OTP verification, password sign-in, or Google OAuth redirection, the user record is verified and stored in `public.users`.
+  - Created global `AuthProvider` and `useAuth` hook managing `user`, `profile`, `loading`, `signInWithEmail`, `signUpWithEmail`, `verifyEmailOtp`, `resendVerification`, `signInWithGoogle`, and `signOut`.
+- **Sign In Page (`app/sign-in/page.tsx`):**
+  - Designed matching the BeautyAura aesthetic: signature double offset sketchbook wireframe borders (`border-amber-300/60 rotate-[2.5deg]` and `border-orange-200/70 rotate-[-2deg]`), warm ambient glow, Caveat handwritten script badge ("Welcome Back").
+  - Google Authentication button with official SVG logo (`signInWithOAuth('google')`).
+  - Email/Password form with show/hide password toggle and error alerting.
+  - Built-in OTP code verification fallback if email is not yet verified.
+- **Sign Up Page (`app/sign-up/page.tsx`):**
+  - Matches the BeautyAura aesthetic: Caveat script badge ("Start Your Makeover"), double wireframe borders, and 5 free transformation credits callout.
+  - 1-click Google sign up.
+  - Full Name, Email, Password form with validation.
+  - Integrated 6-digit OTP email verification step (`verifyEmailOtp`), with resend countdown timer and error handling.
+  - Success celebration banner with automatic redirection.
+- **OAuth Callback Handler (`app/auth/callback/page.tsx`):**
+  - Suspense-wrapped route handler exchanging OAuth codes, synchronizing Google profile information into `public.users`, and redirecting to the homepage.
+- **InSForge Project Configuration (`insforge.toml`):**
+  - Added allowed redirect origins for local and production callbacks (`http://localhost:3000`, `http://localhost:3000/auth/callback`, `http://localhost:3000/sign-in`, `http://localhost:3000/sign-up`, `http://127.0.0.1:3000`).
+  - Applied configuration using `npx -y @insforge/cli config apply --auto-approve`.
+- **Navbar & Landing Page Integration:**
+  - `components/landing/navbar.tsx`: Updated to dynamically reflect auth state. Shows Log in & Get Started when logged out; displays user avatar badge, display name, 5-credits pill, and Sign Out button when logged in.
+  - Updated trial and hero CTA links across the landing page to `/sign-up`.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero TypeScript, Turbopack, or SSR errors.
 
 ### [2026-11-03] - Aspect Ratio & Crop Elimination Across All Feature Cards (Virtual Try-On to End)
 - **Feature Alternating Cards (`FeatureCard`):** Added dynamic `aspectRatio` and `subImageAspect` props to `feature-card.tsx`.
