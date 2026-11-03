@@ -78,7 +78,7 @@ export default function DashboardPage() {
       href: "/dashboard/beauty",
       image: "/ai-photo-editing-images/ai-makeup-transfer.jpg",
       icon: Wand2,
-      badge: "YouCam AI",
+      badge: "Popular",
       toolsCount: "3 Features",
       gradient: "from-pink-500/10 to-orange-500/5",
     },
@@ -189,7 +189,7 @@ export default function DashboardPage() {
 
           <div className="rounded-2xl bg-white/80 p-3 shadow-2xs border border-orange-100">
             <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-              YouCam Integration
+              AI Makeover Engine
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-emerald-600">Active</span>

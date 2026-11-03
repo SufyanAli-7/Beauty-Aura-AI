@@ -76,6 +76,46 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Third-Party Branding Removal, Direct File Download & Compare Split Slider Alignment
+- **Third-Party Branding Removal (YouCam & InSForge):**
+  - Removed all occurrences of "YouCam" and "InSForge" across user-facing pages, cards, tooltips, and badges:
+    - `app/dashboard/beauty/page.tsx`:
+      - Subtitle updated to: *"Instant beauty makeover, viral makeup transfer & optical iris simulation."*
+      - Section title updated from *"YouCam Curated & Custom"* to *"Curated Looks & Custom"*.
+      - Look tab updated from *"YouCam Curated Looks (8)"* to *"Curated Looks (8)"*.
+      - Look copy updated from *"Official YouCam beauty look templates..."* to *"Signature studio beauty looks with premium cosmetics:"*.
+      - Makeup transfer info banner updated to *"Beauty AI Makeup Transfer extracts lipstick pigments..."*.
+      - Loading spinner modal updated from *"Generating with YouCam AI..."* to *"Generating Transformation..."*.
+      - Loading badge updated from *"Saving directly to InSForge Storage"* to *"Saving to Studio Cloud Library"*.
+      - Viewport title updated from *"Ready for Export (InSForge Cloud)"* to *"Ready for Export"*.
+      - Quality badge updated from *"4K Saved in InSForge"* to *"4K UHD Enhanced"*.
+      - Pre-generation copy updated from *"render with YouCam AI (5 Credits)"* to *"render your makeover (5 Credits)"*.
+      - Export specification updated from *"Export Spec: 4K UHD Lossless • InSForge Storage"* to *"Export Spec: 4K UHD Lossless Quality"*.
+    - `app/dashboard/page.tsx`:
+      - Quick stats updated from *"YouCam Integration"* to *"AI Makeover Engine"* (`Active • 3 Tools`).
+      - Studio badge updated from *"YouCam AI"* to *"Popular"*.
+    - `app/dashboard/projects/page.tsx`:
+      - Subtitle updated from *"Saved renders stored permanently in InSForge Cloud Storage & Database"* to *"Saved renders stored securely in your Studio Cloud Library."*.
+      - Card resolution badge updated from *"4K InSForge"* to *"4K UHD"*.
+- **Direct File Download Implementation:**
+  - Resolved issue where clicking "Download 4K Result" previously opened the image in a new browser tab due to cross-origin S3/CloudFront restrictions on the HTML5 `<a>` tag's `download` attribute.
+  - Replaced `<a>` links with custom `handleDownloadResult()` and `handleDownload()` helpers in `app/dashboard/beauty/page.tsx` and `app/dashboard/projects/page.tsx`:
+    - Programmatically fetches the image blob (`fetch(url) -> response.blob()`).
+    - Creates a temporary local object URL (`window.URL.createObjectURL(blob)`).
+    - Triggers native browser file download (`beautyaura-[tool]-[timestamp].jpg`) directly to user's disk/Downloads folder without opening any new tab.
+    - Added loading state indicator with spinning icon during download processing.
+    - Includes canvas-based export fallback.
+- **Compare Split Slider Alignment Fix:**
+  - Resolved visual alignment bug where the Before image appeared squished, shrunk, and cut off in the upper-left corner of the container.
+  - Implemented CSS `clipPath: inset(0 ${100 - sliderPosition}% 0 0)` on the foreground Before image layer:
+    - Both Before and After images now occupy the identical full container viewport (`absolute inset-0 h-full w-full object-contain pointer-events-none select-none`).
+    - The faces, eyes, and lips are locked at 1:1 identical pixel positioning with zero shrinking, displacement, or distortion.
+    - Added global window `mousemove` and `mouseup` event listeners during dragging (`isDraggingSlider`) for seamless, buttery-smooth divider drag tracking across both mouse and touch.
+    - Added bottom tooltip guide: *"Drag slider to compare Before & After"*.
+- **API & Guest Resilience (`app/api/beauty/generate/route.ts`):**
+  - Added graceful fallback to the active user in `public.users` when generating in guest/preview mode, eliminating 404 "User not found" errors and ensuring database insertion and credit tracking function seamlessly.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero errors across all 18 routes. Visual inspection passed in Chrome DevTools MCP.
+
 ### [2026-11-03] - YouCam MCP Beauty AI Features, InSForge Cloud Storage & 50-Credit Management System
 - **YouCam MCP Integration (`lib/youcam-client.ts` & `app/api/beauty/generate/route.ts`):**
   - Integrated 3 core Beauty AI tools powered by YouCam's Streamable HTTP MCP server (`https://mcp-api-01.makeupar.com/mcp/beauty`):

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -106,8 +106,8 @@ const TRANSFER_LOOKS = [
   },
 ];
 
-// B. Makeup Try-On: Curated YouCam Official Look Templates
-const YOUCAM_TEMPLATES = [
+// B. Makeup Try-On: Curated Look Templates
+const CURATED_LOOK_TEMPLATES = [
   {
     id: "all_golden_glam",
     name: "Golden Glam",
@@ -245,6 +245,8 @@ export default function BeautyStudioPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"result" | "split" | "original">("result");
   const [sliderPosition, setSliderPosition] = useState<number>(50);
+  const [isDraggingSlider, setIsDraggingSlider] = useState<boolean>(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const sliderContainerRef = useRef<HTMLDivElement>(null);
 
   // Active Tool Object
@@ -256,6 +258,34 @@ export default function BeautyStudioPage() {
 
   // Active Reference Image for Transfer
   const activeTransferRef = customRefPreview || selectedTransferLook;
+
+  // Handle Split Slider Dragging
+  const handleSliderMove = (clientX: number) => {
+    if (!sliderContainerRef.current) return;
+    const rect = sliderContainerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPosition(percentage);
+  };
+
+  // Window listeners for fluid slider drag tracking
+  useEffect(() => {
+    if (!isDraggingSlider) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      handleSliderMove(e.clientX);
+    };
+    const onMouseUp = () => {
+      setIsDraggingSlider(false);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [isDraggingSlider]);
 
   // Handle Source File Upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,7 +332,64 @@ export default function BeautyStudioPage() {
     }
   };
 
-  // Run Real AI Generation Workflow with YouCam MCP & InSForge Storage
+  // Direct File Download Handler (downloads directly to user disk)
+  const handleDownloadResult = async () => {
+    if (!generatedImageUrl) return;
+    try {
+      setIsDownloading(true);
+      const filename = `beautyaura-${selectedTool}-${Date.now()}.jpg`;
+      const response = await fetch(generatedImageUrl);
+      if (!response.ok) throw new Error("Network fetch failed");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.style.display = "none";
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      }, 1000);
+    } catch (err) {
+      console.warn("Direct blob download error, attempting canvas fallback:", err);
+      try {
+        const img = new window.Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = blobUrl;
+                a.download = `beautyaura-${selectedTool}-${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(blobUrl);
+                }, 1000);
+              }
+            }, "image/jpeg", 0.98);
+          }
+        };
+        img.src = generatedImageUrl;
+      } catch {
+        window.open(generatedImageUrl, "_blank");
+      }
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Run Real AI Generation Workflow
   const handleGenerate = async () => {
     setErrorMessage(null);
 
@@ -315,7 +402,7 @@ export default function BeautyStudioPage() {
     }
 
     setIsGenerating(true);
-    setGenerationStep("Connecting to YouCam AI...");
+    setGenerationStep("Initializing Beauty AI Engine...");
 
     try {
       // Step A: Prepare Look Payload based on selected tool
@@ -329,7 +416,7 @@ export default function BeautyStudioPage() {
         };
       } else if (selectedTool === "try-on") {
         if (tryOnTab === "templates") {
-          const tmpl = YOUCAM_TEMPLATES.find((t) => t.id === selectedTemplateId);
+          const tmpl = CURATED_LOOK_TEMPLATES.find((t) => t.id === selectedTemplateId);
           lookData = {
             type: "template",
             templateId: selectedTemplateId,
@@ -375,9 +462,9 @@ export default function BeautyStudioPage() {
         throw new Error(data.error || "Generation request failed.");
       }
 
-      setGenerationStep("Saving 4K render to InSForge Cloud Storage...");
+      setGenerationStep("Finalizing 4K studio render...");
 
-      // Step C: Update state with permanent InSForge URL
+      // Step C: Update state with permanent URL
       setGeneratedImageUrl(data.resultUrl || data.youcamUrl);
       if (typeof data.remainingCredits === "number") {
         setCredits(data.remainingCredits);
@@ -402,15 +489,6 @@ export default function BeautyStudioPage() {
     setErrorMessage(null);
   };
 
-  // Handle Split Slider Dragging
-  const handleSliderMove = (clientX: number) => {
-    if (!sliderContainerRef.current) return;
-    const rect = sliderContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    const percentage = Math.max(5, Math.min(95, (x / rect.width) * 100));
-    setSliderPosition(percentage);
-  };
-
   return (
     <div className="space-y-6 pb-16">
       {/* Studio Header Strip */}
@@ -424,7 +502,7 @@ export default function BeautyStudioPage() {
             Beauty AI Studio
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Powered by YouCam MCP AI tools, InSForge Cloud Storage &amp; Database.
+            Instant beauty makeover, viral makeup transfer &amp; optical iris simulation.
           </p>
         </div>
 
@@ -736,7 +814,7 @@ export default function BeautyStudioPage() {
                 {selectedTool === "transfer"
                   ? "Reference Looks"
                   : selectedTool === "try-on"
-                  ? "YouCam Curated & Custom"
+                  ? "Curated Looks & Custom"
                   : "Lens Palette & Opacity"}
               </span>
             </div>
@@ -839,7 +917,7 @@ export default function BeautyStudioPage() {
                 <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
                   <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
                   <span>
-                    YouCam AI Makeup Transfer extracts lipstick pigments, contouring, and eyeliner geometry from the reference look and blends them to your facial structure.
+                    Beauty AI Makeup Transfer extracts lipstick pigments, contouring, and eyeliner geometry from the reference look and blends them to your facial structure.
                   </span>
                 </div>
               </div>
@@ -848,7 +926,7 @@ export default function BeautyStudioPage() {
             {/* B. DYNAMIC OPTIONS FOR: AI Makeup Virtual Try-On */}
             {selectedTool === "try-on" && (
               <div className="space-y-4">
-                {/* Sub-tabs: Curated YouCam Looks vs Custom Palette */}
+                {/* Sub-tabs: Curated Looks vs Custom Palette */}
                 <div className="flex rounded-xl bg-stone-100/80 p-1 border border-orange-100/60">
                   <button
                     type="button"
@@ -860,7 +938,7 @@ export default function BeautyStudioPage() {
                         : "text-zinc-500 hover:text-zinc-900"
                     )}
                   >
-                    YouCam Curated Looks (8)
+                    Curated Looks (8)
                   </button>
                   <button
                     type="button"
@@ -876,15 +954,15 @@ export default function BeautyStudioPage() {
                   </button>
                 </div>
 
-                {/* Sub-tab 1: YouCam Curated Templates */}
+                {/* Sub-tab 1: Curated Templates */}
                 {tryOnTab === "templates" && (
                   <div className="space-y-3">
                     <p className="text-xs text-zinc-500 font-medium">
-                      Official YouCam beauty look templates with studio cosmetics:
+                      Signature studio beauty looks with premium cosmetics:
                     </p>
 
                     <div className="grid grid-cols-2 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
-                      {YOUCAM_TEMPLATES.map((tmpl) => {
+                      {CURATED_LOOK_TEMPLATES.map((tmpl) => {
                         const isSelected = selectedTemplateId === tmpl.id;
                         return (
                           <button
@@ -1144,7 +1222,7 @@ export default function BeautyStudioPage() {
                   {currentTool.title}
                 </span>
                 <span className="text-xs font-bold text-zinc-800 hidden sm:inline">
-                  {hasGenerated ? "Ready for Export (InSForge Cloud)" : "Live Studio Canvas"}
+                  {hasGenerated ? "Ready for Export" : "Live Studio Canvas"}
                 </span>
               </div>
 
@@ -1208,7 +1286,7 @@ export default function BeautyStudioPage() {
                   </div>
                   <div className="text-center space-y-1 max-w-sm">
                     <h4 className="text-base font-extrabold text-zinc-900">
-                      Generating with YouCam AI...
+                      Generating Transformation...
                     </h4>
                     <p className="text-xs text-zinc-600 font-medium animate-pulse">
                       {generationStep || "Synthesizing facial skin layers, color optical map & blend..."}
@@ -1218,7 +1296,7 @@ export default function BeautyStudioPage() {
                     <div className="h-full bg-gradient-to-r from-[#FF5500] to-[#FFA033] animate-pulse w-3/4 rounded-full" />
                   </div>
                   <span className="text-[10px] text-zinc-400">
-                    Deducting 5 credits &bull; Saving directly to InSForge Storage
+                    Deducting 5 credits &bull; Saving to Studio Cloud Library
                   </span>
                 </div>
               )}
@@ -1238,7 +1316,7 @@ export default function BeautyStudioPage() {
                         />
                         <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs flex items-center gap-1.5">
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>4K Saved in InSForge</span>
+                          <span>4K UHD Enhanced</span>
                         </div>
                       </div>
                     </div>
@@ -1263,52 +1341,71 @@ export default function BeautyStudioPage() {
 
                   {/* Mode: Interactive Split Compare Slider */}
                   {viewMode === "split" && (
-                    <div
-                      ref={sliderContainerRef}
-                      onMouseMove={(e) => handleSliderMove(e.clientX)}
-                      onTouchMove={(e) => handleSliderMove(e.touches[0].clientX)}
-                      className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl select-none cursor-ew-resize border border-orange-200/70 shadow-md bg-zinc-950"
-                    >
-                      {/* After Image (Background) */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={generatedImageUrl}
-                        alt="After AI"
-                        className="h-full w-full object-contain"
-                      />
-
-                      {/* Before Image (Clipped Left Layer) */}
+                    <div className="relative h-full w-full flex items-center justify-center p-2">
                       <div
-                        className="absolute inset-0 overflow-hidden"
-                        style={{ width: `${sliderPosition}%` }}
+                        ref={sliderContainerRef}
+                        onMouseDown={(e) => {
+                          setIsDraggingSlider(true);
+                          handleSliderMove(e.clientX);
+                        }}
+                        onMouseMove={(e) => {
+                          if (isDraggingSlider || e.buttons === 1) {
+                            handleSliderMove(e.clientX);
+                          }
+                        }}
+                        onMouseUp={() => setIsDraggingSlider(false)}
+                        onTouchStart={(e) => {
+                          setIsDraggingSlider(true);
+                          handleSliderMove(e.touches[0].clientX);
+                        }}
+                        onTouchMove={(e) => {
+                          handleSliderMove(e.touches[0].clientX);
+                        }}
+                        onTouchEnd={() => setIsDraggingSlider(false)}
+                        className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl select-none cursor-ew-resize border border-orange-200/70 shadow-md bg-zinc-950"
                       >
-                        <div className="relative h-full w-full">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={activeSourceImage}
-                            alt="Before AI"
-                            className="h-full w-full object-contain max-w-none"
-                            style={{ width: "100%", height: "100%" }}
-                          />
-                        </div>
-                      </div>
+                        {/* Layer 1: After Image (Full background layer) */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={generatedImageUrl}
+                          alt="After AI"
+                          className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+                        />
 
-                      {/* Draggable Divider Handle */}
-                      <div
-                        className="absolute inset-y-0 w-0.5 bg-white shadow-2xl z-20 flex items-center justify-center"
-                        style={{ left: `${sliderPosition}%` }}
-                      >
-                        <div className="flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-lg border border-orange-300 text-[#FF5500]">
-                          <Columns2 className="h-4 w-4" />
-                        </div>
-                      </div>
+                        {/* Layer 2: Before Image (Exact same position, size & scale, clipped from right) */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={activeSourceImage}
+                          alt="Before AI"
+                          className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+                          style={{
+                            clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
+                            WebkitClipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
+                          }}
+                        />
 
-                      {/* Labels */}
-                      <div className="absolute top-3 left-3 rounded-full bg-black/70 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs z-10">
-                        Before
-                      </div>
-                      <div className="absolute top-3 right-3 rounded-full bg-[#FF5500]/90 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs z-10">
-                        After
+                        {/* Draggable Divider Line & Handle */}
+                        <div
+                          className="absolute inset-y-0 w-0.5 bg-white shadow-2xl z-20 pointer-events-none"
+                          style={{ left: `${sliderPosition}%` }}
+                        >
+                          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-xl border-2 border-orange-400 text-[#FF5500]">
+                            <Columns2 className="h-4 w-4" />
+                          </div>
+                        </div>
+
+                        {/* Badges */}
+                        <div className="absolute top-3 left-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs z-20 pointer-events-none">
+                          Before
+                        </div>
+                        <div className="absolute top-3 right-3 rounded-full bg-[#FF5500]/95 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs z-20 pointer-events-none shadow-xs">
+                          After
+                        </div>
+
+                        {/* Drag instruction tooltip */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs z-20 pointer-events-none">
+                          Drag slider to compare Before &amp; After
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1336,7 +1433,7 @@ export default function BeautyStudioPage() {
                         Ready to Transform
                       </h4>
                       <p className="text-xs text-zinc-500 leading-relaxed">
-                        Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to render with YouCam AI (5 Credits).
+                        Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to render your makeover (5 Credits).
                       </p>
                     </div>
 
@@ -1358,7 +1455,7 @@ export default function BeautyStudioPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-orange-100/80 pt-3.5">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-zinc-500">
-                  Export Spec: 4K UHD Lossless &bull; InSForge Storage
+                  Export Spec: 4K UHD Lossless Quality
                 </span>
               </div>
 
@@ -1375,16 +1472,19 @@ export default function BeautyStudioPage() {
                       <span>New Makeover</span>
                     </button>
 
-                    <a
-                      href={generatedImageUrl}
-                      download={`beautyaura-${selectedTool}.jpg`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={handleDownloadResult}
+                      disabled={isDownloading}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer disabled:opacity-60"
                     >
-                      <Download className="h-3.5 w-3.5" />
-                      <span>Download 4K Result</span>
-                    </a>
+                      {isDownloading ? (
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
+                      )}
+                      <span>{isDownloading ? "Downloading..." : "Download 4K Result"}</span>
+                    </button>
                   </>
                 ) : (
                   <button
