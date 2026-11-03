@@ -79,24 +79,18 @@ export function Navbar() {
 
         {/* Mobile/Tablet menu button */}
         <div className="flex lg:hidden items-center gap-2">
-          <Link
-            href="#pricing"
-            className="rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1.5 text-xs font-semibold text-[#FF5500]"
-          >
-            Log in
-          </Link>
-
+          {/* Mobile "Try Free" Button */}
           <Link
             href="#features"
-            className="rounded-full bg-[#FF5500] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#E64C00] border-0 outline-none ring-0"
+            className="rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
           >
-            Get Started
+            Try Free
           </Link>
 
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-xl p-2 text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] focus:outline-none"
+            className="inline-flex items-center justify-center rounded-xl p-2 text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] focus:outline-none cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

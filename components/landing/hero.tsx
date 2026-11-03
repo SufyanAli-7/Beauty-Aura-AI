@@ -175,7 +175,7 @@ export function Hero() {
         {/* Central Showcase with Signature Floating Sketch Cards */}
         <div className="relative mt-12 lg:mt-16">
           {/* Floating Decorative Preview Card 1: Hairstyle Preview (Top Left) */}
-          <div className="hidden lg:block absolute -top-4 left-2 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-6 left-0 lg:-left-2 xl:-left-8 2xl:-left-12 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[-6deg] translate-x-[-4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
               <div className="relative h-44 w-full overflow-hidden rounded-xl bg-orange-50">
@@ -193,7 +193,7 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 2: Photo Colorize (Bottom Left) */}
-          <div className="hidden lg:block absolute -bottom-6 left-10 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-10 left-0 lg:-left-2 xl:-left-8 2xl:-left-12 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[4deg] translate-x-[4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
               <div className="relative h-36 w-full overflow-hidden rounded-xl bg-orange-50">
@@ -211,7 +211,7 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 3: Object Erase (Top Right) */}
-          <div className="hidden lg:block absolute -top-4 right-2 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
+          <div className="hidden lg:block absolute -top-6 right-0 lg:-right-2 xl:-right-8 2xl:-right-12 z-20 w-44 transition-transform hover:-translate-y-1.5 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-amber-300/60 rotate-[6deg] translate-x-[4px] translate-y-[-4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
               <div className="relative h-44 w-full overflow-hidden rounded-xl bg-orange-50">
@@ -229,7 +229,7 @@ export function Hero() {
           </div>
 
           {/* Floating Decorative Preview Card 4: Studio Lighting (Bottom Right) */}
-          <div className="hidden lg:block absolute -bottom-6 right-10 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
+          <div className="hidden lg:block absolute -bottom-10 right-0 lg:-right-2 xl:-right-8 2xl:-right-12 z-20 w-40 transition-transform hover:translate-y-1 duration-300">
             <div className="absolute inset-0 rounded-2xl border border-orange-300/60 rotate-[-4deg] translate-x-[-4px] translate-y-[4px] pointer-events-none" />
             <div className="relative rounded-2xl border border-orange-100 bg-white/95 p-2 shadow-xl shadow-orange-950/5 backdrop-blur-sm">
               <div className="relative h-36 w-full overflow-hidden rounded-xl bg-orange-50">

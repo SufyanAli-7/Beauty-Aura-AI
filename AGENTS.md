@@ -80,6 +80,11 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Mobile Navbar "Try Free" Button, Hero Preview Cards Spacing, and Feature Intro Showcase Image
+- **Mobile Navbar Refactor:** In [`components/landing/navbar.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/navbar.tsx), removed the crowded "Log in" and "Get Started" buttons from the mobile top bar. Replaced them with a single clean, high-visibility "Try Free" button alongside the mobile hamburger menu.
+- **Hero Floating Cards Spacing:** In [`components/landing/hero.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/hero.tsx), fixed spacing between the main showcase container and the bottom floating preview cards ("Colorize" and "Lighting"). Moved both bottom cards outward to `left-0 lg:-left-2 xl:-left-8` and `right-0 lg:-right-2 xl:-right-8` (matching the top cards' symmetric positioning) and lowered them to `-bottom-10`, creating ample breathing room and completely eliminating collision with the central card.
+- **Feature Intro Visual Showcase:** In [`components/landing/feature-intro.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/feature-intro.tsx), utilized the empty white space on web/desktop view by adding a visual showcase card featuring `/ai-photo-editing-images/ai-age.webp` with signature offset sketchbook wireframe borders and "Age Progression & Time Travel" badges. Configured to display exclusively on web view (`hidden lg:block`) and remain hidden on mobile screens.
+
 ### [2026-11-03] - Bottom Showcase Tool Strip Removal
 - **Bottom Showcase Strip Removal:** Removed the bottom tool bar (`Active Tool: ...` and `Turn photos into fashion art with BeautyAura | Explore Studio >` pill) from [`components/landing/hero.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/hero.tsx) as requested in `media_1793687686504_9548197d.png`. The showcase frame now cleanly highlights the image and style caption without visual clutter.
 
