@@ -2,11 +2,7 @@
 
 import { Shirt, Sparkles, Scissors, Wand2, ArrowUpRight } from "lucide-react";
 
-interface ServicesGridProps {
-  onOpenQuickTry?: () => void;
-}
-
-export function ServicesGrid({ onOpenQuickTry }: ServicesGridProps) {
+export function ServicesGrid() {
   const services = [
     {
       title: "Virtual Wardrobe & Outfits",
@@ -56,9 +52,9 @@ export function ServicesGrid({ onOpenQuickTry }: ServicesGridProps) {
           {services.map((service, index) => {
             const IconComponent = service.icon;
             return (
-              <div
+              <a
                 key={index}
-                onClick={onOpenQuickTry}
+                href="#features"
                 className="group relative flex flex-col justify-between rounded-3xl border border-orange-200/70 bg-[#FFF5EC] p-7 transition-all duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-xl hover:shadow-orange-900/5 cursor-pointer"
               >
                 <div>
@@ -83,7 +79,7 @@ export function ServicesGrid({ onOpenQuickTry }: ServicesGridProps) {
                   <span>Explore service</span>
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

@@ -67,7 +67,7 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`)
 - **Key Files & Folders:**
   - `app/`: Next.js App Router (entry page `app/page.tsx`, layout `app/layout.tsx`, styles `app/globals.css`).
-  - `components/landing/`: Modular landing page sections (`logo.tsx`, `navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`, `quick-try-modal.tsx`).
+  - `components/landing/`: Modular landing page sections (`logo.tsx`, `navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`).
   - `components/ui/`: Reusable UI components (accordion, button, card, dialog, input, etc.).
   - `hooks/`: React hooks (`use-mobile.ts`, `use-highlighted-code.ts`).
   - `lib/`: Helpers (`lib/utils.ts`, `lib/highlighter.tsx`, `lib/insforge.ts`).
@@ -79,6 +79,27 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-03] - Hero Showcase Refactor, Upload Bar & Modal Removal, Multi-Category Single Image Integration
+- **Upload Bar Component Removal:** Completely removed the `family_or_portrait_photo.png` upload pill component from the Hero section.
+- **Quick-Try Modal Removal:** Completely deleted `components/landing/quick-try-modal.tsx` and removed all state, modal triggers, and callbacks across `app/page.tsx`, `navbar.tsx`, `hero.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, and `pricing.tsx`.
+- **Hero Showcase Refactor (Single Image Showcase):**
+  - Replaced the side-by-side 2-image comparison with a single high-definition showcase container framed with signature offset sketchbook wireframe borders.
+  - Integrated all 10 user-specified images as interactive tabs with instant switching:
+    1. 💄 Makeup Transfer (`/ai-photo-editing-images/ai-makeup-transfer.jpg`)
+    2. ✨ Photo Enhance (`/ai-photo-editing-images/photo-enhance.jpg`)
+    3. ✂️ Hairstyle Studio (`/ai-photo-editing-images/hairstyle.jpg`)
+    4. 🎨 Photo Colorize (`/ai-photo-editing-images/photo-colorize.jpg`)
+    5. 🪄 Object Erase (`/ai-photo-editing-images/object-remove.jpg`)
+    6. 🌄 Background Change (`/ai-photo-editing-images/bg-change.jpg`)
+    7. 🔲 Background Cutout (`/ai-photo-editing-images/bg-remove.jpg`)
+    8. 🌈 Color Grading (`/ai-photo-editing-images/color-correction.jpg`)
+    9. 💡 Studio Relighting (`/ai-photo-editing-images/photo-lightining.jpg`)
+    10. 📸 Studio Generator (`/ai-photo-editing-images/ai-studio-generator.jpg`)
+    - Added new categories: 👗 Virtual Try-On (`/ai-photo-editing-images/ai-virtual-cloth-try-on.webp`) and 🧔 Beard & Grooming (`/ai-photo-editing-images/beard-try-on.jpg`).
+  - Added interactive arrow controls (`<` and `>`) to cycle through all showcase looks seamlessly.
+  - Floating preview sketch cards updated with user assets (`hairstyle.jpg`, `photo-colorize.jpg`, `object-remove.jpg`, `photo-lightining.jpg`).
+- **Build Verification:** Tested `npm run build` with zero TypeScript or Turbopack errors.
 
 ### [2026-11-03] - Nano Banana AI Generated Logo & Global Orange Button Border/Outline Removal
 - **Nano Banana AI Generated Logo:**

@@ -1,13 +1,7 @@
-"use client";
-
+import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-interface FeatureIntroProps {
-  onOpenQuickTry?: () => void;
-}
-
-export function FeatureIntro({ onOpenQuickTry }: FeatureIntroProps) {
+export function FeatureIntro() {
   return (
     <section className="pt-16 pb-10 sm:pt-20 sm:pb-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -31,14 +25,13 @@ export function FeatureIntro({ onOpenQuickTry }: FeatureIntroProps) {
 
           {/* Action Buttons */}
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              onClick={onOpenQuickTry}
+            <a
+              href="#features"
               className="group inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
             >
               <Sparkles className="h-4 w-4" />
               <span>Try Your First 5 Transformations Free</span>
-            </button>
+            </a>
 
             <a
               href="#features"
@@ -53,4 +46,3 @@ export function FeatureIntro({ onOpenQuickTry }: FeatureIntroProps) {
     </section>
   );
 }
-

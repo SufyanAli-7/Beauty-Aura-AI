@@ -5,11 +5,7 @@ import Link from "next/link";
 import { Menu, X, ArrowUpRight, LogIn } from "lucide-react";
 import { Logo } from "./logo";
 
-interface NavbarProps {
-  onOpenQuickTry?: () => void;
-}
-
-export function Navbar({ onOpenQuickTry }: NavbarProps) {
+export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -63,43 +59,39 @@ export function Navbar({ onOpenQuickTry }: NavbarProps) {
         {/* Right CTA Actions */}
         <div className="hidden items-center gap-3 lg:flex">
           {/* Log in Button */}
-          <button
-            type="button"
-            onClick={onOpenQuickTry}
+          <Link
+            href="#pricing"
             className="group flex items-center gap-2 rounded-full border border-orange-200/90 bg-orange-50/80 px-4 py-2 text-xs font-semibold text-[#FF5500] transition hover:bg-orange-100 hover:border-orange-300 cursor-pointer"
           >
             <LogIn className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             <span>Log in</span>
-          </button>
+          </Link>
 
           {/* Get Started Button - Clean, flush, zero white outline / border */}
-          <button
-            type="button"
-            onClick={onOpenQuickTry}
+          <Link
+            href="#features"
             className="group inline-flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] px-5 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
           >
             <span>Get Started</span>
             <ArrowUpRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </button>
+          </Link>
         </div>
 
         {/* Mobile/Tablet menu button */}
         <div className="flex lg:hidden items-center gap-2">
-          <button
-            type="button"
-            onClick={onOpenQuickTry}
+          <Link
+            href="#pricing"
             className="rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1.5 text-xs font-semibold text-[#FF5500]"
           >
             Log in
-          </button>
+          </Link>
 
-          <button
-            type="button"
-            onClick={onOpenQuickTry}
+          <Link
+            href="#features"
             className="rounded-full bg-[#FF5500] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#E64C00] border-0 outline-none ring-0"
           >
             Get Started
-          </button>
+          </Link>
 
           <button
             type="button"
@@ -153,29 +145,23 @@ export function Navbar({ onOpenQuickTry }: NavbarProps) {
             </Link>
 
             <div className="pt-2 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenQuickTry?.();
-                }}
+              <Link
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex h-11 items-center justify-center gap-2 rounded-full border border-orange-200 bg-orange-50/80 text-sm font-semibold text-[#FF5500]"
               >
                 <LogIn className="h-4 w-4" />
                 <span>Log in</span>
-              </button>
+              </Link>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenQuickTry?.();
-                }}
+              <Link
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#FF5500] text-sm font-semibold text-white hover:bg-[#E64C00] shadow-md shadow-orange-500/25 border-0 outline-none ring-0"
               >
                 <span>Get Started Free</span>
                 <ArrowUpRight className="h-4 w-4" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>

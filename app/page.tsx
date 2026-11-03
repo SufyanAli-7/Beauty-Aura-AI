@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { Navbar } from "@/components/landing/navbar";
 import { Hero } from "@/components/landing/hero";
 import { StatsBanner } from "@/components/landing/stats-banner";
@@ -10,50 +7,38 @@ import { ServicesGrid } from "@/components/landing/services-grid";
 import { Testimonials } from "@/components/landing/testimonials";
 import { Pricing } from "@/components/landing/pricing";
 import { Footer } from "@/components/landing/footer";
-import { QuickTryModal } from "@/components/landing/quick-try-modal";
 
 export default function Home() {
-  const [quickTryOpen, setQuickTryOpen] = useState(false);
-
-  const handleOpenQuickTry = () => setQuickTryOpen(true);
-  const handleCloseQuickTry = () => setQuickTryOpen(false);
-
   return (
     <div className="flex min-h-screen flex-col bg-white text-zinc-900 selection:bg-[#FF5500] selection:text-white">
       {/* Top Navigation */}
-      <Navbar onOpenQuickTry={handleOpenQuickTry} />
+      <Navbar />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <Hero onOpenQuickTry={handleOpenQuickTry} />
+        <Hero />
 
         {/* Orange Stats Banner */}
         <StatsBanner />
 
         {/* 5 Free Transformations Intro */}
-        <FeatureIntro onOpenQuickTry={handleOpenQuickTry} />
+        <FeatureIntro />
 
         {/* Alternating Feature Showcase with signature offset wireframe cards */}
-        <FeatureAlternating onOpenQuickTry={handleOpenQuickTry} />
+        <FeatureAlternating />
 
         {/* Our Services Section */}
-        <ServicesGrid onOpenQuickTry={handleOpenQuickTry} />
+        <ServicesGrid />
 
         {/* Testimonials ("What Our Community Says") */}
         <Testimonials />
 
         {/* Transparent Pricing Section */}
-        <Pricing onOpenQuickTry={handleOpenQuickTry} />
+        <Pricing />
       </main>
 
       {/* Espresso / Dark Brown Footer */}
       <Footer />
-
-      {/* Interactive AI Studio Quick Try Modal */}
-      <QuickTryModal
-        isOpen={quickTryOpen}
-        onClose={handleCloseQuickTry}
-      />
     </div>
   );
 }

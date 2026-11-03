@@ -2,11 +2,7 @@
 
 import { FeatureCard } from "./feature-card";
 
-interface FeatureAlternatingProps {
-  onOpenQuickTry?: () => void;
-}
-
-export function FeatureAlternating({ onOpenQuickTry }: FeatureAlternatingProps) {
+export function FeatureAlternating() {
   const features = [
     {
       id: "virtual-try-on",
@@ -72,7 +68,6 @@ export function FeatureAlternating({ onOpenQuickTry }: FeatureAlternatingProps) 
         <FeatureCard
           key={feature.id}
           {...feature}
-          onAction={onOpenQuickTry}
         />
       ))}
     </section>

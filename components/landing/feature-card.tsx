@@ -14,7 +14,6 @@ export interface FeatureCardProps {
   subImageSrc?: string;
   subImageAlt?: string;
   reversed?: boolean;
-  onAction?: () => void;
   actionText?: string;
 }
 
@@ -29,7 +28,6 @@ export function FeatureCard({
   subImageSrc,
   subImageAlt,
   reversed = false,
-  onAction,
   actionText = "Try this look free",
 }: FeatureCardProps) {
   return (
@@ -131,14 +129,13 @@ export function FeatureCard({
 
           {/* Action Link */}
           <div className="mt-6 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onAction}
+            <a
+              href="#hero"
               className="group inline-flex items-center gap-2 rounded-full bg-orange-100/80 hover:bg-orange-200/90 border-0 border-none outline-none ring-0 px-4 py-2 text-xs font-semibold text-[#FF5500] transition-all cursor-pointer"
             >
               <span>{actionText}</span>
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
+            </a>
           </div>
         </div>
       </div>

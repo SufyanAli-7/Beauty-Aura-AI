@@ -4,11 +4,7 @@ import { useState } from "react";
 import { Check, Sparkles, Zap, Flame, ShieldCheck, Clock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface PricingProps {
-  onOpenQuickTry?: () => void;
-}
-
-export function Pricing({ onOpenQuickTry }: PricingProps) {
+export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   return (
@@ -118,13 +114,12 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
             </div>
 
             <div className="mt-8 pt-4">
-              <button
-                type="button"
-                onClick={onOpenQuickTry}
+              <a
+                href="#features"
                 className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </button>
+              </a>
             </div>
           </div>
 
@@ -180,13 +175,12 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
             </div>
 
             <div className="mt-8 pt-4">
-              <button
-                type="button"
-                onClick={onOpenQuickTry}
+              <a
+                href="#features"
                 className="w-full flex h-12 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </button>
+              </a>
             </div>
           </div>
 
@@ -241,13 +235,12 @@ export function Pricing({ onOpenQuickTry }: PricingProps) {
             </div>
 
             <div className="mt-8 pt-4">
-              <button
-                type="button"
-                onClick={onOpenQuickTry}
+              <a
+                href="#features"
                 className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
                 Start 7-day free trial
-              </button>
+              </a>
             </div>
           </div>
         </div>
