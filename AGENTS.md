@@ -80,6 +80,9 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-03] - Bottom Showcase Tool Strip Removal
+- **Bottom Showcase Strip Removal:** Removed the bottom tool bar (`Active Tool: ...` and `Turn photos into fashion art with BeautyAura | Explore Studio >` pill) from [`components/landing/hero.tsx`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/hero.tsx) as requested in `media_1793687686504_9548197d.png`. The showcase frame now cleanly highlights the image and style caption without visual clutter.
+
 ### [2026-11-03] - Hero Showcase Refactor, Upload Bar & Modal Removal, Multi-Category Single Image Integration
 - **Upload Bar Component Removal:** Completely removed the `family_or_portrait_photo.png` upload pill component from the Hero section.
 - **Quick-Try Modal Removal:** Completely deleted `components/landing/quick-try-modal.tsx` and removed all state, modal triggers, and callbacks across `app/page.tsx`, `navbar.tsx`, `hero.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, and `pricing.tsx`.

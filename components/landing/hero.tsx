@@ -311,25 +311,6 @@ export function Hero() {
                   </span>
                 </div>
               </div>
-
-              {/* Showcase Controls & Explorer Pill */}
-              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-orange-100">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-zinc-600">
-                    Active Tool: <strong className="text-zinc-900">{current.label}</strong>
-                  </span>
-                </div>
-
-                <a
-                  href="#features"
-                  className="group inline-flex items-center gap-2 rounded-full border-0 border-none outline-none ring-0 bg-orange-100/90 hover:bg-orange-200/90 px-4 py-1.5 text-xs font-semibold text-[#FF5500] transition-all cursor-pointer"
-                >
-                  <span>Turn photos into fashion art with BeautyAura</span>
-                  <span className="text-zinc-400">|</span>
-                  <span className="font-bold underline underline-offset-2">Explore Studio &gt;</span>
-                </a>
-              </div>
             </div>
           </div>
 
