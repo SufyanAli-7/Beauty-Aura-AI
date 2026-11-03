@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,19 +12,48 @@ import {
   Scissors,
   Layers,
   ArrowRight,
-  Upload,
   Plus,
   Clock,
   CheckCircle2,
-  Download,
-  Star,
-  Sliders,
   FolderKanban,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { insforge } from "@/lib/insforge";
+
+interface TransformationRecord {
+  id: string;
+  tool_id: string;
+  tool_name: string;
+  result_image_url: string;
+  look_name?: string;
+  created_at: string;
+}
 
 export default function DashboardPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, credits } = useAuth();
+  const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
+
+  useEffect(() => {
+    async function loadRecent() {
+      if (!user?.id) return;
+      try {
+        const { data } = await insforge.database
+          .from("transformations")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8);
+
+        if (data) {
+          setTransformations(data as TransformationRecord[]);
+        }
+      } catch (e) {
+        console.warn("Failed to load transformations:", e);
+      }
+    }
+    loadRecent();
+  }, [user?.id]);
 
   const displayName =
     profile?.name ||
@@ -49,8 +78,8 @@ export default function DashboardPage() {
       href: "/dashboard/beauty",
       image: "/ai-photo-editing-images/ai-makeup-transfer.jpg",
       icon: Wand2,
-      badge: "Viral Trend",
-      toolsCount: "6 Tools",
+      badge: "YouCam AI",
+      toolsCount: "3 Features",
       gradient: "from-pink-500/10 to-orange-500/5",
     },
     {
@@ -85,15 +114,6 @@ export default function DashboardPage() {
     },
   ];
 
-  // Currently no transformations (empty state active)
-  const recentProjects: Array<{
-    title: string;
-    category: string;
-    date: string;
-    image: string;
-    status: string;
-  }> = [];
-
   return (
     <div className="space-y-8 pb-12">
       {/* 1. Welcome Banner Card with Signature Aesthetic */}
@@ -126,11 +146,11 @@ export default function DashboardPage() {
           {/* Quick CTA Actions */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <Link
-              href="/dashboard/fashion"
+              href="/dashboard/beauty"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
             >
-              <Plus className="h-4 w-4 stroke-[2.5]" />
-              <span>Start Try-On</span>
+              <Sparkles className="h-4 w-4 stroke-[2.5]" />
+              <span>Beauty AI Studio</span>
             </Link>
 
             <Link
@@ -138,69 +158,72 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/90 px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] hover:border-orange-300 transition"
             >
               <Zap className="h-4 w-4 text-[#FF5500] fill-[#FF5500]" />
-              <span>5 Credits Left</span>
+              <span>{credits} Credits</span>
             </Link>
           </div>
         </div>
 
-        {/* Studio Quick Stats */}
-        <div className="relative z-10 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-orange-100/80 pt-6">
-          <div className="rounded-2xl border border-orange-100/70 bg-white/80 p-3.5 shadow-2xs backdrop-blur-xs">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+        {/* Quick Stats Strip */}
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-orange-200/60 pt-5">
+          <div className="rounded-2xl bg-white/80 p-3 shadow-2xs border border-orange-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
               Remaining Credits
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-zinc-900">5</span>
-              <span className="text-xs font-semibold text-emerald-600">Active</span>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-orange-100/70 bg-white/80 p-3.5 shadow-2xs backdrop-blur-xs">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-              AI Tools
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-zinc-900">5</span>
-              <span className="text-xs font-semibold text-[#FF5500]">Studios</span>
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-zinc-900">{credits}</span>
+              <span className="text-xs font-semibold text-zinc-500">/ 50</span>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-orange-100/70 bg-white/80 p-3.5 shadow-2xs backdrop-blur-xs">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+          <div className="rounded-2xl bg-white/80 p-3 shadow-2xs border border-orange-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
               My Projects
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-zinc-900">0</span>
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-zinc-900">
+                {transformations.length}
+              </span>
               <span className="text-xs font-semibold text-zinc-500">Saved</span>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-orange-100/70 bg-white/80 p-3.5 shadow-2xs backdrop-blur-xs">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-              Render Quality
+          <div className="rounded-2xl bg-white/80 p-3 shadow-2xs border border-orange-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              YouCam Integration
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-emerald-600">Active</span>
+              <span className="text-xs font-semibold text-zinc-500">3 Tools</span>
             </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-zinc-900">4K Ultra</span>
-              <span className="text-xs font-semibold text-amber-600">HD</span>
+          </div>
+
+          <div className="rounded-2xl bg-white/80 p-3 shadow-2xs border border-orange-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              Render Quality
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-zinc-900">4K UHD</span>
+              <span className="text-xs font-semibold text-zinc-500">Lossless</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. AI Tools Hub Grid (The 5 Main Categories) */}
+      {/* 2. Studios Cards Grid (5 AI Studios) */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#FF5500]">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>AI Tools Workspace</span>
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
+              <span>Creative Suite</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-900">
-              Choose an AI Creative Studio
+            <h3 className="text-xl font-extrabold tracking-tight text-zinc-900">
+              Explore AI Studios
             </h3>
           </div>
-          <span className="text-xs font-semibold text-zinc-500">
-            Select any engine to begin instant photo editing
+
+          <span className="text-xs font-semibold text-[#FF5500]">
+            5 Studios Available
           </span>
         </div>
 
@@ -211,59 +234,50 @@ export default function DashboardPage() {
               <Link
                 key={studio.title}
                 href={studio.href}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-orange-300 hover:shadow-xl hover:shadow-orange-500/10"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-orange-100/90 bg-white p-5 shadow-xs hover:border-orange-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Image Preview with Signature Sketch Wireframe Border */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-stone-100 mb-4">
+                {/* Visual Thumbnail Image Banner */}
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-stone-100 mb-4 border border-orange-100">
                   <Image
                     src={studio.image}
                     alt={studio.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
                   />
-                  {/* Subtle gradient vignette */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                  {/* Top badges */}
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                    <span className="rounded-full bg-white/90 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-bold text-zinc-800 shadow-xs">
-                      {studio.badge}
-                    </span>
+                  <div className="absolute top-2.5 left-2.5 rounded-full bg-white/90 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-bold text-zinc-800 shadow-2xs">
+                    {studio.badge}
                   </div>
-
-                  <div className="absolute top-2.5 right-2.5">
-                    <span className="rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white">
-                      {studio.toolsCount}
-                    </span>
-                  </div>
-
-                  {/* Bottom category title on image */}
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-2 text-white">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF5500] text-white shadow-xs">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm font-black truncate drop-shadow-xs">
-                      {studio.title}
-                    </span>
+                  <div className="absolute top-2.5 right-2.5 rounded-full bg-[#FF5500] px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                    {studio.toolsCount}
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="space-y-3">
-                  <p className="text-xs text-zinc-600 line-clamp-2 leading-relaxed">
+                {/* Content */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-100 text-[#FF5500]">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <h4 className="text-base font-bold text-zinc-900 group-hover:text-[#FF5500] transition-colors">
+                      {studio.title}
+                    </h4>
+                  </div>
+
+                  <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
                     {studio.description}
                   </p>
+                </div>
 
-                  <div className="flex items-center justify-between border-t border-orange-100/70 pt-3">
-                    <span className="text-xs font-bold text-[#FF5500] group-hover:underline flex items-center gap-1">
-                      Open Studio
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                    <span className="text-[11px] font-semibold text-zinc-400">
-                      1 Credit / render
-                    </span>
-                  </div>
+                {/* Studio Footer */}
+                <div className="mt-4 pt-3 border-t border-orange-100/70 flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#FF5500] group-hover:gap-1.5 transition-all">
+                    Open Studio
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                  <span className="text-[11px] font-semibold text-zinc-400">
+                    5 Credits / render
+                  </span>
                 </div>
               </Link>
             );
@@ -271,7 +285,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 3. Recent Projects / History Section */}
+      {/* 3. Recent Transformations / History Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -285,19 +299,17 @@ export default function DashboardPage() {
           </div>
 
           <span className="text-xs font-semibold text-zinc-400">
-            0 Transformations
+            {transformations.length} Transformations
           </span>
         </div>
 
-        {recentProjects.length === 0 ? (
+        {transformations.length === 0 ? (
           /* Empty State View */
           <div className="relative overflow-hidden rounded-3xl border-2 border-dashed border-orange-200/90 bg-white/70 p-8 sm:p-12 text-center shadow-xs backdrop-blur-xs transition hover:border-orange-300">
-            {/* Subtle warm ambient circles */}
             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-orange-400/10 blur-2xl" />
             <div className="pointer-events-none absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-amber-400/10 blur-2xl" />
 
             <div className="relative z-10 max-w-md mx-auto space-y-4">
-              {/* Illustrated Icon Badge */}
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 border border-orange-200 shadow-sm">
                 <FolderKanban className="h-9 w-9 text-[#FF5500]" />
                 <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-xs border border-orange-200">
@@ -305,7 +317,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Typography */}
               <div className="space-y-1.5">
                 <h4 className="text-lg sm:text-xl font-extrabold text-zinc-900 tracking-tight">
                   No transformations yet
@@ -315,10 +326,9 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* Action Buttons */}
               <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                 <Link
-                  href="/dashboard/fashion"
+                  href="/dashboard/beauty"
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 hover:shadow-orange-500/35 transition cursor-pointer"
                 >
                   <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -329,66 +339,37 @@ export default function DashboardPage() {
                   href="/dashboard/templates"
                   className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] hover:border-orange-300 transition cursor-pointer"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
                   <span>Browse Templates</span>
-                </Link>
-              </div>
-
-              {/* Quick Inspiration Links */}
-              <div className="pt-4 border-t border-orange-100/70 flex flex-wrap items-center justify-center gap-2 text-[11px] text-zinc-400">
-                <span className="font-semibold text-zinc-500">Popular to try:</span>
-                <Link
-                  href="/dashboard/fashion"
-                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
-                >
-                  👗 Virtual Try-On
-                </Link>
-                <Link
-                  href="/dashboard/skin-face"
-                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
-                >
-                  ✨ Skin Analysis
-                </Link>
-                <Link
-                  href="/dashboard/beauty"
-                  className="rounded-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold px-2.5 py-1 transition"
-                >
-                  💄 Makeup Transfer
                 </Link>
               </div>
             </div>
           </div>
         ) : (
+          /* Real Transformations Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recentProjects.map((project, idx) => (
+            {transformations.map((t) => (
               <div
-                key={idx}
-                className="group overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-200 hover:shadow-md transition"
+                key={t.id}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-md transition"
               >
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-stone-100 mb-2.5">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    sizes="25vw"
-                    className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 mb-2.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={t.result_image_url}
+                    alt={t.tool_name}
+                    className="h-full w-full object-contain"
                   />
-                  <div className="absolute top-2 right-2 rounded-full bg-emerald-500/90 text-white text-[9px] font-bold px-2 py-0.5 backdrop-blur-xs flex items-center gap-1">
-                    <CheckCircle2 className="h-2.5 w-2.5" />
-                    <span>{project.status}</span>
+                  <div className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-800">
+                    {t.tool_name}
                   </div>
                 </div>
-
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-zinc-900 truncate">
-                    {project.title}
+                    {t.look_name || t.tool_name}
                   </h4>
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                    <span>{project.category}</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-2.5 w-2.5" />
-                      {project.date}
-                    </span>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                    <span>{new Date(t.created_at).toLocaleDateString()}</span>
+                    <span>-5 Credits</span>
                   </div>
                 </div>
               </div>
@@ -399,4 +380,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

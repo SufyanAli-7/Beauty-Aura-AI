@@ -9,20 +9,18 @@ import {
   Upload,
   Zap,
   CheckCircle2,
-  Eye,
   RotateCcw,
   Download,
-  Share2,
-  Image as ImageIcon,
   Check,
   RefreshCw,
   Columns2,
-  Layers,
-  ArrowRight,
   Info,
-  X,
+  Sliders,
+  AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 // 1. Tool Options
 export type BeautyToolId = "transfer" | "try-on" | "eye-color";
@@ -63,7 +61,7 @@ const BEAUTY_TOOLS: BeautyTool[] = [
   },
 ];
 
-// 2. Test Portrait Images (Normal Headshots)
+// 2. Sample Portrait Images (Normal Headshots)
 interface TestImage {
   id: string;
   name: string;
@@ -108,39 +106,63 @@ const TRANSFER_LOOKS = [
   },
 ];
 
-// B. Makeup Try-On Styles
-const TRYON_STYLES = [
+// B. Makeup Try-On: Curated YouCam Official Look Templates
+const YOUCAM_TEMPLATES = [
   {
-    id: "style-french",
-    name: "French Girl Nude",
-    badge: "Everyday",
-    lipstick: "#C47B66",
-    blush: "#E89B84",
-    description: "Effortless brushed brows, minimal contour, and hydrated soft nude lips.",
+    id: "all_golden_glam",
+    name: "Golden Glam",
+    badge: "Red Carpet",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA191028-0005/48/191014_newyear_collection_01_store_thumb.jpg",
+    description: "Golden champagne shimmer, bronze contour & warm glossy lips.",
   },
   {
-    id: "style-redcarpet",
-    name: "Red Carpet Siren",
+    id: "all_velour",
+    name: "Velour",
+    badge: "Editorial",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA241030-0070/63/241107_NewYear_free_01_store_thumb.jpg",
+    description: "Deep velvety matte crimson lips with soft winged liner.",
+  },
+  {
+    id: "all_blush_rush",
+    name: "Blush Rush",
+    badge: "Fresh Glow",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA241030-0070/65/241107_Newyear_02_store_thumb.jpg",
+    description: "Rosy cheek apple highlight, puppy eyeliner & glass skin glow.",
+  },
+  {
+    id: "all_gilded_glam",
+    name: "Gilded Glam",
     badge: "High Glam",
-    lipstick: "#A31621",
-    blush: "#C8626D",
-    description: "Classic scarlet velvet matte lips, winged liner, and sculpted cheekbones.",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA191028-0005/41/191014_newyear_collection_04_store_thumb.jpg",
+    description: "Luminous gold pigments with sculptured cheekbones and nude satin lips.",
   },
   {
-    id: "style-kbeauty",
-    name: "K-Beauty Dewy Glow",
-    badge: "Dewy",
-    lipstick: "#E36577",
-    blush: "#F4A5AE",
-    description: "Ultra-hydrated glass skin finish with soft gradient lips and puppy eyeliner.",
+    id: "all_galaxy_glow",
+    name: "Galaxy Glow",
+    badge: "Luminous",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA231108-0047/28/231116_NewYear_free_02_store_thumb.jpg",
+    description: "Celestial highlighter accents, soft smokey eye & berry tint.",
   },
   {
-    id: "style-latte",
-    name: "Warm Latte Mocha",
-    badge: "Trending",
-    lipstick: "#7B4B3A",
-    blush: "#B27A59",
-    description: "Monochromatic caramel and cocoa tones with golden highlight accents.",
+    id: "all_silver_shine",
+    name: "Silver Shine",
+    badge: "Fashion Week",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA240820-0002/1/191014_newyear_collection_03_store_thumb.jpg",
+    description: "Sleek metallic lid shimmer with modern Parisian contours.",
+  },
+  {
+    id: "all_candy",
+    name: "Candy Chic",
+    badge: "Doll Glow",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA191209-0017/2/181207_Holiday_02_store_thumb.jpg",
+    description: "Sweet bubblegum pink cheeks and glossy hydrated gradient pout.",
+  },
+  {
+    id: "all_frosty",
+    name: "Frosty Crystal",
+    badge: "Clean Glam",
+    thumb: "https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA191209-0017/1/181207_Holiday_01_store_thumb.jpg",
+    description: "Iced champagne lid wash, feathered brows & hydrated nude balm.",
   },
 ];
 
@@ -185,6 +207,8 @@ const EYE_LENSES = [
 ];
 
 export default function BeautyStudioPage() {
+  const { user, credits, setCredits } = useAuth();
+
   // 1. Tool Selection
   const [selectedTool, setSelectedTool] = useState<BeautyToolId>("transfer");
 
@@ -195,14 +219,30 @@ export default function BeautyStudioPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 3. Look Selection State
-  const [selectedTransferLook, setSelectedTransferLook] = useState<string>("/makeup-transfer/webp_makeup_transfer_01.png");
-  const [selectedTryOnStyle, setSelectedTryOnStyle] = useState<string>("style-redcarpet");
-  const [selectedEyeLens, setSelectedEyeLens] = useState<string>("lens-1");
+  // A. Transfer
+  const [selectedTransferLook, setSelectedTransferLook] = useState<string>(
+    "/makeup-transfer/webp_makeup_transfer_01.png"
+  );
+  const [customRefPreview, setCustomRefPreview] = useState<string | null>(null);
+  const customRefInputRef = useRef<HTMLInputElement>(null);
+
+  // B. Try-On (Templates vs Custom)
+  const [tryOnTab, setTryOnTab] = useState<"templates" | "custom">("templates");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("all_golden_glam");
   const [selectedLipstick, setSelectedLipstick] = useState<string>("#A31621");
+  const [selectedLipTexture, setSelectedLipTexture] = useState<"matte" | "gloss" | "satin">("matte");
+  const [selectedBlush, setSelectedBlush] = useState<string>("#e19f9f");
+
+  // C. Eye Lens
+  const [selectedEyeLens, setSelectedEyeLens] = useState<string>("lens-1");
+  const [lensIntensity, setLensIntensity] = useState<number>(85);
 
   // 4. Generation & Result State
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [hasGenerated, setHasGenerated] = useState<boolean>(false);
+  const [generationStep, setGenerationStep] = useState<string>("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"result" | "split" | "original">("result");
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const sliderContainerRef = useRef<HTMLDivElement>(null);
@@ -211,57 +251,155 @@ export default function BeautyStudioPage() {
   const currentTool = BEAUTY_TOOLS.find((t) => t.id === selectedTool) || BEAUTY_TOOLS[0];
 
   // Effective Source Image
-  const activeSourceImage = sourceTab === "upload" && uploadedPreview ? uploadedPreview : selectedSource;
+  const activeSourceImage =
+    sourceTab === "upload" && uploadedPreview ? uploadedPreview : selectedSource;
 
-  // Resolved Generated Result Image based on selected tool & look
-  const getGeneratedImage = () => {
-    if (selectedTool === "transfer") {
-      return "/ai-photo-editing-images/ai-makeup-transfer.jpg";
-    }
-    if (selectedTool === "try-on") {
-      return "/ai-photo-editing-images/ai-makeup-try-on.jpg";
-    }
-    return "/ai-photo-editing-images/eye-color-try-on.webp";
-  };
+  // Active Reference Image for Transfer
+  const activeTransferRef = customRefPreview || selectedTransferLook;
 
-  // Handle Local File Upload
+  // Handle Source File Upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setUploadedPreview(objectUrl);
-      setSourceTab("upload");
-      setHasGenerated(false);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setUploadedPreview(reader.result as string);
+        setSourceTab("upload");
+        setHasGenerated(false);
+        setErrorMessage(null);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Handle Drag & Drop
+  // Handle Drag & Drop Source
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      const objectUrl = URL.createObjectURL(file);
-      setUploadedPreview(objectUrl);
-      setSourceTab("upload");
-      setHasGenerated(false);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setUploadedPreview(reader.result as string);
+        setSourceTab("upload");
+        setHasGenerated(false);
+        setErrorMessage(null);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Run AI Generation
-  const handleGenerate = () => {
+  // Handle Custom Reference Photo for Transfer
+  const handleCustomRefChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCustomRefPreview(reader.result as string);
+        setHasGenerated(false);
+        setErrorMessage(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Run Real AI Generation Workflow with YouCam MCP & InSForge Storage
+  const handleGenerate = async () => {
+    setErrorMessage(null);
+
+    // Check credits
+    if (credits < 5) {
+      setErrorMessage(
+        "You do not have enough credits (5 credits required). Please refill your credits in Billing."
+      );
+      return;
+    }
+
     setIsGenerating(true);
-    // Simulate generation time
-    setTimeout(() => {
-      setIsGenerating(false);
+    setGenerationStep("Connecting to YouCam AI...");
+
+    try {
+      // Step A: Prepare Look Payload based on selected tool
+      let lookData: any = {};
+
+      if (selectedTool === "transfer") {
+        const selectedLookObj = TRANSFER_LOOKS.find((l) => l.src === selectedTransferLook);
+        lookData = {
+          refImageUrl: activeTransferRef,
+          lookName: customRefPreview ? "Custom Inspiration Reference" : selectedLookObj?.name || "Golden Glamour",
+        };
+      } else if (selectedTool === "try-on") {
+        if (tryOnTab === "templates") {
+          const tmpl = YOUCAM_TEMPLATES.find((t) => t.id === selectedTemplateId);
+          lookData = {
+            type: "template",
+            templateId: selectedTemplateId,
+            lookName: tmpl?.name || "Golden Glam",
+          };
+        } else {
+          lookData = {
+            type: "custom",
+            lipstick: selectedLipstick,
+            texture: selectedLipTexture,
+            blush: selectedBlush,
+            lookName: "Custom Cosmetic Palette",
+          };
+        }
+      } else if (selectedTool === "eye-color") {
+        const lensObj = EYE_LENSES.find((l) => l.id === selectedEyeLens);
+        lookData = {
+          lensImageUrl: lensObj?.src || "/eye-lens/webp_eye_len_01.png",
+          intensity: lensIntensity,
+          lookName: `${lensObj?.name || "Hazel Olive"} (${lensIntensity}%)`,
+        };
+      }
+
+      setGenerationStep("Synthesizing facial features & optical layers...");
+
+      const userId = user?.id || "guest-user";
+
+      // Step B: Call backend API route
+      const res = await fetch("/api/beauty/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          toolId: selectedTool,
+          sourceImageUrl: activeSourceImage,
+          lookData,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Generation request failed.");
+      }
+
+      setGenerationStep("Saving 4K render to InSForge Cloud Storage...");
+
+      // Step C: Update state with permanent InSForge URL
+      setGeneratedImageUrl(data.resultUrl || data.youcamUrl);
+      if (typeof data.remainingCredits === "number") {
+        setCredits(data.remainingCredits);
+      }
+
       setHasGenerated(true);
       setViewMode("result");
-    }, 1200);
+    } catch (err: any) {
+      console.error("Beauty Studio Generation error:", err);
+      setErrorMessage(err.message || "Failed to generate transformation. Please try again.");
+    } finally {
+      setIsGenerating(false);
+      setGenerationStep("");
+    }
   };
 
   // Reset to initial state
   const handleReset = () => {
     setHasGenerated(false);
+    setGeneratedImageUrl("");
     setViewMode("result");
+    setErrorMessage(null);
   };
 
   // Handle Split Slider Dragging
@@ -286,17 +424,39 @@ export default function BeautyStudioPage() {
             Beauty AI Studio
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Transfer celebrity makeup looks, experiment with virtual palettes, and simulate natural colored contact lenses.
+            Powered by YouCam MCP AI tools, InSForge Cloud Storage &amp; Database.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200/80 px-3.5 py-1 text-xs font-bold text-zinc-800">
             <Zap className="h-3.5 w-3.5 text-[#FF5500] fill-current" />
-            <span>1 Credit / render</span>
+            <span>5 Credits / render</span>
+          </div>
+          <div className="text-xs font-bold text-zinc-500">
+            Balance: <span className="text-zinc-900 font-black">{credits}</span>
           </div>
         </div>
       </div>
+
+      {/* Error Alert Banner */}
+      {errorMessage && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs font-semibold text-rose-800 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+            <span>{errorMessage}</span>
+          </div>
+          {credits < 5 && (
+            <Link
+              href="/dashboard/billing"
+              className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-3 py-1 font-bold text-white hover:bg-rose-700 transition"
+            >
+              <span>Refill</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Main Two-Column Studio Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
@@ -331,6 +491,7 @@ export default function BeautyStudioPage() {
                     onClick={() => {
                       setSelectedTool(tool.id);
                       setHasGenerated(false);
+                      setErrorMessage(null);
                     }}
                     className={cn(
                       "w-full group relative flex items-center gap-3.5 rounded-2xl p-3 text-left transition-all duration-200 border cursor-pointer",
@@ -460,7 +621,7 @@ export default function BeautyStudioPage() {
               </div>
             )}
 
-            {/* Tab 2: Sample Portraits Grid (Fixed Aspect Ratio with Full Face Visible) */}
+            {/* Tab 2: Sample Portraits Grid */}
             {sourceTab === "test" && (
               <div className="space-y-2">
                 <div className="grid grid-cols-5 gap-2">
@@ -474,11 +635,11 @@ export default function BeautyStudioPage() {
                           setSelectedSource(portrait.src);
                           setUploadedPreview(null);
                           setHasGenerated(false);
+                          setErrorMessage(null);
                         }}
                         className="group flex flex-col items-center text-center cursor-pointer transition-all"
                         title={portrait.name}
                       >
-                        {/* 3:4 Aspect Ratio Container showing 100% of the face */}
                         <div
                           className={cn(
                             "relative aspect-[3/4] w-full overflow-hidden rounded-xl border bg-stone-100 transition-all shadow-xs",
@@ -501,7 +662,6 @@ export default function BeautyStudioPage() {
                           )}
                         </div>
 
-                        {/* Name Label Placed Cleanly Below (Does NOT block the chin/face) */}
                         <span
                           className={cn(
                             "mt-1 text-[11px] font-bold truncate transition-colors",
@@ -533,7 +693,11 @@ export default function BeautyStudioPage() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-xs font-bold text-zinc-900 truncate">
-                    {sourceTab === "upload" && uploadedPreview ? "Uploaded Custom Photo" : "Selected Portrait (" + (TEST_PORTRAITS.find(p => p.src === selectedSource)?.name || "Elena") + ")"}
+                    {sourceTab === "upload" && uploadedPreview
+                      ? "Uploaded Custom Photo"
+                      : "Selected Portrait (" +
+                        (TEST_PORTRAITS.find((p) => p.src === selectedSource)?.name || "Elena") +
+                        ")"}
                   </span>
                   <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3 shrink-0" />
@@ -572,8 +736,8 @@ export default function BeautyStudioPage() {
                 {selectedTool === "transfer"
                   ? "Reference Looks"
                   : selectedTool === "try-on"
-                  ? "Styles & Swatches"
-                  : "Lens Palette"}
+                  ? "YouCam Curated & Custom"
+                  : "Lens Palette & Opacity"}
               </span>
             </div>
 
@@ -581,19 +745,22 @@ export default function BeautyStudioPage() {
             {selectedTool === "transfer" && (
               <div className="space-y-3">
                 <p className="text-xs text-zinc-500 font-medium">
-                  Select a reference celebrity or editorial look to extract lipstick, eyeliner, and shadow tone:
+                  Select an editorial reference look to extract makeup tones, or upload your own inspiration image:
                 </p>
 
+                {/* Grid of editorial reference looks */}
                 <div className="grid grid-cols-2 gap-2.5">
                   {TRANSFER_LOOKS.map((look) => {
-                    const isSelected = selectedTransferLook === look.src;
+                    const isSelected = selectedTransferLook === look.src && !customRefPreview;
                     return (
                       <button
                         key={look.id}
                         type="button"
                         onClick={() => {
                           setSelectedTransferLook(look.src);
+                          setCustomRefPreview(null);
                           setHasGenerated(false);
+                          setErrorMessage(null);
                         }}
                         className={cn(
                           "group relative flex flex-col overflow-hidden rounded-2xl border p-2 text-left transition-all cursor-pointer",
@@ -626,98 +793,249 @@ export default function BeautyStudioPage() {
                     );
                   })}
                 </div>
+
+                {/* Upload Custom Reference Look */}
+                <div className="pt-2 border-t border-orange-100/80">
+                  <input
+                    ref={customRefInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleCustomRefChange}
+                  />
+                  {customRefPreview ? (
+                    <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50/60 p-2">
+                      <div className="flex items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={customRefPreview}
+                          alt="Custom Reference"
+                          className="h-10 w-10 rounded-lg object-cover"
+                        />
+                        <div className="text-xs font-bold text-zinc-900">
+                          Custom Look Selected
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCustomRefPreview(null)}
+                        className="text-xs font-semibold text-zinc-400 hover:text-rose-600 px-2"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => customRefInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-orange-200 py-2.5 text-xs font-bold text-zinc-700 hover:border-orange-400 hover:bg-orange-50/50 transition cursor-pointer"
+                    >
+                      <Upload className="h-3.5 w-3.5 text-[#FF5500]" />
+                      <span>Upload Custom Look Inspiration</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
+                  <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
+                  <span>
+                    YouCam AI Makeup Transfer extracts lipstick pigments, contouring, and eyeliner geometry from the reference look and blends them to your facial structure.
+                  </span>
+                </div>
               </div>
             )}
 
             {/* B. DYNAMIC OPTIONS FOR: AI Makeup Virtual Try-On */}
             {selectedTool === "try-on" && (
               <div className="space-y-4">
-                <p className="text-xs text-zinc-500 font-medium">
-                  Choose a signature curated beauty style:
-                </p>
+                {/* Sub-tabs: Curated YouCam Looks vs Custom Palette */}
+                <div className="flex rounded-xl bg-stone-100/80 p-1 border border-orange-100/60">
+                  <button
+                    type="button"
+                    onClick={() => setTryOnTab("templates")}
+                    className={cn(
+                      "flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer text-center",
+                      tryOnTab === "templates"
+                        ? "bg-white text-zinc-900 shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900"
+                    )}
+                  >
+                    YouCam Curated Looks (8)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTryOnTab("custom")}
+                    className={cn(
+                      "flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer text-center",
+                      tryOnTab === "custom"
+                        ? "bg-white text-zinc-900 shadow-2xs"
+                        : "text-zinc-500 hover:text-zinc-900"
+                    )}
+                  >
+                    Custom Palette
+                  </button>
+                </div>
 
-                {/* Style Cards */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {TRYON_STYLES.map((style) => {
-                    const isSelected = selectedTryOnStyle === style.id;
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTryOnStyle(style.id);
-                          setSelectedLipstick(style.lipstick);
-                          setHasGenerated(false);
-                        }}
-                        className={cn(
-                          "relative rounded-2xl border p-3 text-left transition-all cursor-pointer",
-                          isSelected
-                            ? "border-[#FF5500] ring-2 ring-[#FF5500]/25 bg-orange-50/50 shadow-xs"
-                            : "border-orange-100 bg-stone-50/60 hover:border-orange-200"
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span
-                            className="h-3 w-3 rounded-full border border-white shadow-2xs"
-                            style={{ backgroundColor: style.lipstick }}
+                {/* Sub-tab 1: YouCam Curated Templates */}
+                {tryOnTab === "templates" && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-zinc-500 font-medium">
+                      Official YouCam beauty look templates with studio cosmetics:
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+                      {YOUCAM_TEMPLATES.map((tmpl) => {
+                        const isSelected = selectedTemplateId === tmpl.id;
+                        return (
+                          <button
+                            key={tmpl.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedTemplateId(tmpl.id);
+                              setHasGenerated(false);
+                              setErrorMessage(null);
+                            }}
+                            className={cn(
+                              "relative flex flex-col rounded-2xl border p-2 text-left transition-all cursor-pointer overflow-hidden",
+                              isSelected
+                                ? "border-[#FF5500] ring-2 ring-[#FF5500]/25 bg-orange-50/50 shadow-xs"
+                                : "border-orange-100 bg-stone-50/60 hover:border-orange-200"
+                            )}
+                          >
+                            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-white mb-1.5">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={tmpl.thumb}
+                                alt={tmpl.name}
+                                className="h-full w-full object-cover object-top"
+                              />
+                              <span className="absolute bottom-1 right-1 rounded-full bg-black/75 px-1.5 py-0.2 text-[8px] font-bold text-white">
+                                {tmpl.badge}
+                              </span>
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF5500] text-white shadow-xs">
+                                  <Check className="h-2.5 w-2.5 stroke-[3]" />
+                                </div>
+                              )}
+                            </div>
+                            <h4 className="text-xs font-bold text-zinc-900 truncate">
+                              {tmpl.name}
+                            </h4>
+                            <p className="text-[10px] text-zinc-500 line-clamp-1">
+                              {tmpl.description}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-tab 2: Custom Cosmetic Palette */}
+                {tryOnTab === "custom" && (
+                  <div className="space-y-3.5">
+                    {/* Lipstick Shade Palette */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
+                        <span>Lipstick Shade</span>
+                        <span className="text-[10px] text-zinc-400">Click to pick</span>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        {[
+                          { name: "Scarlet Crimson", hex: "#A31621" },
+                          { name: "French Nude", hex: "#C47B66" },
+                          { name: "Petal Pink", hex: "#E36577" },
+                          { name: "Warm Mocha", hex: "#7B4B3A" },
+                          { name: "Plum Berry", hex: "#631A33" },
+                          { name: "Coral Sunset", hex: "#E86A53" },
+                        ].map((shade) => (
+                          <button
+                            key={shade.name}
+                            type="button"
+                            title={shade.name}
+                            onClick={() => {
+                              setSelectedLipstick(shade.hex);
+                              setHasGenerated(false);
+                            }}
+                            className={cn(
+                              "h-8 w-8 rounded-full transition-transform hover:scale-110 cursor-pointer shadow-xs",
+                              selectedLipstick === shade.hex
+                                ? "ring-2 ring-offset-2 ring-[#FF5500] scale-110"
+                                : "ring-1 ring-black/10"
+                            )}
+                            style={{ backgroundColor: shade.hex }}
                           />
-                          <span className="rounded-full bg-orange-100 px-1.5 py-0.2 text-[9px] font-bold text-orange-800">
-                            {style.badge}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-zinc-900 truncate">
-                          {style.name}
-                        </h4>
-                        <p className="text-[10px] text-zinc-500 line-clamp-2 mt-0.5">
-                          {style.description}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Lipstick Palette Swatches */}
-                <div className="space-y-2 border-t border-orange-100/70 pt-3">
-                  <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
-                    <span>Lipstick Shade Palette</span>
-                    <span className="text-[10px] text-zinc-400">Click to switch</span>
+                    {/* Lipstick Finish Texture */}
+                    <div className="space-y-1.5">
+                      <div className="text-xs font-bold text-zinc-700">Lip Texture Finish</div>
+                      <div className="flex rounded-xl bg-stone-100 p-1">
+                        {(["matte", "gloss", "satin"] as const).map((tex) => (
+                          <button
+                            key={tex}
+                            type="button"
+                            onClick={() => {
+                              setSelectedLipTexture(tex);
+                              setHasGenerated(false);
+                            }}
+                            className={cn(
+                              "flex-1 rounded-lg py-1 text-xs font-bold capitalize transition cursor-pointer text-center",
+                              selectedLipTexture === tex
+                                ? "bg-white text-zinc-900 shadow-2xs"
+                                : "text-zinc-500 hover:text-zinc-900"
+                            )}
+                          >
+                            {tex}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Blush Shade Palette */}
+                    <div className="space-y-1.5">
+                      <div className="text-xs font-bold text-zinc-700">Cheek Blush Tone</div>
+                      <div className="flex items-center gap-2.5">
+                        {[
+                          { name: "Peachy Rose", hex: "#e19f9f" },
+                          { name: "Soft Coral", hex: "#f4a5ae" },
+                          { name: "Terracotta Glow", hex: "#b27a59" },
+                          { name: "Warm Nude", hex: "#c98a8a" },
+                        ].map((b) => (
+                          <button
+                            key={b.name}
+                            type="button"
+                            title={b.name}
+                            onClick={() => {
+                              setSelectedBlush(b.hex);
+                              setHasGenerated(false);
+                            }}
+                            className={cn(
+                              "h-7 w-7 rounded-full transition-transform hover:scale-110 cursor-pointer shadow-xs",
+                              selectedBlush === b.hex
+                                ? "ring-2 ring-offset-2 ring-[#FF5500] scale-110"
+                                : "ring-1 ring-black/10"
+                            )}
+                            style={{ backgroundColor: b.hex }}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    {[
-                      { name: "Scarlet Crimson", hex: "#A31621" },
-                      { name: "French Nude", hex: "#C47B66" },
-                      { name: "Petal Pink", hex: "#E36577" },
-                      { name: "Warm Mocha", hex: "#7B4B3A" },
-                      { name: "Plum Berry", hex: "#631A33" },
-                      { name: "Coral Sunset", hex: "#E86A53" },
-                    ].map((shade) => (
-                      <button
-                        key={shade.name}
-                        type="button"
-                        title={shade.name}
-                        onClick={() => setSelectedLipstick(shade.hex)}
-                        className={cn(
-                          "h-8 w-8 rounded-full transition-transform hover:scale-110 cursor-pointer shadow-xs",
-                          selectedLipstick === shade.hex
-                            ? "ring-2 ring-offset-2 ring-[#FF5500] scale-110"
-                            : "ring-1 ring-black/10"
-                        )}
-                        style={{ backgroundColor: shade.hex }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
             )}
 
-            {/* C. DYNAMIC OPTIONS FOR: AI Eye Color Virtual Try-On (Using public/eye-lens images) */}
+            {/* C. DYNAMIC OPTIONS FOR: AI Eye Color Virtual Try-On */}
             {selectedTool === "eye-color" && (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <p className="text-xs text-zinc-500 font-medium">
-                  Select a realistic optical lens from the catalog to simulate on your iris:
+                  Select a realistic optical lens pattern to simulate on your iris:
                 </p>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2.5">
                   {EYE_LENSES.map((lens) => {
                     const isSelected = selectedEyeLens === lens.id;
                     return (
@@ -727,28 +1045,29 @@ export default function BeautyStudioPage() {
                         onClick={() => {
                           setSelectedEyeLens(lens.id);
                           setHasGenerated(false);
+                          setErrorMessage(null);
                         }}
                         className={cn(
-                          "group relative flex flex-col items-center rounded-2xl border p-3 transition-all cursor-pointer text-center",
+                          "group relative flex flex-col items-center rounded-2xl border p-2.5 transition-all cursor-pointer text-center",
                           isSelected
                             ? "border-[#FF5500] ring-2 ring-[#FF5500]/25 bg-orange-50/50 shadow-xs"
                             : "border-orange-100 bg-stone-50/60 hover:border-orange-200 hover:bg-stone-50"
                         )}
                       >
                         {/* Lens Optical Disc */}
-                        <div className="relative h-14 w-14 overflow-hidden rounded-full border border-orange-200/80 bg-zinc-950 mb-2 shadow-xs flex items-center justify-center p-1">
+                        <div className="relative h-13 w-13 overflow-hidden rounded-full border border-orange-200/80 bg-zinc-950 mb-1.5 shadow-xs flex items-center justify-center p-1">
                           <Image
                             src={lens.src}
                             alt={lens.name}
                             fill
-                            sizes="56px"
+                            sizes="52px"
                             className="object-contain transition-transform group-hover:scale-115"
                           />
                         </div>
-                        <span className="text-xs font-bold text-zinc-900 truncate w-full">
+                        <span className="text-[11px] font-bold text-zinc-900 truncate w-full">
                           {lens.name}
                         </span>
-                        <span className="text-[10px] text-zinc-400 truncate w-full">
+                        <span className="text-[9px] text-zinc-400 truncate w-full">
                           {lens.shade}
                         </span>
                         {isSelected && (
@@ -760,10 +1079,36 @@ export default function BeautyStudioPage() {
                     );
                   })}
                 </div>
+
+                {/* Lens Opacity / Intensity Slider */}
+                <div className="rounded-2xl border border-orange-100 bg-stone-50/60 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
+                    <span className="flex items-center gap-1.5">
+                      <Sliders className="h-3.5 w-3.5 text-[#FF5500]" />
+                      <span>Lens Blend Intensity</span>
+                    </span>
+                    <span className="font-mono text-[#FF5500]">{lensIntensity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={lensIntensity}
+                    onChange={(e) => {
+                      setLensIntensity(Number(e.target.value));
+                      setHasGenerated(false);
+                    }}
+                    className="w-full accent-[#FF5500] cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-zinc-400 font-medium">
+                    <span>Subtle tint (20%)</span>
+                    <span>Vibrant contact lens (100%)</span>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Primary Generation CTA Button (Without Sliders) */}
+            {/* Primary Generation CTA Button */}
             <div className="pt-2">
               <button
                 type="button"
@@ -774,12 +1119,12 @@ export default function BeautyStudioPage() {
                 {isGenerating ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Synthesizing {currentTool.title}...</span>
+                    <span>{generationStep || `Synthesizing ${currentTool.title}...`}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span>Generate Transformation (1 Credit)</span>
+                    <span>Generate Transformation (5 Credits)</span>
                   </>
                 )}
               </button>
@@ -799,7 +1144,7 @@ export default function BeautyStudioPage() {
                   {currentTool.title}
                 </span>
                 <span className="text-xs font-bold text-zinc-800 hidden sm:inline">
-                  {hasGenerated ? "Ready for Export" : "Live Studio Canvas"}
+                  {hasGenerated ? "Ready for Export (InSForge Cloud)" : "Live Studio Canvas"}
                 </span>
               </div>
 
@@ -847,7 +1192,7 @@ export default function BeautyStudioPage() {
               ) : (
                 <div className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
                   <Info className="h-3.5 w-3.5" />
-                  <span>Preview matches source resolution</span>
+                  <span>4K Lossless Rendering Engine</span>
                 </div>
               )}
             </div>
@@ -856,42 +1201,44 @@ export default function BeautyStudioPage() {
             <div className="relative my-4 flex-1 flex items-center justify-center min-h-[460px] sm:min-h-[520px] rounded-2xl bg-gradient-to-b from-stone-50 to-orange-50/20 border border-orange-100 overflow-hidden">
               {/* CASE 1: Generating Loading State */}
               {isGenerating && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90 backdrop-blur-xs p-6 space-y-4">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-xs p-6 space-y-4">
                   <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#FF5500] to-[#FFA033] text-white shadow-xl shadow-orange-500/30">
                     <Wand2 className="h-9 w-9 animate-bounce" />
                     <div className="absolute inset-0 rounded-3xl border-2 border-orange-300 animate-ping" />
                   </div>
-                  <div className="text-center space-y-1">
+                  <div className="text-center space-y-1 max-w-sm">
                     <h4 className="text-base font-extrabold text-zinc-900">
-                      Transforming with AI...
+                      Generating with YouCam AI...
                     </h4>
-                    <p className="text-xs text-zinc-500">
-                      Synthesizing neural skin layers, color optical map &amp; blend
+                    <p className="text-xs text-zinc-600 font-medium animate-pulse">
+                      {generationStep || "Synthesizing facial skin layers, color optical map & blend..."}
                     </p>
                   </div>
-                  <div className="w-48 h-1.5 bg-orange-100 rounded-full overflow-hidden">
+                  <div className="w-56 h-1.5 bg-orange-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-[#FF5500] to-[#FFA033] animate-pulse w-3/4 rounded-full" />
                   </div>
+                  <span className="text-[10px] text-zinc-400">
+                    Deducting 5 credits &bull; Saving directly to InSForge Storage
+                  </span>
                 </div>
               )}
 
               {/* CASE 2: Generated Result Visible */}
-              {hasGenerated ? (
+              {hasGenerated && generatedImageUrl ? (
                 <>
                   {/* Mode: Result Only */}
                   {viewMode === "result" && (
                     <div className="relative h-full w-full flex items-center justify-center p-2">
-                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70">
-                        <Image
-                          src={getGeneratedImage()}
+                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70 bg-zinc-950">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={generatedImageUrl}
                           alt="AI Generated Beauty Result"
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 55vw"
-                          className="object-contain bg-zinc-950"
-                          priority
+                          className="h-full w-full object-contain"
                         />
-                        <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
-                          ✨ 4K HD Output
+                        <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>4K Saved in InSForge</span>
                         </div>
                       </div>
                     </div>
@@ -900,14 +1247,12 @@ export default function BeautyStudioPage() {
                   {/* Mode: Original Only */}
                   {viewMode === "original" && (
                     <div className="relative h-full w-full flex items-center justify-center p-2">
-                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70">
-                        <Image
+                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70 bg-zinc-950">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={activeSourceImage}
                           alt="Original Portrait"
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 55vw"
-                          className="object-contain bg-zinc-950"
-                          priority
+                          className="h-full w-full object-contain"
                         />
                         <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
                           Original Photo
@@ -925,13 +1270,11 @@ export default function BeautyStudioPage() {
                       className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl select-none cursor-ew-resize border border-orange-200/70 shadow-md bg-zinc-950"
                     >
                       {/* After Image (Background) */}
-                      <Image
-                        src={getGeneratedImage()}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={generatedImageUrl}
                         alt="After AI"
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 55vw"
-                        className="object-contain"
-                        priority
+                        className="h-full w-full object-contain"
                       />
 
                       {/* Before Image (Clipped Left Layer) */}
@@ -940,14 +1283,12 @@ export default function BeautyStudioPage() {
                         style={{ width: `${sliderPosition}%` }}
                       >
                         <div className="relative h-full w-full">
-                          <Image
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={activeSourceImage}
                             alt="Before AI"
-                            fill
-                            sizes="(max-width: 1024px) 100vw, 55vw"
-                            className="object-contain max-w-none"
+                            className="h-full w-full object-contain max-w-none"
                             style={{ width: "100%", height: "100%" }}
-                            priority
                           />
                         </div>
                       </div>
@@ -973,59 +1314,42 @@ export default function BeautyStudioPage() {
                   )}
                 </>
               ) : (
-                /* CASE 3: Pre-generation State (Show Source Portrait or Clean Empty State) */
+                /* CASE 3: Pre-generation State (Show Source Portrait Ready) */
                 <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
-                  {/* Subtle Background Glow */}
                   <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-orange-400/10 blur-3xl" />
 
-                  {activeSourceImage ? (
-                    /* Source Portrait Ready State */
-                    <div className="relative z-10 flex flex-col items-center space-y-4 max-w-sm">
-                      <div className="relative h-64 w-48 sm:h-72 sm:w-56 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
-                        <Image
-                          src={activeSourceImage}
-                          alt="Source Preview"
-                          fill
-                          sizes="240px"
-                          className="object-cover object-center"
-                        />
-                        <div className="absolute bottom-2 inset-x-2 rounded-xl bg-black/70 py-1 px-2 text-center text-[10px] font-bold text-white backdrop-blur-xs">
-                          Source Portrait Ready
-                        </div>
+                  <div className="relative z-10 flex flex-col items-center space-y-4 max-w-sm">
+                    <div className="relative h-64 w-48 sm:h-72 sm:w-56 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={activeSourceImage}
+                        alt="Source Preview"
+                        className="h-full w-full object-cover object-center"
+                      />
+                      <div className="absolute bottom-2 inset-x-2 rounded-xl bg-black/70 py-1 px-2 text-center text-[10px] font-bold text-white backdrop-blur-xs">
+                        Source Portrait Ready
                       </div>
-
-                      <div className="space-y-1">
-                        <h4 className="text-base font-extrabold text-zinc-900">
-                          Your result will appear here
-                        </h4>
-                        <p className="text-xs text-zinc-500 leading-relaxed">
-                          Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to apply {currentTool.title}.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleGenerate}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span>Apply {currentTool.title}</span>
-                      </button>
                     </div>
-                  ) : (
-                    /* Clean Empty State */
-                    <div className="relative z-10 flex flex-col items-center space-y-3 max-w-xs">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-orange-100 text-[#FF5500] shadow-inner">
-                        <ImageIcon className="h-8 w-8" />
-                      </div>
+
+                    <div className="space-y-1">
                       <h4 className="text-base font-extrabold text-zinc-900">
-                        Your result will appear here
+                        Ready to Transform
                       </h4>
                       <p className="text-xs text-zinc-500 leading-relaxed">
-                        Select a Beauty AI tool and choose a portrait on the left to start editing.
+                        Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to render with YouCam AI (5 Credits).
                       </p>
                     </div>
-                  )}
+
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>Render {currentTool.title}</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1034,7 +1358,7 @@ export default function BeautyStudioPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-orange-100/80 pt-3.5">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-zinc-500">
-                  Export Spec: 4K UHD Lossless PNG
+                  Export Spec: 4K UHD Lossless &bull; InSForge Storage
                 </span>
               </div>
 
@@ -1048,12 +1372,14 @@ export default function BeautyStudioPage() {
                       className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] transition cursor-pointer"
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      <span>Reset</span>
+                      <span>New Makeover</span>
                     </button>
 
                     <a
-                      href={getGeneratedImage()}
-                      download="beautyaura-makeover.png"
+                      href={generatedImageUrl}
+                      download={`beautyaura-${selectedTool}.jpg`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
                     >
                       <Download className="h-3.5 w-3.5" />

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useAuth } from "@/lib/auth-context";
 
 export default function DashboardLayout({
   children,
@@ -10,8 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Default credit balance of 5 credits (as in registration state)
-  const [creditsRemaining, setCreditsRemaining] = useState(5);
+  const { credits } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-zinc-900 antialiased flex">
@@ -19,7 +19,7 @@ export default function DashboardLayout({
       <DashboardSidebar
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
-        creditsRemaining={creditsRemaining}
+        creditsRemaining={credits}
       />
 
       {/* 2. Main Content Canvas */}
@@ -27,7 +27,7 @@ export default function DashboardLayout({
         {/* Top Header / Navigation Bar with user profile avatar on the right */}
         <DashboardHeader
           onMobileMenuToggle={() => setMobileMenuOpen(true)}
-          creditsRemaining={creditsRemaining}
+          creditsRemaining={credits}
         />
 
         {/* Dynamic Route Content */}

@@ -307,7 +307,7 @@ export function DashboardSidebar({
                     {creditsRemaining}
                   </span>
                   <span className="text-xs font-semibold text-zinc-500">
-                    / 25 credits
+                    / 50 credits
                   </span>
                 </div>
               </div>
@@ -329,7 +329,7 @@ export function DashboardSidebar({
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FFA033] transition-all duration-500"
                 style={{
-                  width: `${Math.min(100, Math.max(10, (creditsRemaining / 25) * 100))}%`,
+                  width: `${Math.min(100, Math.max(5, (creditsRemaining / 50) * 100))}%`,
                 }}
               />
             </div>

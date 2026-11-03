@@ -1,110 +1,78 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   FolderKanban,
   Download,
-  Share2,
   Trash2,
   Plus,
   Sparkles,
-  Search,
-  SlidersHorizontal,
   ExternalLink,
+  Layers,
+  Clock,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { insforge } from "@/lib/insforge";
+
+interface TransformationItem {
+  id: string;
+  tool_id: string;
+  tool_name: string;
+  source_image_url: string;
+  result_image_url: string;
+  look_name?: string;
+  created_at: string;
+  credits_deducted: number;
+}
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState("all");
+  const [transformations, setTransformations] = useState<TransformationItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const projects = [
-    {
-      id: 1,
-      title: "Velvet Evening Gown Fitting",
-      category: "fashion",
-      categoryLabel: "Fashion",
-      date: "Nov 3, 2026",
-      image: "/fashion-looks/fashion-3.png",
-      resolution: "4K UHD",
-      size: "4.2 MB",
-    },
-    {
-      id: 2,
-      title: "Golden Hour Studio Relighting",
-      category: "extras",
-      categoryLabel: "AI Extras",
-      date: "Nov 3, 2026",
-      image: "/ai-photo-editing-images/photo-lightining.jpg",
-      resolution: "4K UHD",
-      size: "3.8 MB",
-    },
-    {
-      id: 3,
-      title: "Groomed Stubble & Lineup",
-      category: "hair-beard",
-      categoryLabel: "Hair & Beard",
-      date: "Nov 2, 2026",
-      image: "/ai-photo-editing-images/beard-try-on.jpg",
-      resolution: "4K UHD",
-      size: "3.5 MB",
-    },
-    {
-      id: 4,
-      title: "Paris Fashion Week Red Carpet Makeup",
-      category: "beauty",
-      categoryLabel: "Beauty",
-      date: "Nov 1, 2026",
-      image: "/ai-photo-editing-images/ai-makeup-try-on.jpg",
-      resolution: "4K UHD",
-      size: "4.6 MB",
-    },
-    {
-      id: 5,
-      title: "Dermatological Skin Analysis Scan",
-      category: "skin-face",
-      categoryLabel: "Skin & Face",
-      date: "Oct 30, 2026",
-      image: "/ai-photo-editing-images/ai-skin-analaysis.webp",
-      resolution: "4K UHD",
-      size: "2.9 MB",
-    },
-    {
-      id: 6,
-      title: "Emerald Contact Lens Optical Simulator",
-      category: "beauty",
-      categoryLabel: "Beauty",
-      date: "Oct 28, 2026",
-      image: "/ai-photo-editing-images/eye-color-try-on.webp",
-      resolution: "4K UHD",
-      size: "3.1 MB",
-    },
-    {
-      id: 7,
-      title: "Silk Blazer Fitting & Drape",
-      category: "fashion",
-      categoryLabel: "Fashion",
-      date: "Oct 27, 2026",
-      image: "/ai-photo-editing-images/ai-virtual-cloth-try-on.webp",
-      resolution: "4K UHD",
-      size: "4.9 MB",
-    },
-    {
-      id: 8,
-      title: "Vintage Monochrome Photo Colorize",
-      category: "extras",
-      categoryLabel: "AI Extras",
-      date: "Oct 25, 2026",
-      image: "/ai-photo-editing-images/photo-colorize.jpg",
-      resolution: "4K UHD",
-      size: "3.4 MB",
-    },
-  ];
+  // Fetch transformations from database
+  useEffect(() => {
+    async function loadTransformations() {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await insforge.database
+          .from("transformations")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
 
-  const filteredProjects =
+        if (!error && data) {
+          setTransformations(data as TransformationItem[]);
+        }
+      } catch (err) {
+        console.error("Error loading transformations:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTransformations();
+  }, [user?.id]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await insforge.database.from("transformations").delete().eq("id", id);
+      setTransformations((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      console.error("Failed to delete transformation:", err);
+    }
+  };
+
+  const filteredTransformations =
     filter === "all"
-      ? projects
-      : projects.filter((p) => p.category === filter);
+      ? transformations
+      : transformations.filter((t) => t.tool_id === filter);
 
   return (
     <div className="space-y-8 pb-12">
@@ -116,32 +84,30 @@ export default function ProjectsPage() {
             <span>Project Library</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 mt-1">
-            My Projects
+            My Transformations
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-            Access your saved transformations, high-resolution renders, and downloaded looks.
+            Saved renders stored permanently in InSForge Cloud Storage &amp; Database.
           </p>
         </div>
 
         <Link
-          href="/dashboard/fashion"
+          href="/dashboard/beauty"
           className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:opacity-95 transition"
         >
           <Plus className="h-4 w-4" />
-          <span>New Project</span>
+          <span>New Makeover</span>
         </Link>
       </div>
 
-      {/* Filter Tabs & Search */}
+      {/* Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {[
-            { id: "all", label: "All Projects" },
-            { id: "fashion", label: "Fashion" },
-            { id: "beauty", label: "Beauty" },
-            { id: "skin-face", label: "Skin & Face" },
-            { id: "hair-beard", label: "Hair & Beard" },
-            { id: "extras", label: "AI Extras" },
+            { id: "all", label: "All Items" },
+            { id: "transfer", label: "Makeup Transfer" },
+            { id: "try-on", label: "Makeup Try-On" },
+            { id: "eye-color", label: "Eye Color" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -158,78 +124,97 @@ export default function ProjectsPage() {
         </div>
 
         <span className="text-xs font-bold text-zinc-400">
-          Showing {filteredProjects.length} projects
+          Showing {filteredTransformations.length} transformations
         </span>
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {filteredProjects.map((project) => (
-          <div
-            key={project.id}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-lg transition-all duration-300"
-          >
-            {/* Image Thumbnail */}
-            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-stone-100 mb-3">
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                sizes="25vw"
-                className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-zinc-800">
-                {project.categoryLabel}
+      {/* Grid or Empty State */}
+      {loading ? (
+        <div className="flex items-center justify-center p-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-300 border-t-[#FF5500]" />
+        </div>
+      ) : filteredTransformations.length === 0 ? (
+        <div className="relative overflow-hidden rounded-3xl border-2 border-dashed border-orange-200/90 bg-white/70 p-8 sm:p-12 text-center shadow-xs">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100/80 text-[#FF5500] shadow-2xs mb-4">
+            <Sparkles className="h-7 w-7" />
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-zinc-900 tracking-tight">
+            No transformations saved yet
+          </h3>
+          <p className="mt-1.5 max-w-md mx-auto text-xs sm:text-sm text-zinc-500 leading-relaxed">
+            Head over to Beauty AI Studio to run your first virtual makeup try-on, transfer, or contact lens simulation.
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <Link
+              href="/dashboard/beauty"
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Open Beauty AI Studio</span>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {filteredTransformations.map((item) => (
+            <div
+              key={item.id}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-lg transition-all duration-300"
+            >
+              {/* Image Thumbnail */}
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 mb-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.result_image_url}
+                  alt={item.tool_name}
+                  className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-zinc-800">
+                  {item.tool_name}
+                </div>
+                <div className="absolute top-2 right-2 rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white">
+                  4K InSForge
+                </div>
               </div>
-              <div className="absolute top-2 right-2 rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white">
-                {project.resolution}
-              </div>
-            </div>
 
-            {/* Info & Actions */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-zinc-900 truncate">
-                {project.title}
-              </h4>
+              {/* Info & Actions */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-zinc-900 truncate">
+                  {item.look_name || item.tool_name}
+                </h4>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                <span>{project.date}</span>
-                <span>{project.size}</span>
-              </div>
+                <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                  <span>-5 Credits</span>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-between border-t border-orange-100/70 pt-2.5">
-                <a
-                  href={project.image}
-                  download
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline"
-                >
-                  <Download className="h-3 w-3" />
-                  <span>Download</span>
-                </a>
-
-                <div className="flex items-center gap-1.5 text-zinc-400">
-                  <button
-                    type="button"
-                    title="Share"
-                    className="p-1 hover:text-zinc-700 transition cursor-pointer"
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between border-t border-orange-100/70 pt-2.5">
+                  <a
+                    href={item.result_image_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline"
                   >
-                    <Share2 className="h-3.5 w-3.5" />
-                  </button>
+                    <Download className="h-3 w-3" />
+                    <span>Download</span>
+                  </a>
+
                   <button
                     type="button"
                     title="Delete"
-                    className="p-1 hover:text-rose-600 transition cursor-pointer"
+                    onClick={() => handleDelete(item.id)}
+                    className="p-1 text-zinc-400 hover:text-rose-600 transition cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

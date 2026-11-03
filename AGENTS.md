@@ -45,8 +45,8 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - `find-skills`: Discovering additional agent skills on demand.
 
 ### Current Backend State
-- **Database:** Postgres (`public.users` table configured with RLS and `auth.users` synchronization trigger).
-- **Storage:** S3-compatible object storage (0 buckets configured yet).
+- **Database:** Postgres (`public.users` table with `credits INTEGER NOT NULL DEFAULT 50`, `public.transformations` table with RLS, `public.handle_new_user()` trigger allocating 50 credits on signup, and `public.deduct_user_credits(amount)` atomic deduction function).
+- **Storage:** S3-compatible object storage (`generated-images` public bucket configured for source uploads and permanent 4K beauty transformations).
 - **Auth:** OAuth (Google, GitHub) + Email/Password verification enabled (code method OTP).
 - **Functions:** 0 edge functions deployed yet.
 
@@ -64,21 +64,46 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **UI Components:** shadcn UI (`@shadcn/react`, `@base-ui/react`, Lucide icons). Located in `components/ui/`.
 - **SDK & Client:**
   - SDK: `@insforge/sdk`
-  - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`)
+  - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
-  - `app/`: Next.js App Router (entry page `app/page.tsx`, layout `app/layout.tsx`, styles `app/globals.css`).
-  - `components/landing/`: Modular landing page sections (`logo.tsx`, `navbar.tsx`, `hero.tsx`, `stats-banner.tsx`, `feature-intro.tsx`, `feature-card.tsx`, `feature-alternating.tsx`, `services-grid.tsx`, `testimonials.tsx`, `pricing.tsx`, `footer.tsx`).
-  - `components/ui/`: Reusable UI components (accordion, button, card, dialog, input, etc.).
-  - `hooks/`: React hooks (`use-mobile.ts`, `use-highlighted-code.ts`).
-  - `lib/`: Helpers (`lib/utils.ts`, `lib/highlighter.tsx`, `lib/insforge.ts`).
-  - `public/`: High-resolution assets (`ai-photo-editing-images/`, `fashion-looks/`, `normal-headshot/`, `eye-lens/`, `beauty-looks/`).
-  - `.insforge/project.json`: InsForge CLI configuration.
-  - `.env.local`: Local environment variables (`NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`).
-  - `.agents/skills/`: Project-level agent skills directory.
+  - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
+  - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
+  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty MCP tools with automated polling and S3 resolution.
+  - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
+  - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-03] - YouCam MCP Beauty AI Features, InSForge Cloud Storage & 50-Credit Management System
+- **YouCam MCP Integration (`lib/youcam-client.ts` & `app/api/beauty/generate/route.ts`):**
+  - Integrated 3 core Beauty AI tools powered by YouCam's Streamable HTTP MCP server (`https://mcp-api-01.makeupar.com/mcp/beauty`):
+    1. **AI Makeup Transfer (`AI-Makeup-Transfer`):**
+       - Clarified resource status: YouCam does not provide a public reference catalog endpoint for Makeup Transfer, but requires reference URLs.
+       - Implemented support for high-fashion editorial reference looks (`Golden Glamour`, `Smokey Velvet`, `Sunset Coral`, `Editorial Crimson`) stored in InSForge Storage, plus custom drag-and-drop reference photo upload.
+    2. **AI Makeup Virtual Try-On (`AI-Look-Virtual-Try-On` & `AI-Makeup-Virtual-Try-On`):**
+       - Implemented dual mode:
+         - **YouCam Curated Looks (8):** Connected to actual YouCam look templates (`all_golden_glam`, `all_velour`, `all_blush_rush`, `all_gilded_glam`, `all_galaxy_glow`, `all_silver_shine`, `all_candy`, `all_frosty`) using official YouCam CDN thumbnails (`https://cdn.perfectcorp.com/store/makeupstore/...`).
+         - **Custom Cosmetic Palette:** Customizable lipstick shades (Scarlet Crimson, French Nude, Petal Pink, Warm Mocha, Plum Berry, Coral Sunset), finish textures (Matte, Gloss, Satin), and cheek blush tones.
+    3. **AI Eye Color Virtual Try-On (`AI-Eye-Color-Lens-Virtual-Try-On`):**
+       - Clarified resource status: YouCam does not provide a pre-hosted optical lens pattern library, but requires reference lens files.
+       - Connected the 6 optical contact lens assets (`webp_eye_len_01.png` - `06`) uploaded to InSForge Storage, paired with an interactive Iris Blend Intensity slider (20% to 100%).
+- **InSForge Storage & Database Integration:**
+  - Created public bucket `generated-images` on InSForge Storage.
+  - Automatically converts local uploads/relative samples into public InSForge storage URLs for YouCam consumption.
+  - Downloads YouCam's transient render output and permanently stores it in InSForge Storage (`transformations/{userId}/{timestamp}-{toolId}.jpg`).
+  - Created migration `20261103121040_add-credits-and-transformations.sql` creating `public.transformations` table with full RLS policies (`Users can read own transformations`, `insert`, `update`, `delete`).
+- **User Credits System (50 Initial Credits & 5 Credits Deducted Per Render):**
+  - Added `credits INTEGER NOT NULL DEFAULT 50` column to `public.users`.
+  - Updated PostgreSQL `handle_new_user()` trigger to automatically assign **50 free credits** upon new user registration.
+  - Backfilled all existing users with 50 credits.
+  - Implemented atomic deduction of **5 credits** per generation in `/api/beauty/generate`.
+  - Added real-time credit hydration & refresh in `lib/auth-context.tsx`.
+  - Updated sidebar credit meter to `/ 50 credits` and top dashboard header with real-time balance.
+- **Projects & Workspace Gallery Synchronization:**
+  - Connected `app/dashboard/projects/page.tsx` and `app/dashboard/page.tsx` to `public.transformations` to display real rendered items.
+- **Production Build:** Verified 100% clean compilation (`npm run build`) with zero errors across all 18 routes. Live test passed with credit deduction (50 -> 45) and database persistence.
 
 ### [2026-11-03] - Beauty AI Studio Source Portrait Image & Lens Palette Refinements
 - **Source Portrait Section (`app/dashboard/beauty/page.tsx`):**

@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string;
   name: string | null;
   avatar_url: string | null;
+  credits?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -15,7 +16,10 @@ export interface UserProfile {
 export interface AuthContextType {
   user: any | null;
   profile: UserProfile | null;
+  credits: number;
   loading: boolean;
+  setCredits: (newCredits: number) => void;
+  refreshCredits: () => Promise<number>;
   signInWithEmail: (email: string, password: string) => Promise<{ data?: any; error?: any }>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ data?: any; error?: any }>;
   verifyEmailOtp: (email: string, otp: string, name?: string) => Promise<{ data?: any; error?: any }>;
@@ -28,7 +32,10 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
+  credits: 50,
   loading: true,
+  setCredits: () => {},
+  refreshCredits: async () => 50,
   signInWithEmail: async () => ({ error: new Error("AuthContext not initialized") }),
   signUpWithEmail: async () => ({ error: new Error("AuthContext not initialized") }),
   verifyEmailOtp: async () => ({ error: new Error("AuthContext not initialized") }),
@@ -40,6 +47,7 @@ const AuthContext = createContext<AuthContextType>({
 
 /**
  * Ensures user information is saved in public.users table in InsForge database.
+ * Assigns 50 free credits to new users upon signup.
  */
 export async function syncUserToDatabase(
   user: { id: string; email?: string | null; name?: string | null; profile?: any },
@@ -69,11 +77,22 @@ export async function syncUserToDatabase(
       .maybeSingle();
 
     if (existingUser) {
-      // If name was empty and we now have a name, backfill it
+      // If credits or name needs update
+      let updates: any = {};
       if (!existingUser.name && displayName) {
+        updates.name = displayName;
+      }
+      if (existingUser.credits == null) {
+        updates.credits = 50;
+      }
+      if (avatarUrl && !existingUser.avatar_url) {
+        updates.avatar_url = avatarUrl;
+      }
+
+      if (Object.keys(updates).length > 0) {
         const { data: updated } = await insforge.database
           .from("users")
-          .update({ name: displayName, avatar_url: avatarUrl || existingUser.avatar_url })
+          .update(updates)
           .eq("id", user.id)
           .select()
           .maybeSingle();
@@ -82,7 +101,7 @@ export async function syncUserToDatabase(
       return existingUser;
     }
 
-    // 2. Insert new user into public.users
+    // 2. Insert new user into public.users with 50 default credits
     const { data: inserted, error: insertErr } = await insforge.database
       .from("users")
       .insert([
@@ -91,6 +110,7 @@ export async function syncUserToDatabase(
           email: user.email || "",
           name: displayName,
           avatar_url: avatarUrl,
+          credits: 50,
         },
       ])
       .select()
@@ -117,7 +137,30 @@ export async function syncUserToDatabase(
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [credits, setCreditsState] = useState<number>(50);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const setCredits = useCallback((newCredits: number) => {
+    setCreditsState(newCredits);
+    setProfile((prev) => (prev ? { ...prev, credits: newCredits } : null));
+  }, []);
+
+  const refreshCredits = useCallback(async (): Promise<number> => {
+    if (!user?.id) return credits;
+    try {
+      const res = await fetch(`/api/user/credits?userId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.credits === "number") {
+          setCredits(data.credits);
+          return data.credits;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to refresh credits:", e);
+    }
+    return credits;
+  }, [user?.id, credits, setCredits]);
 
   // Hydrate user from current session
   const hydrateAuth = useCallback(async () => {
@@ -126,16 +169,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error || !data?.user) {
         setUser(null);
         setProfile(null);
+        setCreditsState(50);
       } else {
         setUser(data.user);
         // Sync & fetch user profile from public.users table
         const userProfile = await syncUserToDatabase(data.user);
         setProfile(userProfile);
+        if (userProfile?.credits != null) {
+          setCreditsState(userProfile.credits);
+        }
       }
     } catch (e) {
       console.error("Auth hydration error:", e);
       setUser(null);
       setProfile(null);
+      setCreditsState(50);
     } finally {
       setLoading(false);
     }
@@ -177,6 +225,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(res.data.user);
       const userProfile = await syncUserToDatabase(res.data.user);
       setProfile(userProfile);
+      if (userProfile?.credits != null) {
+        setCreditsState(userProfile.credits);
+      }
     }
 
     return res;
@@ -196,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(res.data.user);
       const userProfile = await syncUserToDatabase(res.data.user, name);
       setProfile(userProfile);
+      setCreditsState(50);
     }
 
     return res;
@@ -212,6 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(res.data.user);
       const userProfile = await syncUserToDatabase(res.data.user, name);
       setProfile(userProfile);
+      setCreditsState(50);
     }
 
     return res;
@@ -242,6 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setProfile(null);
+      setCreditsState(50);
     }
   };
 
@@ -254,7 +308,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         profile,
+        credits,
         loading,
+        setCredits,
+        refreshCredits,
         signInWithEmail,
         signUpWithEmail,
         verifyEmailOtp,
@@ -276,4 +333,3 @@ export function useAuth() {
   }
   return context;
 }
-
