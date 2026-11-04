@@ -85,6 +85,32 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - AI Skin & Face & Body Studio: Full Design & Layout Synchronization with Beauty AI Studio
+- **Source Image Card Synchronization (`app/dashboard/skin-face/page.tsx`):**
+  - **Upload Photo Tab First by Default**: Set `sourceTab` to `"upload"` by default so the upload dropzone is immediately visible on first load.
+  - **Sample Portraits Grid Matching Beauty Studio**:
+    - Replaced the multi-line grid with a unified 5-column single-row layout (`grid grid-cols-5 gap-2`) with `aspect-[3/4]` cards.
+    - Curated 5 facial models (Elena, Sophia, Amara, Mia, Lucas - identical to Beauty Studio) and 5 body models (Elena Fit, Marcus, Athletic, Runway, Lucas Sport) that dynamically switch based on tool category.
+    - Styled cards with glowing orange ring and checkmark badge on selection, and clean bold name below (`text-[11px] font-bold`), removing cluttering subtitles.
+    - Updated Selected Image Preview Pill beneath tabs with 48x48 rounded thumbnail, status subtitle (`CheckCircle2`), and quick "Clear" button for uploaded files.
+- **Before / After Comparison Slider Synchronization (`app/dashboard/skin-face/page.tsx`):**
+  - Layer 1 (background base layer) renders `generatedImageUrl` (After AI result).
+  - Layer 2 (top layer clipped from right) renders `activeSourceImage` (Before source image) via `clipPath: inset(0 ${100 - sliderPosition}% 0 0)`.
+  - Top-left badge: `Before` in black pill.
+  - Top-right badge: `After` in orange pill.
+  - Bottom-center tooltip: `Drag slider to compare Before & After`.
+  - At 50% split, the **Original/Before** face is on the **LEFT** and the **Transformed AI/After** face is on the **RIGHT**.
+  - Default view mode on generation completion is set to `"result"` with the `Result | Compare | Original` view switcher, matching Beauty Studio.
+- **Studio Layout & Height Synchronization:**
+  - Implemented `ResizeObserver` and `isDesktop` to synchronize the Left Column scrollable height (`maxHeight: ${canvasHeight}px`) with the Live Studio Canvas, eliminating awkward double scrollbars.
+  - Added soft orange pastel scrollbar styling matching Beauty Studio (`[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]`).
+  - Added "Render {currentTool.title}" primary action button inside Pre-generation State (matching Beauty Studio).
+- **Verification:**
+  - TypeScript build check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 22 routes in Turbopack.
+  - Live API testing: Verified `AI-Smile` generation returned `status: 200`, `success: true`.
+  - Evaluated DOM in Chrome DevTools MCP verifying `tabs: ["Upload Photo", "Sample Models (5)"]` and card names: `["Elena", "Sophia", "Amara", "Mia", "Lucas"]`.
+
 ### [2026-11-04] - AI Skin & Face & Body Studio: Before/After Slider Orientation Fix & Complete Third-Party Branding Removal
 - **Before / After Comparison Slider Fix (`app/dashboard/skin-face/page.tsx`):**
   - Resolved image inversion issue where the AI transformed image was displaying on the left under the "Original" label:

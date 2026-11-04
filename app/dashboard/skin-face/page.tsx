@@ -27,7 +27,6 @@ import {
   Zap,
   RefreshCw,
   Flame,
-  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -111,66 +110,30 @@ const SKIN_BODY_TOOLS: SkinBodyTool[] = [
 ];
 
 // =============================================================================
-// 2. CURATED SAMPLE SOURCE IMAGES (TAILORED PER TOOL)
+// 2. SAMPLE PORTRAITS & BODY MODELS (MATCHING BEAUTY STUDIO SPEC)
 // =============================================================================
-interface SampleSource {
+interface SampleModel {
   id: string;
   name: string;
-  label: string;
   src: string;
-  forTools: SkinBodyToolId[];
-  desc: string;
+  gender: string;
+  category: "portrait" | "body";
 }
 
-const SAMPLE_SOURCES: SampleSource[] = [
-  {
-    id: "body-01",
-    name: "Elena - Athletic Full Body",
-    label: "Full Body Standing",
-    src: "/skin-body-samples/body-sample-01.jpg",
-    forTools: ["abs", "body_reshape"],
-    desc: "Full-body fitness portrait ideal for abdominal sculpt and 3D silhouette contouring.",
-  },
-  {
-    id: "body-02",
-    name: "Marcus - Studio Full Body",
-    label: "Full Body Standing",
-    src: "/skin-body-samples/body-sample-02.jpg",
-    forTools: ["abs", "body_reshape"],
-    desc: "Standing upright pose perfect for waist slimming, height elongation, and torso toning.",
-  },
-  {
-    id: "face-01",
-    name: "Chloe - Frontal Portrait",
-    label: "Fair Tone (Fitzpatrick II)",
-    src: "/skin-body-samples/face-sample-01.png",
-    forTools: ["smile", "aging", "fitzpatrick", "skin_analysis"],
-    desc: "Studio frontal portrait with neutral expression for smile, aging, and dermal analysis.",
-  },
-  {
-    id: "face-02",
-    name: "Aria - Serene Portrait",
-    label: "Light Olive Tone (Fitzpatrick III)",
-    src: "/skin-body-samples/face-sample-02.png",
-    forTools: ["smile", "aging", "fitzpatrick"],
-    desc: "Natural expression suited for closed-mouth smile simulation and phototype mapping.",
-  },
-  {
-    id: "face-03",
-    name: "Lucas - Male Executive",
-    label: "Medium Tone (Fitzpatrick IV)",
-    src: "/skin-body-samples/face-sample-03.png",
-    forTools: ["smile", "aging", "fitzpatrick", "skin_analysis"],
-    desc: "Clear frontal male portrait for age progression and clinical pore/sebum scanning.",
-  },
-  {
-    id: "face-04",
-    name: "Sophia - Studio Close-Up",
-    label: "Beige Tone (Fitzpatrick II)",
-    src: "/skin-body-samples/face-sample-04.jpg",
-    forTools: ["smile", "aging", "fitzpatrick", "skin_analysis"],
-    desc: "High-resolution close-up portrait optimal for 12-point dermatological diagnostic scans.",
-  },
+const SAMPLE_MODELS: SampleModel[] = [
+  // 5 Portrait Models (Exact same 5 models from Beauty Studio)
+  { id: "girl1", name: "Elena", src: "/normal-headshot/girl1.png", gender: "Female", category: "portrait" },
+  { id: "girl2", name: "Sophia", src: "/normal-headshot/girl2.png", gender: "Female", category: "portrait" },
+  { id: "girl3", name: "Amara", src: "/normal-headshot/girl3.png", gender: "Female", category: "portrait" },
+  { id: "girl4", name: "Mia", src: "/normal-headshot/girl4.png", gender: "Female", category: "portrait" },
+  { id: "boy1", name: "Lucas", src: "/normal-headshot/boy1.png", gender: "Male", category: "portrait" },
+
+  // 5 Body Models (For Abs Filter & Body Reshape)
+  { id: "body1", name: "Elena Fit", src: "/skin-body-samples/body-sample-01.jpg", gender: "Female", category: "body" },
+  { id: "body2", name: "Marcus", src: "/skin-body-samples/body-sample-02.jpg", gender: "Male", category: "body" },
+  { id: "body3", name: "Athletic", src: "/fashion-samples/source/sample_Image_1_202b6bf6e6.jpg", gender: "Female", category: "body" },
+  { id: "body4", name: "Runway", src: "/fashion-samples/source/clothes_03_cccd5d4803.jpeg", gender: "Female", category: "body" },
+  { id: "body5", name: "Lucas Sport", src: "/normal-headshot/boy1.png", gender: "Male", category: "body" },
 ];
 
 // =============================================================================
@@ -221,7 +184,7 @@ const FITZPATRICK_SCALE_DATA: Record<
   },
   IV: {
     title: "Type IV - Medium Brown / Olive",
-    skinType: "Olive or Mediterranean Mediterranean undertone",
+    skinType: "Olive or Mediterranean undertone",
     sunReaction: "Burns minimally, tans easily to moderate brown",
     spf: "SPF 30 Broad Spectrum",
     melanin: "High-Moderate Melanin",
@@ -254,35 +217,38 @@ const FITZPATRICK_SCALE_DATA: Record<
 // =============================================================================
 // 4. PIPELINE STAGES (WORLD-CLASS STUDIO LOADER)
 // =============================================================================
-const SKIN_BODY_STAGES = [
-  { id: "alignment", label: "Pose & Anatomical Detection", detail: "Locating facial landmarks, torso geometry & dermal zones..." },
-  { id: "synthesis", label: "Generative Neural Modeling", detail: "Synthesizing athletic contouring, smile curvature or spectral dermis..." },
-  { id: "harmonization", label: "Subsurface Scattering & Light", detail: "Harmonizing ambient light rays, skin pigments & organic texture..." },
-  { id: "rendering", label: "4K UHD Export & Diagnostic Spec", detail: "Finalizing lossless 4K studio render & clinical telemetry data..." },
+const STUDIO_STAGES = [
+  { id: "detect", label: "Anatomical Detection", detail: "Detecting facial landmarks, posture geometry & skin contours..." },
+  { id: "synthesis", label: "Neural Synthesis", detail: "Applying athletic definition, smile curvature or dermal analysis..." },
+  { id: "blend", label: "Photorealistic Blend", detail: "Harmonizing subsurface light rays, organic texture & tone..." },
+  { id: "upscale", label: "4K UHD Export", detail: "Enhancing resolution, micro-details & studio telemetry..." },
 ];
 
 export default function SkinFaceStudioPage() {
   const { credits, refreshCredits, user } = useAuth();
 
-  // Studio Selection State
+  // 1. Tool Selection State
   const [selectedTool, setSelectedTool] = useState<SkinBodyToolId>("abs");
-  const [sourceType, setSourceType] = useState<"sample" | "upload">("sample");
-  const [selectedSampleId, setSelectedSampleId] = useState<string>("body-01");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  // Tool Specific Customization States
-  // 1. Abs Filter
+  // 2. Source Image State - UPLOAD PHOTO IS FIRST BY DEFAULT
+  const [sourceTab, setSourceTab] = useState<"upload" | "test">("upload");
+  const [selectedSource, setSelectedSource] = useState<string>("/skin-body-samples/body-sample-01.jpg");
+  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 3. Tool Specific Customization States
+  // A. Abs Filter
   const [absMode, setAbsMode] = useState<"Six-pack" | "Vest-line">("Six-pack");
   const [absIntensity, setAbsIntensity] = useState<number>(1);
 
-  // 2. Smile Generator
+  // B. Smile Generator
   const [expressionType, setExpressionType] = useState<"smile_with_teeth_visible" | "closed_mouth_smile">("smile_with_teeth_visible");
 
-  // 3. Aging Simulation
+  // C. Aging Simulation
   const [agingStageIndex, setAgingStageIndex] = useState<number>(0);
   const [agingStageUrls, setAgingStageUrls] = useState<string[]>([]);
 
-  // 4. Body Reshape (Features)
+  // D. Body Reshape
   const [bodyFeatures, setBodyFeatures] = useState({
     slim: -20,
     waist: -25,
@@ -297,72 +263,82 @@ export default function SkinFaceStudioPage() {
     breast: 0,
   });
 
-  // 5. Fitzpatrick Skin Type Analysis Focus
+  // E. Fitzpatrick Skin Type Analysis Focus
   const [fitzpatrickFocus, setFitzpatrickFocus] = useState<string>("spf");
 
-  // 6. Skin Analysis View Mode (Clinical Dashboard vs Before/After Photo)
-  const [analysisViewMode, setAnalysisViewMode] = useState<"dashboard" | "photo">("dashboard");
+  // F. Skin Analysis View Mode & Scan Scope
   const [diagnosticScanType, setDiagnosticScanType] = useState<"full" | "anti_aging" | "clarity">("full");
-
-  // Output Telemetry & Diagnostics
   const [analysisData, setAnalysisData] = useState<any>(null);
 
-  // Generation & Viewport States
+  // 4. Viewport & View Mode States (Result | Split / Compare | Original)
+  const [viewMode, setViewMode] = useState<"result" | "split" | "original">("split");
+  const [sliderPosition, setSliderPosition] = useState<number>(50);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const sliderContainerRef = useRef<HTMLDivElement>(null);
+
+  // 5. Generation States
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStageIndex, setGenerationStageIndex] = useState(0);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
-  const [sliderPosition, setSliderPosition] = useState(50);
-  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Layout Refs & Height Synchronization
-  const leftColRef = useRef<HTMLDivElement>(null);
+  // Layout Height Synchronization (Matching Beauty Studio)
   const canvasCardRef = useRef<HTMLDivElement>(null);
-  const sliderContainerRef = useRef<HTMLDivElement>(null);
   const [canvasHeight, setCanvasHeight] = useState<number | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
-  // Viewport breakpoint detection
   useEffect(() => {
-    const checkViewport = () => setIsDesktop(window.innerWidth >= 1024);
-    checkViewport();
-    window.addEventListener("resize", checkViewport);
-    return () => window.removeEventListener("resize", checkViewport);
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
   }, []);
 
-  // Synchronize left column maxHeight with Live Studio Canvas height
   useEffect(() => {
-    if (!isDesktop) {
-      setCanvasHeight(null);
-      return;
-    }
+    if (!canvasCardRef.current) return;
+
     const updateHeight = () => {
       if (canvasCardRef.current) {
-        setCanvasHeight(canvasCardRef.current.offsetHeight);
+        setCanvasHeight(canvasCardRef.current.getBoundingClientRect().height);
       }
     };
+
     updateHeight();
-    const observer = new ResizeObserver(updateHeight);
-    if (canvasCardRef.current) {
-      observer.observe(canvasCardRef.current);
-    }
-    return () => observer.disconnect();
-  }, [isDesktop, hasGenerated, selectedTool, analysisViewMode]);
 
-  // Determine current active source image
-  const getActiveSourceUrl = useCallback(() => {
-    if (sourceType === "upload" && uploadedImage) {
-      return uploadedImage;
-    }
-    const matchingSample = SAMPLE_SOURCES.find((s) => s.id === selectedSampleId);
-    if (matchingSample) return matchingSample.src;
-    return SAMPLE_SOURCES[0].src;
-  }, [sourceType, uploadedImage, selectedSampleId]);
+    const ro = new ResizeObserver(() => {
+      updateHeight();
+    });
 
-  // Handle switching tool
+    ro.observe(canvasCardRef.current);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
+  // Active Source Image Resolution
+  const activeSourceImage = uploadedPreview || selectedSource;
+  const currentTool = SKIN_BODY_TOOLS.find((t) => t.id === selectedTool) || SKIN_BODY_TOOLS[0];
+  const ActiveToolIcon = currentTool.icon;
+
+  const isBodyTool = selectedTool === "abs" || selectedTool === "body_reshape";
+
+  // Curated 5 samples matching current tool category (5 models per category, identical grid to Beauty Studio)
+  const visibleSamples = React.useMemo(() => {
+    if (isBodyTool) {
+      return SAMPLE_MODELS.filter((m) => m.category === "body");
+    }
+    return SAMPLE_MODELS.filter((m) => m.category === "portrait");
+  }, [isBodyTool]);
+
+  // Handle Tool Switch
   const handleSelectTool = (toolId: SkinBodyToolId) => {
     setSelectedTool(toolId);
     setHasGenerated(false);
@@ -370,28 +346,30 @@ export default function SkinFaceStudioPage() {
     setAgingStageUrls([]);
     setAnalysisData(null);
     setErrorMessage(null);
+    setViewMode("result");
 
-    // Auto-select the best sample image tailored for this tool if currently in sample mode
-    if (sourceType === "sample") {
-      const bestSample = SAMPLE_SOURCES.find((s) => s.forTools.includes(toolId));
-      if (bestSample) {
-        setSelectedSampleId(bestSample.id);
+    // Automatically assign suitable default sample if currently using samples
+    if (!uploadedPreview) {
+      if (toolId === "abs" || toolId === "body_reshape") {
+        setSelectedSource("/skin-body-samples/body-sample-01.jpg");
+      } else {
+        setSelectedSource("/normal-headshot/girl1.png");
       }
     }
   };
 
-  // Upload Photo handler
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload Photo File Handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 12 * 1024 * 1024) {
-        setErrorMessage("File exceeds 12MB. Please upload a smaller image.");
+        setErrorMessage("Photo size exceeds 12MB. Please upload a smaller image.");
         return;
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
-        setSourceType("upload");
+        setUploadedPreview(event.target?.result as string);
+        setSourceTab("upload");
         setHasGenerated(false);
         setErrorMessage(null);
         setAnalysisData(null);
@@ -400,7 +378,28 @@ export default function SkinFaceStudioPage() {
     }
   };
 
-  // Handle Slider Dragging
+  // Drag and Drop Handler
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.size > 12 * 1024 * 1024) {
+        setErrorMessage("Photo size exceeds 12MB. Please upload a smaller image.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedPreview(event.target?.result as string);
+        setSourceTab("upload");
+        setHasGenerated(false);
+        setErrorMessage(null);
+        setAnalysisData(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Slider Dragging Handler (Container bounds calculation)
   const handleSliderMove = useCallback((clientX: number) => {
     if (!sliderContainerRef.current) return;
     const rect = sliderContainerRef.current.getBoundingClientRect();
@@ -409,9 +408,7 @@ export default function SkinFaceStudioPage() {
     setSliderPosition(percentage);
   }, []);
 
-  const handleMouseDown = () => setIsDraggingSlider(true);
-  const handleMouseUp = () => setIsDraggingSlider(false);
-
+  // Global mouse/touch events for smooth drag
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (isDraggingSlider) handleSliderMove(e.clientX);
@@ -450,12 +447,11 @@ export default function SkinFaceStudioPage() {
     setGenerationProgress(10);
     setGenerationStageIndex(0);
 
-    // Auto-scroll to Live Studio Canvas on mobile viewports
+    // Auto-scroll to Studio Viewport on mobile
     if (window.innerWidth < 1024 && canvasCardRef.current) {
       canvasCardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    // Realistic Multi-Stage Progress Simulation
     const pInterval = setInterval(() => {
       setGenerationProgress((prev) => {
         if (prev >= 95) {
@@ -472,41 +468,25 @@ export default function SkinFaceStudioPage() {
     }, 450);
 
     try {
-      const activeSource = getActiveSourceUrl();
-
-      // Assemble payload according to selected tool
       const payload: any = {
         toolId: selectedTool,
-        srcImage: activeSource,
+        srcImage: activeSourceImage,
         userId: user?.id,
         settings: {},
       };
 
       if (selectedTool === "abs") {
-        payload.settings = {
-          mode: absMode,
-          intensity: absIntensity,
-        };
+        payload.settings = { mode: absMode, intensity: absIntensity };
       } else if (selectedTool === "smile") {
-        payload.settings = {
-          expressionType,
-        };
+        payload.settings = { expressionType };
       } else if (selectedTool === "aging") {
-        payload.settings = {
-          simulationType: "time-lapse",
-        };
+        payload.settings = { simulationType: "time-lapse" };
       } else if (selectedTool === "body_reshape") {
-        payload.settings = {
-          features: bodyFeatures,
-        };
+        payload.settings = { features: bodyFeatures };
       } else if (selectedTool === "fitzpatrick") {
-        payload.settings = {
-          focus: fitzpatrickFocus,
-        };
+        payload.settings = { focus: fitzpatrickFocus };
       } else if (selectedTool === "skin_analysis") {
-        payload.settings = {
-          scanType: diagnosticScanType,
-        };
+        payload.settings = { scanType: diagnosticScanType };
       }
 
       const res = await fetch("/api/skin-face/generate", {
@@ -519,7 +499,7 @@ export default function SkinFaceStudioPage() {
       clearInterval(pInterval);
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Transformation failed. Please check source photo specifications.");
+        throw new Error(data.error || "Transformation failed. Please verify source photo clarity.");
       }
 
       setGenerationProgress(100);
@@ -534,6 +514,7 @@ export default function SkinFaceStudioPage() {
         }
         setAnalysisData(data.analysisData || null);
         setHasGenerated(true);
+        setViewMode("result");
         setIsGenerating(false);
         refreshCredits();
       }, 400);
@@ -544,9 +525,9 @@ export default function SkinFaceStudioPage() {
     }
   };
 
-  // Download Handler
+  // Download Lossless 4K Image
   const handleDownload = async (urlToDownload?: string) => {
-    const targetUrl = urlToDownload || generatedImageUrl || getActiveSourceUrl();
+    const targetUrl = urlToDownload || generatedImageUrl || activeSourceImage;
     if (!targetUrl) return;
     try {
       setIsDownloading(true);
@@ -568,15 +549,13 @@ export default function SkinFaceStudioPage() {
     }
   };
 
-  // Filter curated samples matching current tool
-  const currentToolSamples = SAMPLE_SOURCES.filter((s) => s.forTools.includes(selectedTool));
-  const activeToolDef = SKIN_BODY_TOOLS.find((t) => t.id === selectedTool) || SKIN_BODY_TOOLS[0];
-  const ActiveToolIcon = activeToolDef.icon;
+  const currentSampleName =
+    SAMPLE_MODELS.find((m) => m.src === selectedSource)?.name || "Elena";
 
   return (
     <div className="space-y-6 pb-16">
       {/* =========================================================================
-          TOP HEADER & CREDIT STATUS
+          TOP HEADER & CREDIT STATUS (MATCHING BEAUTY STUDIO EXACTLY)
       ========================================================================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange-100 pb-5">
         <div>
@@ -623,240 +602,292 @@ export default function SkinFaceStudioPage() {
       )}
 
       {/* =========================================================================
-          MAIN 2-COLUMN STUDIO LAYOUT
+          MAIN 2-COLUMN STUDIO LAYOUT (MATCHING BEAUTY STUDIO EXACTLY)
       ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
         {/* =======================================================================
-            LEFT COLUMN: TOOL SELECTION & CONTROLS
+            LEFT COLUMN: TOOL SELECTION, SOURCE PHOTO & CONTROLS (SCROLLABLE 1, 2, 3)
         ======================================================================= */}
         <div
-          ref={leftColRef}
-          style={canvasHeight ? { maxHeight: `${canvasHeight}px` } : undefined}
-          className={cn(
-            "lg:col-span-5 flex flex-col gap-5",
-            isDesktop &&
-              "overflow-y-auto pr-1.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70"
-          )}
+          style={isDesktop && canvasHeight ? { maxHeight: `${canvasHeight}px` } : undefined}
+          className="order-1 lg:order-none lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
         >
-          {/* CARD 1: CHOOSE TOOL */}
-          <div className="rounded-2xl bg-white border border-orange-100/90 p-4 sm:p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                1 Choose Tool
-              </span>
-              <span className="text-xs font-semibold text-zinc-500">
-                6 Studio AI Engines
+          {/* 1. SELECT AI TOOL SECTION */}
+          <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF5500] text-[10px] font-black text-white">
+                  1
+                </span>
+                <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wide">
+                  Select AI Tool
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-[#FF5500]">
+                6 Studio Engines
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {/* Tool Selection Cards Stack */}
+            <div className="space-y-2.5">
               {SKIN_BODY_TOOLS.map((tool) => {
                 const isActive = selectedTool === tool.id;
-                const IconComponent = tool.icon;
                 return (
                   <button
                     key={tool.id}
+                    type="button"
                     onClick={() => handleSelectTool(tool.id)}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer relative group",
+                      "group relative flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all cursor-pointer",
                       isActive
-                        ? "bg-gradient-to-br from-orange-50/90 to-amber-50/50 border-[#FF5500] ring-1 ring-[#FF5500] shadow-xs"
-                        : "bg-stone-50/70 border-stone-200/70 hover:bg-white hover:border-orange-200"
+                        ? "bg-gradient-to-r from-orange-50/90 to-amber-50/50 border-[#FF5500] ring-2 ring-[#FF5500]/20 shadow-xs"
+                        : "bg-stone-50/60 border-orange-100 hover:border-orange-200 hover:bg-orange-50/40"
                     )}
                   >
-                    <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-orange-200/60 shrink-0 bg-stone-100">
+                    {/* Tool Thumbnail Image */}
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-orange-200/70 bg-stone-100 shadow-2xs">
                       <Image
                         src={tool.image}
                         alt={tool.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="48px"
+                        sizes="56px"
+                        className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-black/10" />
-                      <div className="absolute bottom-1 right-1 h-5 w-5 rounded-md bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#FF5500] shadow-2xs">
-                        <IconComponent className="h-3 w-3" />
-                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 pr-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-orange-100/80 text-[#FF5500]">
+                    {/* Tool Information */}
+                    <div className="flex-1 min-w-0 space-y-0.5">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="truncate text-xs font-black text-zinc-900">
+                          {tool.title}
+                        </span>
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0",
+                            isActive
+                              ? "bg-[#FF5500] text-white"
+                              : "bg-orange-100 text-orange-700"
+                          )}
+                        >
                           {tool.badge}
                         </span>
                       </div>
-                      <h3 className="text-xs font-bold text-zinc-900 truncate mt-1">
-                        {tool.title}
-                      </h3>
-                      <p className="text-[10px] text-zinc-500 line-clamp-1 mt-0.5">
+                      <p className="text-[11px] text-zinc-500 truncate font-medium">
                         {tool.tagline}
                       </p>
                     </div>
 
-                    {isActive && (
-                      <div className="absolute top-2.5 right-2.5 h-4 w-4 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-2xs">
-                        <Check className="h-2.5 w-2.5 stroke-[3]" />
-                      </div>
-                    )}
+                    {/* Active Check Indicator */}
+                    <div
+                      className={cn(
+                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all",
+                        isActive
+                          ? "bg-[#FF5500] text-white shadow-xs"
+                          : "border border-zinc-200 text-transparent group-hover:border-orange-300"
+                      )}
+                    >
+                      <Check className="h-3.5 w-3.5 stroke-[3]" />
+                    </div>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* CARD 2: SOURCE PHOTO */}
-          <div className="rounded-2xl bg-white border border-orange-100/90 p-4 sm:p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                2 Source Photo
-              </span>
-              <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setSourceType("sample")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md transition-all cursor-pointer",
-                    sourceType === "sample"
-                      ? "bg-white text-zinc-900 shadow-2xs"
-                      : "text-zinc-500 hover:text-zinc-900"
-                  )}
-                >
-                  Curated Models
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSourceType("upload")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md transition-all cursor-pointer",
-                    sourceType === "upload"
-                      ? "bg-white text-zinc-900 shadow-2xs"
-                      : "text-zinc-500 hover:text-zinc-900"
-                  )}
-                >
-                  Upload Photo
-                </button>
+          {/* 2. SOURCE IMAGE SECTION (UPLOAD PHOTO TAB FIRST BY DEFAULT) */}
+          <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF5500] text-[10px] font-black text-white">
+                  2
+                </span>
+                <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wide">
+                  Source Portrait Image
+                </h3>
               </div>
+              <span className="text-[11px] font-medium text-zinc-400">
+                {selectedTool === "abs" || selectedTool === "body_reshape"
+                  ? "Full body or torso"
+                  : "Front-facing portrait"}
+              </span>
             </div>
 
-            {/* Curated Model Gallery */}
-            {sourceType === "sample" ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {currentToolSamples.map((sample) => {
-                    const isSelected = selectedSampleId === sample.id;
+            {/* Toggle: Upload Photo is FIRST, Sample Portraits is SECOND */}
+            <div className="flex rounded-xl bg-stone-100/80 p-1 border border-orange-100/60">
+              <button
+                type="button"
+                onClick={() => setSourceTab("upload")}
+                className={cn(
+                  "flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer text-center",
+                  sourceTab === "upload"
+                    ? "bg-white text-zinc-900 shadow-2xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                Upload Photo
+              </button>
+              <button
+                type="button"
+                onClick={() => setSourceTab("test")}
+                className={cn(
+                  "flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer text-center",
+                  sourceTab === "test"
+                    ? "bg-white text-zinc-900 shadow-2xs"
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                Sample {isBodyTool ? "Models" : "Portraits"} (5)
+              </button>
+            </div>
+
+            {/* Tab 1: Upload Image Dropzone (First) */}
+            {sourceTab === "upload" && (
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-orange-200/90 bg-stone-50/60 p-6 text-center hover:border-orange-400 hover:bg-orange-50/30 transition cursor-pointer"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-[#FF5500] mb-2.5 shadow-2xs">
+                  <Upload className="h-5 w-5" />
+                </div>
+                <p className="text-xs font-bold text-zinc-900">
+                  Click to browse or drag and drop
+                </p>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  PNG, JPG or WebP up to 12MB
+                </p>
+              </div>
+            )}
+
+            {/* Tab 2: Sample Portraits Grid (Matching Beauty Studio Exactly) */}
+            {sourceTab === "test" && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-5 gap-2">
+                  {visibleSamples.map((portrait) => {
+                    const isSelected = selectedSource === portrait.src && !uploadedPreview;
                     return (
                       <button
-                        key={sample.id}
+                        key={portrait.id}
                         type="button"
                         onClick={() => {
-                          setSelectedSampleId(sample.id);
+                          setSelectedSource(portrait.src);
+                          setUploadedPreview(null);
                           setHasGenerated(false);
                           setErrorMessage(null);
                         }}
-                        className={cn(
-                          "relative rounded-xl overflow-hidden border text-left transition-all cursor-pointer group flex flex-col",
-                          isSelected
-                            ? "border-[#FF5500] ring-2 ring-[#FF5500] shadow-sm"
-                            : "border-stone-200 hover:border-orange-300"
-                        )}
+                        className="group flex flex-col items-center text-center cursor-pointer transition-all"
+                        title={portrait.name}
                       >
-                        <div className="relative aspect-4/5 w-full bg-stone-100">
+                        <div
+                          className={cn(
+                            "relative aspect-[3/4] w-full overflow-hidden rounded-xl border bg-stone-100 transition-all shadow-xs",
+                            isSelected
+                              ? "border-[#FF5500] ring-2 ring-[#FF5500] shadow-sm scale-102"
+                              : "border-orange-100 hover:border-orange-300 opacity-90 hover:opacity-100"
+                          )}
+                        >
                           <Image
-                            src={sample.src}
-                            alt={sample.name}
+                            src={portrait.src}
+                            alt={portrait.name}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="140px"
+                            sizes="90px"
+                            className="object-cover object-center"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                          <div className="absolute bottom-1.5 left-2 right-2 text-white">
-                            <p className="text-[11px] font-bold truncate leading-tight">
-                              {sample.name.split(" - ")[0]}
-                            </p>
-                            <p className="text-[9px] text-zinc-200 font-medium truncate">
-                              {sample.label}
-                            </p>
-                          </div>
                           {isSelected && (
-                            <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-[#FF5500] flex items-center justify-center text-white shadow-2xs">
+                            <div className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF5500] text-white shadow-2xs">
                               <Check className="h-2.5 w-2.5 stroke-[3]" />
                             </div>
                           )}
                         </div>
+
+                        <span
+                          className={cn(
+                            "mt-1 text-[11px] font-bold truncate transition-colors",
+                            isSelected
+                              ? "text-[#FF5500]"
+                              : "text-zinc-600 group-hover:text-zinc-900"
+                          )}
+                        >
+                          {portrait.name}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-zinc-500 bg-stone-50 rounded-lg p-2.5 border border-stone-200/60 leading-normal">
-                  <span className="font-semibold text-zinc-700">Active Preset:</span>{" "}
-                  {SAMPLE_SOURCES.find((s) => s.id === selectedSampleId)?.desc || "Curated studio portrait."}
-                </p>
-              </div>
-            ) : (
-              /* Custom Upload Interface */
-              <div className="space-y-3">
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-orange-200 hover:border-[#FF5500] rounded-2xl p-6 bg-orange-50/20 hover:bg-orange-50/40 transition-all cursor-pointer group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <div className="h-10 w-10 rounded-full bg-orange-100 text-[#FF5500] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-bold text-zinc-900">
-                    Click to upload portrait or full-body photo
-                  </span>
-                  <span className="text-[10px] text-zinc-500 mt-0.5">
-                    JPG, PNG, WebP up to 12MB
-                  </span>
-                </label>
-
-                {uploadedImage && (
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-orange-50/60 border border-orange-200/70">
-                    <div className="relative h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-orange-200">
-                      <Image
-                        src={uploadedImage}
-                        alt="Uploaded preview"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-zinc-900 truncate">
-                        Custom User Photo Loaded
-                      </p>
-                      <p className="text-[10px] text-[#FF5500] font-semibold">
-                        Ready for neural transformation
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setUploadedImage(null)}
-                      className="text-xs text-zinc-400 hover:text-rose-600 px-2 py-1 font-bold cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
               </div>
             )}
+
+            {/* Selected Image Preview Pill (Matching Beauty Studio Exactly) */}
+            <div className="flex items-center justify-between rounded-2xl border border-orange-100 bg-stone-50/80 p-2.5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-orange-200 bg-white">
+                  <Image
+                    src={activeSourceImage}
+                    alt="Selected Source"
+                    fill
+                    sizes="48px"
+                    className="object-cover object-center"
+                  />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-zinc-900 truncate">
+                    {sourceTab === "upload" && uploadedPreview
+                      ? "Uploaded Custom Photo"
+                      : `Selected Portrait (${currentSampleName})`}
+                  </span>
+                  <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 shrink-0" />
+                    {selectedTool === "abs" || selectedTool === "body_reshape"
+                      ? "Full Body / Torso Calibrated"
+                      : "Portrait Detected (Face Centered)"}
+                  </span>
+                </div>
+              </div>
+
+              {sourceTab === "upload" && uploadedPreview && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadedPreview(null);
+                    setSelectedSource(
+                      isBodyTool
+                        ? "/skin-body-samples/body-sample-01.jpg"
+                        : "/normal-headshot/girl1.png"
+                    );
+                  }}
+                  className="text-xs font-bold text-zinc-400 hover:text-rose-600 transition px-2 py-1 cursor-pointer shrink-0"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* CARD 3: TOOL-SPECIFIC CUSTOMIZATION CONTROLS */}
-          <div className="rounded-2xl bg-white border border-orange-100/90 p-4 sm:p-5 shadow-xs space-y-4">
+          {/* 3. CONFIGURE TOOL SECTION (DYNAMIC PER SELECTED TOOL) */}
+          <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                3 Customization Controls
-              </span>
-              <span className="text-xs font-bold text-[#FF5500]">
-                {activeToolDef.title}
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF5500] text-[10px] font-black text-white">
+                  3
+                </span>
+                <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wide">
+                  Configure AI Tool
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-[#FF5500]">
+                {currentTool.title}
               </span>
             </div>
 
-            {/* =================================================================
-                TOOL 1: AI ABS FILTER CONTROLS
-            ================================================================= */}
+            {/* A. Dynamic Controls: AI Abs Filter */}
             {selectedTool === "abs" && (
               <div className="space-y-4">
                 <div>
@@ -868,9 +899,9 @@ export default function SkinFaceStudioPage() {
                       type="button"
                       onClick={() => setAbsMode("Six-pack")}
                       className={cn(
-                        "p-3 rounded-xl border text-left cursor-pointer transition-all",
+                        "p-3 rounded-2xl border text-left cursor-pointer transition-all",
                         absMode === "Six-pack"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
+                          ? "bg-orange-50/70 border-[#FF5500] ring-1 ring-[#FF5500]"
                           : "border-stone-200 hover:border-orange-200 bg-white"
                       )}
                     >
@@ -884,9 +915,9 @@ export default function SkinFaceStudioPage() {
                       type="button"
                       onClick={() => setAbsMode("Vest-line")}
                       className={cn(
-                        "p-3 rounded-xl border text-left cursor-pointer transition-all",
+                        "p-3 rounded-2xl border text-left cursor-pointer transition-all",
                         absMode === "Vest-line"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
+                          ? "bg-orange-50/70 border-[#FF5500] ring-1 ring-[#FF5500]"
                           : "border-stone-200 hover:border-orange-200 bg-white"
                       )}
                     >
@@ -914,7 +945,7 @@ export default function SkinFaceStudioPage() {
                       className={cn(
                         "py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer",
                         absIntensity === 1
-                          ? "bg-orange-500 text-white border-orange-500 shadow-2xs"
+                          ? "bg-[#FF5500] text-white border-[#FF5500] shadow-2xs"
                           : "bg-stone-50 border-stone-200 text-zinc-700 hover:bg-stone-100"
                       )}
                     >
@@ -926,7 +957,7 @@ export default function SkinFaceStudioPage() {
                       className={cn(
                         "py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer",
                         absIntensity === 2
-                          ? "bg-orange-500 text-white border-orange-500 shadow-2xs"
+                          ? "bg-[#FF5500] text-white border-[#FF5500] shadow-2xs"
                           : "bg-stone-50 border-stone-200 text-zinc-700 hover:bg-stone-100"
                       )}
                     >
@@ -935,15 +966,16 @@ export default function SkinFaceStudioPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-orange-50/70 p-3 border border-orange-200/60 text-[11px] text-orange-950">
-                  <span className="font-bold">Pose Guidance:</span> Torso or midriff should be visible in swimwear, fitness apparel, or unbuttoned top for optimal muscular synthesis.
+                <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
+                  <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
+                  <span>
+                    Torso or midriff should be visible in swimwear, fitness apparel, or unbuttoned top for optimal muscular synthesis.
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* =================================================================
-                TOOL 2: AI SMILE GENERATOR CONTROLS
-            ================================================================= */}
+            {/* B. Dynamic Controls: AI Smile Generator */}
             {selectedTool === "smile" && (
               <div className="space-y-4">
                 <div>
@@ -955,9 +987,9 @@ export default function SkinFaceStudioPage() {
                       type="button"
                       onClick={() => setExpressionType("smile_with_teeth_visible")}
                       className={cn(
-                        "p-3 rounded-xl border text-left cursor-pointer transition-all",
+                        "p-3 rounded-2xl border text-left cursor-pointer transition-all",
                         expressionType === "smile_with_teeth_visible"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
+                          ? "bg-orange-50/70 border-[#FF5500] ring-1 ring-[#FF5500]"
                           : "border-stone-200 hover:border-orange-200 bg-white"
                       )}
                     >
@@ -974,9 +1006,9 @@ export default function SkinFaceStudioPage() {
                       type="button"
                       onClick={() => setExpressionType("closed_mouth_smile")}
                       className={cn(
-                        "p-3 rounded-xl border text-left cursor-pointer transition-all",
+                        "p-3 rounded-2xl border text-left cursor-pointer transition-all",
                         expressionType === "closed_mouth_smile"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
+                          ? "bg-orange-50/70 border-[#FF5500] ring-1 ring-[#FF5500]"
                           : "border-stone-200 hover:border-orange-200 bg-white"
                       )}
                     >
@@ -991,18 +1023,19 @@ export default function SkinFaceStudioPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-orange-50/70 p-3 border border-orange-200/60 text-[11px] text-orange-950">
-                  <span className="font-bold">Neural Harmonization:</span> Automatically detects lip landmarks, teeth alignment, cheek muscle lift, and periorbital smile crinkles.
+                <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
+                  <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
+                  <span>
+                    Generative smile model detects lip landmarks, teeth alignment, cheek muscle lift, and periorbital smile crinkles.
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* =================================================================
-                TOOL 3: AI AGING SIMULATION CONTROLS
-            ================================================================= */}
+            {/* C. Dynamic Controls: AI Aging Simulation */}
             {selectedTool === "aging" && (
               <div className="space-y-4">
-                <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200/70">
+                <div className="p-3.5 rounded-2xl bg-orange-50/70 border border-orange-200/70">
                   <div className="flex items-center gap-2 text-xs font-bold text-zinc-900 mb-1">
                     <Clock className="h-4 w-4 text-[#FF5500]" />
                     <span>Multi-Decade Time Progression</span>
@@ -1051,9 +1084,7 @@ export default function SkinFaceStudioPage() {
               </div>
             )}
 
-            {/* =================================================================
-                TOOL 4: AI BODY RESHAPE CONTROLS
-            ================================================================= */}
+            {/* D. Dynamic Controls: AI Body Reshape */}
             {selectedTool === "body_reshape" && (
               <div className="space-y-4">
                 <div>
@@ -1170,9 +1201,8 @@ export default function SkinFaceStudioPage() {
                   </div>
                 </div>
 
-                {/* Individual Precision Sliders */}
+                {/* Precision Sliders */}
                 <div className="space-y-3 pt-2 border-t border-stone-100">
-                  {/* Waist Slimming */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-zinc-700">Waist Slimming</span>
@@ -1190,7 +1220,6 @@ export default function SkinFaceStudioPage() {
                     />
                   </div>
 
-                  {/* Belly Flattening */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-zinc-700">Belly Flattening</span>
@@ -1208,7 +1237,6 @@ export default function SkinFaceStudioPage() {
                     />
                   </div>
 
-                  {/* Height / Leg Lengthening */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-zinc-700">Height / Lengthen Legs</span>
@@ -1226,7 +1254,6 @@ export default function SkinFaceStudioPage() {
                     />
                   </div>
 
-                  {/* Overall Slimming */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-zinc-700">Overall Body Slim</span>
@@ -1244,7 +1271,6 @@ export default function SkinFaceStudioPage() {
                     />
                   </div>
 
-                  {/* Hip Lift & Curvature */}
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
                       <span className="text-zinc-700">Hip Curve &amp; Lift</span>
@@ -1265,31 +1291,11 @@ export default function SkinFaceStudioPage() {
                       className="w-full accent-[#FF5500] cursor-pointer"
                     />
                   </div>
-
-                  {/* Arm Contouring */}
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-zinc-700">Arm Toning</span>
-                      <span className="text-[#FF5500] font-black">{bodyFeatures.arm}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="-100"
-                      max="100"
-                      value={bodyFeatures.arm}
-                      onChange={(e) =>
-                        setBodyFeatures((prev) => ({ ...prev, arm: Number(e.target.value) }))
-                      }
-                      className="w-full accent-[#FF5500] cursor-pointer"
-                    />
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* =================================================================
-                TOOL 5: AI FITZPATRICK SKIN TYPE ANALYSIS CONTROLS
-            ================================================================= */}
+            {/* E. Dynamic Controls: AI Fitzpatrick Skin Type Analysis */}
             {selectedTool === "fitzpatrick" && (
               <div className="space-y-4">
                 <div>
@@ -1319,7 +1325,6 @@ export default function SkinFaceStudioPage() {
                   </div>
                 </div>
 
-                {/* Fitzpatrick Scale Quick Reference Spectrum */}
                 <div>
                   <label className="text-[11px] font-bold text-zinc-600 block mb-1.5">
                     Fitzpatrick Scale Spectrum (Types I - VI)
@@ -1340,9 +1345,7 @@ export default function SkinFaceStudioPage() {
               </div>
             )}
 
-            {/* =================================================================
-                TOOL 6: AI SKIN ANALYSIS CONTROLS
-            ================================================================= */}
+            {/* F. Dynamic Controls: AI Skin Analysis */}
             {selectedTool === "skin_analysis" && (
               <div className="space-y-4">
                 <div>
@@ -1394,476 +1397,384 @@ export default function SkinFaceStudioPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-orange-50/70 p-3 border border-orange-200/60 text-[11px] text-orange-950">
-                  <span className="font-bold">Dermatology Telemetry:</span> Automatically assesses epidermal micro-relief, follicular pores, sebum, periorbital dark circles, and erythema redness.
+                <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
+                  <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
+                  <span>
+                    Dermal scanning evaluates micro-relief, follicular pores, sebum balance, dark circles, and erythema redness.
+                  </span>
                 </div>
               </div>
             )}
+
+            {/* Primary Generation CTA Button (Matching Beauty Studio Exactly) */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating || credits < 5}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] py-3.5 px-4 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 hover:shadow-orange-500/35 transition cursor-pointer disabled:opacity-50 whitespace-nowrap overflow-hidden"
+              >
+                {isGenerating ? (
+                  <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                    <RefreshCw className="h-4 w-4 shrink-0 animate-spin" />
+                    <span>Generating Transformation... ({generationProgress}%)</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                    <ActiveToolIcon className="h-4 w-4 shrink-0" />
+                    <span>Generate Transformation (5 Credits)</span>
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* GENERATE CTA BUTTON */}
-          <div className="pt-1">
-            <button
-              type="button"
-              disabled={isGenerating || credits < 5}
-              onClick={handleGenerate}
-              className={cn(
-                "w-full h-12 rounded-xl font-black text-sm text-white shadow-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer relative overflow-hidden whitespace-nowrap",
-                isGenerating || credits < 5
-                  ? "bg-zinc-400 cursor-not-allowed opacity-70"
-                  : "bg-gradient-to-r from-[#FF5500] via-[#FF6A1A] to-[#FFA033] hover:shadow-orange-500/25 hover:shadow-lg active:scale-[0.99]"
-              )}
-            >
-              {isGenerating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
-                  <span className="truncate">Synthesizing {activeToolDef.title}... ({generationProgress}%)</span>
-                </>
-              ) : (
-                <>
-                  <ActiveToolIcon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">Generate {activeToolDef.title}</span>
-                  <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/20 text-white/90 shrink-0">
-                    5 Credits
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Error Message */}
+          {/* Error Message Notice */}
           {errorMessage && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-800 flex items-start gap-2.5">
-              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-3.5 flex items-start gap-2.5 text-xs text-red-800">
+              <AlertTriangle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-bold">Generation Notice</p>
-                <p className="mt-0.5 leading-relaxed">{errorMessage}</p>
+                <span className="font-bold">Transformation Notice: </span>
+                <span>{errorMessage}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* =======================================================================
-            RIGHT COLUMN: LIVE STUDIO VIEWPORT & CLINICAL DASHBOARD
-        ======================================================================= */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        {/* =========================================================================
+            RIGHT COLUMN: Studio Viewport & Result (Matching Beauty Studio Exactly)
+        ========================================================================= */}
+        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
           <div
             ref={canvasCardRef}
-            className="rounded-3xl bg-gradient-to-b from-stone-50 via-white to-orange-50/20 border border-orange-100 p-4 sm:p-6 shadow-sm flex flex-col min-h-[580px] lg:min-h-[640px] relative overflow-hidden"
+            className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 sm:p-5 shadow-lg flex flex-col justify-between min-h-[580px] sm:min-h-[660px]"
           >
-            {/* Studio Canvas Bar */}
-            <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-orange-100/70">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-black uppercase tracking-wider text-zinc-800">
-                  Live 4K Studio Viewport
+            {/* Viewport Top Controls Bar (Matching Beauty Studio Exactly) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-100/80 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <span className="rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold px-2.5 py-0.5 uppercase tracking-wider">
+                  {currentTool.title}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-[#FF5500]">
-                  {activeToolDef.badge}
+                <span className="text-xs font-bold text-zinc-800 hidden sm:inline">
+                  {hasGenerated ? "Ready for Export" : "Live Studio Canvas"}
                 </span>
               </div>
 
-              {/* View Toggle for Skin Analysis */}
-              {selectedTool === "skin_analysis" && hasGenerated && (
-                <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg text-xs font-bold">
+              {/* View Mode Switcher (When result has generated) */}
+              {hasGenerated ? (
+                <div className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-stone-50/80 p-0.5">
                   <button
                     type="button"
-                    onClick={() => setAnalysisViewMode("dashboard")}
+                    onClick={() => setViewMode("result")}
                     className={cn(
-                      "px-2.5 py-1 rounded-md transition-all cursor-pointer",
-                      analysisViewMode === "dashboard"
-                        ? "bg-white text-zinc-900 shadow-2xs"
-                        : "text-zinc-500 hover:text-zinc-900"
+                      "rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer",
+                      viewMode === "result"
+                        ? "bg-[#FF5500] text-white shadow-2xs"
+                        : "text-zinc-600 hover:text-zinc-900"
                     )}
                   >
-                    Clinical Report
+                    Result
                   </button>
                   <button
                     type="button"
-                    onClick={() => setAnalysisViewMode("photo")}
+                    onClick={() => setViewMode("split")}
                     className={cn(
-                      "px-2.5 py-1 rounded-md transition-all cursor-pointer",
-                      analysisViewMode === "photo"
-                        ? "bg-white text-zinc-900 shadow-2xs"
-                        : "text-zinc-500 hover:text-zinc-900"
+                      "flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer",
+                      viewMode === "split"
+                        ? "bg-[#FF5500] text-white shadow-2xs"
+                        : "text-zinc-600 hover:text-zinc-900"
                     )}
                   >
-                    Split View
+                    <Columns2 className="h-3 w-3" />
+                    <span>Compare</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("original")}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer",
+                      viewMode === "original"
+                        ? "bg-[#FF5500] text-white shadow-2xs"
+                        : "text-zinc-600 hover:text-zinc-900"
+                    )}
+                  >
+                    Original
                   </button>
                 </div>
+              ) : (
+                <div className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
+                  <Info className="h-3.5 w-3.5" />
+                  <span>4K Lossless Rendering Engine</span>
+                </div>
               )}
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                {hasGenerated && (
-                  <button
-                    type="button"
-                    onClick={() => handleDownload()}
-                    disabled={isDownloading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>{isDownloading ? "Saving..." : "Export 4K"}</span>
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* Viewport Canvas Frame */}
-            <div className="relative flex-1 rounded-2xl overflow-hidden bg-stone-900/5 border border-stone-200/80 flex items-center justify-center min-h-[460px]">
-              {/* ===============================================================
-                  STATE A: WORLD-CLASS STUDIO LOADER (LIGHT WARM THEME)
-              =============================================================== */}
+            {/* Viewport Main Display Canvas */}
+            <div className="relative my-4 flex-1 flex items-center justify-center min-h-[460px] sm:min-h-[520px] rounded-2xl bg-gradient-to-b from-stone-50 to-orange-50/20 border border-orange-100 overflow-hidden">
+              {/* CASE 1: Generating Loading State - World-Class Professional Studio Loader */}
               {isGenerating && (
-                <div className="absolute inset-0 z-40 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-                  <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-tr from-orange-400/20 via-[#FF5500]/15 to-amber-300/20 blur-3xl rounded-full pointer-events-none" />
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-4 sm:p-6 overflow-hidden">
+                  {/* Subtle Background Glow Aura */}
+                  <div className="pointer-events-none absolute h-80 w-80 rounded-full bg-gradient-to-tr from-orange-400/20 via-[#FF5500]/15 to-amber-300/20 blur-3xl animate-pulse" />
 
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50/80 border border-orange-200/80 text-[#FF5500] text-xs font-bold mb-6">
-                    <span className="h-2 w-2 rounded-full bg-[#FF5500] animate-ping" />
-                    <span>Neural Studio Engine Active</span>
-                  </div>
-
-                  {/* Icon Squircle with glowing halo */}
-                  <div className="relative mb-5">
-                    <div className="absolute -inset-3 rounded-3xl bg-gradient-to-tr from-[#FF5500]/30 to-amber-400/30 blur-lg animate-pulse" />
-                    <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-[#FF5500] to-[#E04800] text-white flex items-center justify-center shadow-lg ring-4 ring-white">
-                      <ActiveToolIcon className="h-10 w-10 animate-pulse" />
+                  {/* Central Animated Content Card */}
+                  <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full space-y-4 sm:space-y-5">
+                    {/* Top Studio Engine Badge */}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/80 bg-orange-50/80 px-3.5 py-1 text-[11px] font-extrabold text-[#FF5500] shadow-2xs">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF5500]"></span>
+                      </span>
+                      <span>Neural Studio Engine Active</span>
                     </div>
-                    <div className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-zinc-950 text-amber-300 ring-4 ring-white flex items-center justify-center shadow-xs">
-                      <Sparkles className="h-3.5 w-3.5 animate-spin" />
-                    </div>
-                  </div>
 
-                  <h3 className="text-lg font-black text-zinc-900 mb-1">
-                    Rendering {activeToolDef.title}
-                  </h3>
-                  <p className="text-xs text-zinc-500 max-w-sm mb-6 leading-relaxed">
-                    {SKIN_BODY_STAGES[generationStageIndex]?.detail}
-                  </p>
+                    {/* Dynamic Tool Icon with Orbiting Rings & Glow */}
+                    <div className="relative my-1 sm:my-2 flex items-center justify-center">
+                      <div className="absolute h-28 w-28 rounded-full border-2 border-dashed border-orange-300/80 animate-spin [animation-duration:12s]" />
+                      <div className="absolute h-24 w-24 rounded-full border-2 border-transparent border-t-[#FF5500] border-r-amber-400 animate-spin [animation-duration:3s]" />
+                      <div className="absolute h-20 w-20 rounded-3xl bg-gradient-to-tr from-[#FF5500] to-[#FFA033] blur-lg opacity-60 animate-pulse" />
 
-                  {/* Progress Bar */}
-                  <div className="w-full max-w-xs space-y-2 mb-6">
-                    <div className="h-2.5 w-full rounded-full bg-stone-100 border border-orange-200/60 p-0.5 shadow-inner">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#FF5500] via-[#FF7A1A] to-[#FFA033] transition-all duration-300 shadow-sm"
-                        style={{ width: `${generationProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[11px] font-extrabold text-zinc-500 px-1">
-                      <span>Neural Diffusion</span>
-                      <span className="text-[#FF5500]">{generationProgress}%</span>
-                    </div>
-                  </div>
-
-                  {/* 4 Pipeline Milestones */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-md">
-                    {SKIN_BODY_STAGES.map((stg, sIdx) => {
-                      const isComplete = generationStageIndex > sIdx;
-                      const isCurrent = generationStageIndex === sIdx;
-                      return (
-                        <div
-                          key={stg.id}
-                          className={cn(
-                            "p-2 rounded-xl border text-[10px] font-bold text-left transition-all",
-                            isComplete
-                              ? "bg-orange-50/80 border-orange-300 text-[#FF5500]"
-                              : isCurrent
-                              ? "bg-white border-[#FF5500] ring-1 ring-[#FF5500] text-zinc-900 shadow-xs"
-                              : "bg-stone-50/50 border-stone-200/60 text-zinc-400"
-                          )}
-                        >
-                          <div className="flex items-center gap-1 mb-0.5">
-                            {isComplete ? (
-                              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                            ) : (
-                              <div
-                                className={cn(
-                                  "h-1.5 w-1.5 rounded-full",
-                                  isCurrent ? "bg-[#FF5500] animate-ping" : "bg-zinc-300"
-                                )}
-                              />
-                            )}
-                            <span className="truncate">Step {sIdx + 1}</span>
-                          </div>
-                          <p className="truncate font-semibold text-zinc-700">{stg.label.split(" ")[0]}</p>
+                      <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#FF5500] via-[#FF6E1A] to-[#FFA033] text-white shadow-xl shadow-orange-500/35 ring-4 ring-white">
+                        <ActiveToolIcon className="h-9 w-9 text-white drop-shadow-sm animate-pulse" />
+                        <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-950 text-amber-300 border-2 border-white shadow-sm">
+                          <Sparkles className="h-3 w-3 animate-spin [animation-duration:4s]" />
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
+
+                    {/* Heading & Subtitle */}
+                    <div className="space-y-1">
+                      <h4 className="text-base sm:text-lg font-black tracking-tight text-zinc-900">
+                        Generating {currentTool.title}...
+                      </h4>
+                      <p className="text-xs font-semibold text-zinc-500 min-h-[1.25rem] transition-all">
+                        {STUDIO_STAGES[generationStageIndex]?.detail ||
+                          "Synthesizing anatomical skin layers, contouring & lighting blend..."}
+                      </p>
+                    </div>
+
+                    {/* Progress Bar & Percentage Readout */}
+                    <div className="w-full max-w-xs space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-zinc-600 flex items-center gap-1.5">
+                          <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
+                          <span>{STUDIO_STAGES[generationStageIndex]?.label}</span>
+                        </span>
+                        <span className="text-[#FF5500] font-black">{generationProgress}%</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100 p-0.5 border border-orange-200/60 shadow-inner">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#FF5500] via-[#FF7A1A] to-[#FFA033] transition-all duration-300 shadow-xs"
+                          style={{ width: `${generationProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 4 Pipeline Milestones */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
+                      {STUDIO_STAGES.map((stage, idx) => {
+                        const isDone = generationStageIndex > idx;
+                        const isCurrent = generationStageIndex === idx;
+                        return (
+                          <div
+                            key={stage.id}
+                            className={cn(
+                              "rounded-xl border p-2 text-center text-[10px] font-semibold transition-all",
+                              isDone
+                                ? "bg-orange-50/80 border-orange-200/90 text-orange-900"
+                                : isCurrent
+                                ? "bg-white border-[#FF5500] text-zinc-900 shadow-sm shadow-orange-500/10 ring-1 ring-[#FF5500]/25"
+                                : "bg-stone-50/50 border-stone-200/60 text-zinc-400 opacity-60"
+                            )}
+                          >
+                            <div className="flex items-center gap-1 mb-0.5 justify-center">
+                              {isDone ? (
+                                <Check className="h-3 w-3 text-[#FF5500] stroke-[3]" />
+                              ) : isCurrent ? (
+                                <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
+                              ) : (
+                                <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />
+                              )}
+                              <span className="text-[9px] uppercase tracking-wider">
+                                Step {idx + 1}
+                              </span>
+                            </div>
+                            <span className="truncate max-w-full font-bold">{stage.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bottom Metadata Disclaimer */}
+                    <div className="pt-1 text-[11px] font-medium text-zinc-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
+                      <span>Deducting 5 Credits</span>
+                      <span>&bull;</span>
+                      <span>Lossless 4K Spec</span>
+                      <span>&bull;</span>
+                      <span>Saved to Cloud</span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* ===============================================================
-                  STATE B: FITZPATRICK CLINICAL REPORT CARD
-              =============================================================== */}
-              {selectedTool === "fitzpatrick" && hasGenerated && analysisData ? (
-                <div className="w-full h-full p-4 sm:p-6 overflow-y-auto max-h-[580px] bg-stone-50/60 space-y-5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]">
-                  {/* Top Phototype Banner */}
-                  {(() => {
-                    const rawScale = String(analysisData?.fitzpatrick_scale || "II").toUpperCase();
-                    const scaleInfo = FITZPATRICK_SCALE_DATA[rawScale] || FITZPATRICK_SCALE_DATA["II"];
-                    return (
-                      <div className="rounded-2xl bg-white border border-orange-200/80 p-5 shadow-xs space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-orange-600 bg-orange-100/80 px-2 py-0.5 rounded-md">
-                              Clinical Phototype Classification
-                            </span>
-                            <h3 className="text-xl sm:text-2xl font-black text-zinc-900 mt-1">
-                              Fitzpatrick Scale: Type {rawScale}
-                            </h3>
-                            <p className="text-xs font-semibold text-zinc-600 mt-0.5">
-                              {scaleInfo.title} • {scaleInfo.skinType}
-                            </p>
-                          </div>
-
-                          <div
-                            className={cn(
-                              "px-3.5 py-1.5 rounded-xl border text-xs font-black self-start sm:self-auto",
-                              scaleInfo.bgBadge
-                            )}
-                          >
-                            Type {rawScale} Classified
-                          </div>
-                        </div>
-
-                        {/* Interactive Visual Spectrum Bar */}
-                        <div className="space-y-1.5 pt-2">
-                          <div className="flex justify-between text-[11px] font-bold text-zinc-600">
-                            <span>Melanin Index &amp; UV Susceptibility</span>
-                            <span className="text-orange-600 font-extrabold">{scaleInfo.melanin}</span>
-                          </div>
-                          <div className="grid grid-cols-6 gap-1 h-4 rounded-lg overflow-hidden border border-stone-200 p-0.5 bg-stone-100 relative">
-                            {["I", "II", "III", "IV", "V", "VI"].map((lvl) => {
-                              const isTarget = lvl === rawScale;
-                              return (
-                                <div
-                                  key={lvl}
-                                  className="relative h-full rounded-sm flex items-center justify-center font-black text-[9px]"
-                                  style={{ backgroundColor: FITZPATRICK_SCALE_DATA[lvl].color }}
-                                >
-                                  {isTarget && (
-                                    <div className="absolute inset-0 ring-2 ring-zinc-950 ring-offset-1 rounded-sm shadow-xs flex items-center justify-center">
-                                      <span className="text-zinc-950 font-black">✓</span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <div className="flex justify-between text-[9px] font-extrabold text-zinc-400">
-                            <span>Type I (Burns)</span>
-                            <span>Type III (Golden)</span>
-                            <span>Type VI (Deep)</span>
-                          </div>
-                        </div>
-
-                        {/* Dermatological Prescriptions */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                          <div className="p-3 rounded-xl bg-orange-50/60 border border-orange-200/60">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 mb-1">
-                              <Sun className="h-4 w-4 text-[#FF5500]" />
-                              <span>UV Sunburn Tendency</span>
-                            </div>
-                            <p className="text-xs text-zinc-600 leading-relaxed">
-                              {scaleInfo.sunReaction}
-                            </p>
-                          </div>
-
-                          <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/60">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 mb-1">
-                              <ShieldCheck className="h-4 w-4 text-amber-600" />
-                              <span>Prescribed Sunscreen (SPF)</span>
-                            </div>
-                            <p className="text-xs font-bold text-zinc-800 leading-relaxed">
-                              {scaleInfo.spf}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Personalized Clinical Regimen */}
-                        <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-zinc-700 leading-relaxed">
-                          <span className="font-bold text-zinc-900">Dermatologist Directive:</span>{" "}
-                          {scaleInfo.recommendation}
+              {/* CASE 2: Generated Result Visible */}
+              {hasGenerated && generatedImageUrl ? (
+                <>
+                  {/* Mode: Result Only */}
+                  {viewMode === "result" && (
+                    <div className="relative h-full w-full flex items-center justify-center p-2">
+                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70 bg-zinc-950">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={generatedImageUrl}
+                          alt="AI Generated Result"
+                          className="h-full w-full object-contain"
+                        />
+                        <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>4K UHD Enhanced</span>
                         </div>
                       </div>
-                    );
-                  })()}
-                </div>
-              ) : null}
-
-              {/* ===============================================================
-                  STATE C: CLINICAL SKIN ANALYSIS 12-POINT TELEMETRY DASHBOARD
-              =============================================================== */}
-              {selectedTool === "skin_analysis" && hasGenerated && analysisViewMode === "dashboard" ? (
-                <div className="w-full h-full p-4 sm:p-6 overflow-y-auto max-h-[580px] bg-stone-50/60 space-y-4 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]">
-                  {/* Top Score Summary Card */}
-                  <div className="rounded-2xl bg-white border border-orange-200/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-orange-600 bg-orange-100/80 px-2 py-0.5 rounded-md">
-                        12-Point Dermatological Analysis
-                      </span>
-                      <h3 className="text-2xl font-black text-zinc-900">
-                        Overall Skin Health: 89/100
-                      </h3>
-                      <p className="text-xs text-zinc-500">
-                        Grade A- • High barrier integrity with optimal cellular turnover
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                      <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
-                        Skin Type: Balanced Combination
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 8-Metric Clinical Score Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {[
-                      { label: "Pore Refinement", score: 86, status: "Smooth", color: "text-emerald-600" },
-                      { label: "Wrinkle Depth", score: 92, status: "Minimal", color: "text-emerald-600" },
-                      { label: "Texture & Firmness", score: 84, status: "Resilient", color: "text-emerald-600" },
-                      { label: "Hydration Barrier", score: 79, status: "Adequate", color: "text-amber-600" },
-                      { label: "Sebum / Oiliness", score: 81, status: "Balanced", color: "text-emerald-600" },
-                      { label: "Radiance & Glow", score: 90, status: "Vibrant", color: "text-emerald-600" },
-                      { label: "Erythema / Redness", score: 88, status: "Low Irritation", color: "text-emerald-600" },
-                      { label: "Dark Circles", score: 82, status: "Mild Periorbital", color: "text-amber-600" },
-                    ].map((metric, mIdx) => (
-                      <div
-                        key={mIdx}
-                        className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs space-y-1"
-                      >
-                        <p className="text-[11px] font-bold text-zinc-500 truncate">{metric.label}</p>
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-xl font-black text-zinc-900">{metric.score}</span>
-                          <span className={cn("text-[10px] font-extrabold", metric.color)}>
-                            {metric.status}
-                          </span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-orange-400 to-[#FF5500]"
-                            style={{ width: `${metric.score}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Clinical Skincare Prescriptions */}
-                  <div className="rounded-2xl bg-white border border-orange-200/80 p-4 shadow-xs space-y-2.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-zinc-800">
-                      Tailored Dermal Protocol
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-700">
-                      <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
-                        <span className="font-bold text-zinc-900 block mb-0.5">AM Regimen:</span>
-                        Gentle hyaluronic hydration cleanser, 10% Vitamin C antioxidant serum, lightweight gel moisturizer, and Broad Spectrum SPF 50+.
-                      </div>
-                      <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
-                        <span className="font-bold text-zinc-900 block mb-0.5">PM Regimen:</span>
-                        Double lipid cleanse, 2% Niacinamide + Ceramide barrier repair balm, alternate with low-strength encapsulated Retinol twice weekly.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* ===============================================================
-                  STATE D: BEFORE / AFTER INTERACTIVE SLIDER VIEWPORT
-              =============================================================== */}
-              {(hasGenerated && generatedImageUrl && (selectedTool !== "fitzpatrick") && (selectedTool !== "skin_analysis" || analysisViewMode === "photo")) ||
-              (!hasGenerated && !isGenerating) ? (
-                <div
-                  ref={sliderContainerRef}
-                  onMouseDown={handleMouseDown}
-                  onTouchStart={handleMouseDown}
-                  className="relative w-full h-full min-h-[460px] select-none cursor-ew-resize flex items-center justify-center overflow-hidden bg-stone-900"
-                >
-                  {/* Layer 1: After Image (Generated Transformed Result - Background layer, visible on the RIGHT) */}
-                  {hasGenerated && generatedImageUrl && (
-                    <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-stone-900">
-                      <Image
-                        src={generatedImageUrl}
-                        alt="Transformed Result"
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 1024px) 100vw, 60vw"
-                        priority
-                      />
                     </div>
                   )}
 
-                  {/* Layer 2: Before Image (Original Source - Clipped from right, visible on the LEFT) */}
-                  <div
-                    className="absolute inset-0 w-full h-full flex items-center justify-center bg-stone-900 transition-none"
-                    style={
-                      hasGenerated && generatedImageUrl
-                        ? {
+                  {/* Mode: Original Only */}
+                  {viewMode === "original" && (
+                    <div className="relative h-full w-full flex items-center justify-center p-2">
+                      <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-md border border-orange-200/70 bg-zinc-950">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={activeSourceImage}
+                          alt="Original Portrait"
+                          className="h-full w-full object-contain"
+                        />
+                        <div className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
+                          Original Photo
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mode: Interactive Split Compare Slider (Original on Left, Result on Right) */}
+                  {viewMode === "split" && (
+                    <div className="relative h-full w-full flex items-center justify-center p-2">
+                      <div
+                        ref={sliderContainerRef}
+                        onMouseDown={(e) => {
+                          setIsDraggingSlider(true);
+                          handleSliderMove(e.clientX);
+                        }}
+                        onMouseMove={(e) => {
+                          if (isDraggingSlider || e.buttons === 1) {
+                            handleSliderMove(e.clientX);
+                          }
+                        }}
+                        onMouseUp={() => setIsDraggingSlider(false)}
+                        onTouchStart={(e) => {
+                          setIsDraggingSlider(true);
+                          handleSliderMove(e.touches[0].clientX);
+                        }}
+                        onTouchMove={(e) => {
+                          handleSliderMove(e.touches[0].clientX);
+                        }}
+                        onTouchEnd={() => setIsDraggingSlider(false)}
+                        className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl select-none cursor-ew-resize border border-orange-200/70 shadow-md bg-zinc-950"
+                      >
+                        {/* Layer 1: After Image (Full background layer, revealed on the RIGHT) */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={generatedImageUrl}
+                          alt="After AI"
+                          className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+                        />
+
+                        {/* Layer 2: Before Image (Exact same position & size, clipped from right, visible on the LEFT) */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={activeSourceImage}
+                          alt="Before AI"
+                          className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+                          style={{
                             clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
                             WebkitClipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
-                          }
-                        : undefined
-                    }
-                  >
-                    <Image
-                      src={getActiveSourceUrl()}
-                      alt="Original Source"
-                      fill
-                      className="object-contain"
-                      sizes="(max-width: 1024px) 100vw, 60vw"
-                      priority
-                    />
-                  </div>
+                          }}
+                        />
 
-                  {/* Badges: Placed at container level so they stay visible in their respective halves */}
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold z-20 pointer-events-none">
-                    Original
-                  </div>
+                        {/* Draggable Divider Line & Knob */}
+                        <div
+                          className="absolute inset-y-0 w-0.5 bg-white shadow-2xl z-20 pointer-events-none"
+                          style={{ left: `${sliderPosition}%` }}
+                        >
+                          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-xl border-2 border-orange-400 text-[#FF5500]">
+                            <Columns2 className="h-4 w-4" />
+                          </div>
+                        </div>
 
-                  {hasGenerated && generatedImageUrl && (
-                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-[#FF5500]/90 backdrop-blur-xs text-white text-[11px] font-bold z-20 pointer-events-none shadow-xs">
-                      {activeToolDef.title} 4K
-                    </div>
-                  )}
+                        {/* Badges (Matching Beauty Studio Exactly) */}
+                        <div className="absolute top-3 left-3 rounded-full bg-black/75 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs z-20 pointer-events-none">
+                          Before
+                        </div>
+                        <div className="absolute top-3 right-3 rounded-full bg-[#FF5500]/95 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs z-20 pointer-events-none shadow-xs">
+                          After
+                        </div>
 
-                  {/* Slider Divider Line & Knob (Visible when generation completes) */}
-                  {hasGenerated && generatedImageUrl && (
-                    <div
-                      className="absolute top-0 bottom-0 z-20 pointer-events-none"
-                      style={{ left: `${sliderPosition}%` }}
-                    >
-                      <div className="absolute top-0 bottom-0 -left-px w-0.5 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)]" />
-                      <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-white border-2 border-[#FF5500] shadow-lg flex items-center justify-center text-[#FF5500]">
-                        <Columns2 className="h-4 w-4" />
+                        {/* Drag instruction tooltip */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs z-20 pointer-events-none">
+                          Drag slider to compare Before &amp; After
+                        </div>
                       </div>
                     </div>
                   )}
+                </>
+              ) : (
+                /* CASE 3: Pre-generation State (Matching Beauty Studio Exactly) */
+                <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
+                  <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-orange-400/10 blur-3xl" />
 
-                  {/* Initial Idle Hint Overlay */}
-                  {!hasGenerated && !isGenerating && (
-                    <div className="absolute bottom-4 inset-x-4 mx-auto max-w-sm rounded-xl bg-black/65 backdrop-blur-md p-3 text-center text-white z-10 shadow-lg">
-                      <p className="text-xs font-bold">
-                        Ready to process with {activeToolDef.title}
-                      </p>
-                      <p className="text-[10px] text-zinc-300 mt-0.5">
-                        Adjust controls on the left, then click Generate to preview live transformation.
+                  <div className="relative z-10 flex flex-col items-center space-y-4 max-w-sm">
+                    <div className="relative h-64 w-48 sm:h-72 sm:w-56 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={activeSourceImage}
+                        alt="Source Preview"
+                        className="h-full w-full object-cover object-center"
+                      />
+                      <div className="absolute bottom-2 inset-x-2 rounded-xl bg-black/70 py-1 px-2 text-center text-[10px] font-bold text-white backdrop-blur-xs">
+                        Source Portrait Ready
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="text-base font-extrabold text-zinc-900">
+                        Ready to Transform
+                      </h4>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to render your makeover (5 Credits).
                       </p>
                     </div>
-                  )}
+
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>Render {currentTool.title}</span>
+                    </button>
+                  </div>
                 </div>
-              ) : null}
+              )}
             </div>
 
             {/* Bottom Viewport Control Footer */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3.5 mt-2 border-t border-orange-100/70 text-xs text-zinc-500">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-orange-100/80 pt-3.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
                 <span className="font-bold text-zinc-700">Studio Specs:</span>
                 <span>Lossless 4K Render</span>
-                <span>•</span>
+                <span>&bull;</span>
                 <span>Neural Studio Cloud</span>
-                <span>•</span>
+                <span>&bull;</span>
                 <span>High Precision Synthesis</span>
               </div>
 
@@ -1876,10 +1787,19 @@ export default function SkinFaceStudioPage() {
                       setGeneratedImageUrl(null);
                       setAnalysisData(null);
                     }}
-                    className="flex items-center gap-1 text-zinc-500 hover:text-zinc-900 font-bold transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-full border border-orange-200 px-3.5 py-1.5 text-xs font-bold text-zinc-600 hover:bg-stone-50 transition cursor-pointer"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    <span>Reset View</span>
+                    <span>Reset</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDownload()}
+                    disabled={isDownloading}
+                    className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>{isDownloading ? "Exporting..." : "Export 4K UHD"}</span>
                   </button>
                 </div>
               )}
