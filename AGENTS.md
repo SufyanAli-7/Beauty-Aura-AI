@@ -85,6 +85,14 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Recent Transformations: Move Time Badge to Bottom-Right
+- **Time Badge Position Alignment (`app/dashboard/page.tsx`):**
+  - Updated the frosted glass time badge positioning on the transformation card thumbnail from `bottom-2 left-2` to `bottom-2 right-2`.
+  - Harmonized layout with the My Projects page (`app/dashboard/projects/page.tsx`), keeping tool name tag on top-left and time badge on bottom-right.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack with zero errors.
+
 ### [2026-11-04] - Fix Time Formatter Calculation Bug: "1w ago" on Recent Today Renders
 - **Root Cause Analysis (`app/dashboard/projects/page.tsx` & `app/dashboard/page.tsx`):**
   - In `formatTimeAgo`, `diffInHours` was computed as `Math.floor(diffInSeconds / 60)` instead of `Math.floor(diffInSeconds / 3600)`.
