@@ -30,23 +30,48 @@ interface TransformationRecord {
   created_at: string;
 }
 
+// Compact relative time formatter for transformation cards (e.g. 56 min ago, 1d ago)
+function formatTimeAgo(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+
+    if (diffInSeconds < 60) return "Just now";
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    const diffInHours = Math.floor(diffInSeconds / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+    return `${Math.floor(diffInDays / 365)}y ago`;
+  } catch {
+    return "Recently";
+  }
+}
+
 export default function DashboardPage() {
   const { user, profile, credits } = useAuth();
   const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
+  const [totalProjectsCount, setTotalProjectsCount] = useState<number>(0);
 
   useEffect(() => {
     async function loadRecent() {
       if (!user?.id) return;
       try {
-        const { data } = await insforge.database
+        const { data, error } = await insforge.database
           .from("transformations")
           .select("*")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(8);
+          .order("created_at", { ascending: false });
 
-        if (data) {
-          setTransformations(data as TransformationRecord[]);
+        if (!error && Array.isArray(data)) {
+          setTotalProjectsCount(data.length);
+          setTransformations(data.slice(0, 8) as TransformationRecord[]);
         }
       } catch (e) {
         console.warn("Failed to load transformations:", e);
@@ -69,7 +94,7 @@ export default function DashboardPage() {
       image: "/ai-photo-editing-images/ai-makeup-transfer.jpg",
       icon: Wand2,
       badge: "Popular",
-      toolsCount: "3 Features",
+      toolsCount: "3 Tools",
       gradient: "from-pink-500/10 to-orange-500/5",
     },
     {
@@ -79,14 +104,14 @@ export default function DashboardPage() {
       image: "/ai-photo-editing-images/ai-virtual-cloth-try-on.webp",
       icon: Shirt,
       badge: "High Demand",
-      toolsCount: "5 Tools",
+      toolsCount: "4 Tools",
       gradient: "from-orange-500/10 to-amber-500/5",
     },
     {
       title: "Hair & Beard Salon",
       description: "AI hair color virtual try-on, 80+ haircuts, 180° hair frizz detection & 15 beard styles.",
       href: "/dashboard/hair-beard",
-      image: "/ai-photo-editing-images/hairstyle.jpg",
+      image: "/ai-photo-editing-images/beard-try-on.jpg",
       icon: Scissors,
       badge: "New AI Studio",
       toolsCount: "4 Tools",
@@ -106,13 +131,18 @@ export default function DashboardPage() {
       title: "AI Extras & Studio Retouch",
       description: "Magic eraser, 4K enhancer, studio relighting, background change & color grading.",
       href: "/dashboard/extras",
-      image: "/ai-photo-editing-images/photo-enhance.jpg",
+      image: "/ai-photo-editing-images/bg-change.jpg",
       icon: Layers,
       badge: "Essential",
-      toolsCount: "7 Tools",
+      toolsCount: "5 Tools",
       gradient: "from-purple-500/10 to-orange-500/5",
     },
   ];
+
+  const displayProjectCount =
+    Number.isFinite(totalProjectsCount) && totalProjectsCount >= 0
+      ? totalProjectsCount
+      : transformations.length;
 
   return (
     <div className="space-y-8 pb-12">
@@ -181,7 +211,7 @@ export default function DashboardPage() {
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-zinc-900">
-                {transformations.length}
+                {displayProjectCount}
               </span>
               <span className="text-xs font-semibold text-zinc-500">Saved</span>
             </div>
@@ -193,7 +223,7 @@ export default function DashboardPage() {
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-emerald-600">Active</span>
-              <span className="text-xs font-semibold text-zinc-500">3 Tools</span>
+              <span className="text-xs font-semibold text-zinc-500">22 Tools</span>
             </div>
           </div>
 
@@ -298,9 +328,13 @@ export default function DashboardPage() {
             </h3>
           </div>
 
-          <span className="text-xs font-semibold text-zinc-400">
-            {transformations.length} Transformations
-          </span>
+          <Link
+            href="/dashboard/projects"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-bold text-zinc-700 shadow-2xs hover:border-orange-300 hover:bg-orange-50 hover:text-[#FF5500] transition-all cursor-pointer"
+          >
+            <span>See All ({displayProjectCount})</span>
+            <ArrowRight className="h-3.5 w-3.5 text-[#FF5500] transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
 
         {transformations.length === 0 ? (
@@ -354,6 +388,11 @@ export default function DashboardPage() {
                   />
                   <div className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-800">
                     {t.tool_name}
+                  </div>
+                  {/* Bottom-left: Creation time relative timestamp with frosted glass effect */}
+                  <div className="absolute bottom-2 left-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/95 flex items-center gap-1.5 shadow-lg shadow-black/25">
+                    <Clock className="h-2.5 w-2.5 text-orange-400" />
+                    <span>{formatTimeAgo(t.created_at)}</span>
                   </div>
                 </div>
                 <div className="space-y-1">

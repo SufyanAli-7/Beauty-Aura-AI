@@ -85,6 +85,59 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Recent Transformations: "See All" Projects Link & Frosted Glass Timestamp Badges
+- **"See All" Header Action Button (`app/dashboard/page.tsx`):**
+  - Replaced the static text counter (`{displayProjectCount} Total Transformations`) with an interactive, clickable **"See All ({displayProjectCount})"** link button (`href="/dashboard/projects"`).
+  - Styled with glowing hover states (`hover:border-orange-300 hover:bg-orange-50 hover:text-[#FF5500]`) and an animated `ArrowRight` icon.
+- **Glassmorphic Image Timestamp Badge (`app/dashboard/page.tsx`):**
+  - Upgraded the bottom-left creation timestamp badges from a solid dark pill to a sleek frosted glass effect (`bg-black/40 backdrop-blur-md border border-white/20 shadow-lg shadow-black/25 text-white/95`).
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully in Turbopack across all 21 routes with 0 errors.
+  - Chrome DevTools MCP: Evaluated DOM to confirm `See All` link points to `/dashboard/projects` and rendered styles include `backdrop-blur-md`.
+
+### [2026-11-04] - Update AI Extras Studio Card Image
+- **Thumbnail Image Update (`app/dashboard/page.tsx`):**
+  - Updated the **AI Extras & Studio Retouch** studio overview card image to `/ai-photo-editing-images/bg-change.jpg`.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Evaluated DOM in Chrome DevTools MCP verifying `AI Extras & Studio Retouch` image resolves to `bg-change.jpg`.
+
+### [2026-11-04] - Fix NaN in My Projects Stat Card & Defensive Array Length Counting
+- **Root Cause of `NaN Saved` (`app/dashboard/page.tsx`):**
+  - When passing `{ count: "exact" }` to Supabase/PostgREST, if the count header is absent or parsed as `NaN`, `typeof NaN === "number"` evaluates to `true` in JavaScript, causing `total = count` to propagate `NaN` into React state.
+- **Fix:**
+  - Removed `{ count: "exact" }` option in favor of direct array query `insforge.database.from("transformations").select("*").eq("user_id", user.id)` (matching `projects/page.tsx`).
+  - Added strict defensive check `Number.isFinite(totalProjectsCount) && totalProjectsCount >= 0 ? totalProjectsCount : transformations.length` for both the stat card and the recent transformations header.
+  - Zero `NaN` values across the page verified in live DOM inspection.
+- **Verification:**
+  - `npx tsc --noEmit`: 0 errors.
+  - Evaluated DOM: `hasNaNInPage: false`, `My Projects: 0 Saved` (or exact user database total).
+
+### [2026-11-04] - Dashboard Stats, Accurate Tool Counts, Studio Thumbnails & Relative Timestamps
+- **My Projects Count Fix (`app/dashboard/page.tsx`):**
+  - Removed the hardcoded `.limit(8)` constraint on the total projects count calculation.
+  - Added `totalProjectsCount` state dynamically counting all user transformations via `{ count: "exact" }` from the database.
+  - Updated the **My Projects** stat card and the **Recent Transformations** header to display the real total count.
+- **Active Tools Count Fix (`app/dashboard/page.tsx`):**
+  - Replaced the hardcoded `3 Tools` in the quick stats strip with the accurate count of **22 Tools** active across all 5 studios.
+- **Accurate Studio Card Tool Counts & Hair & Beard Thumbnail (`app/dashboard/page.tsx`):**
+  - Updated **Hair & Beard Salon** card image to `/ai-photo-editing-images/beard-try-on.jpg`.
+  - Updated exact tool count badges for each of the 5 studios:
+    - Beauty & Makeup Transfer: **3 Tools** (Transfer, Try-On, Eye Color)
+    - Fashion & Virtual Try-On: **4 Tools** (Clothes, Bag, Shoes, Hat)
+    - Hair & Beard Salon: **4 Tools** (Hair Color, Hairstyle, Frizziness, Beard Style)
+    - AI Skin, Face & Body: **6 Tools** (Abs, Smile, Aging, Body Reshape, Fitzpatrick, Skin Analysis)
+    - AI Extras & Studio Retouch: **5 Tools** (Object Eraser, Cutout, Colorize, Extender, Headshot)
+    - Total: 3 + 4 + 4 + 6 + 5 = 22 tools.
+- **Relative Creation Timestamps on Transformation Cards (`app/dashboard/page.tsx`):**
+  - Added `formatTimeAgo(dateString)` helper calculating human-friendly relative time (e.g. `Just now`, `56 min ago`, `3h ago`, `1d ago`, `3d ago`, `2w ago`).
+  - Added a sleek bottom-left glassmorphic pill badge (`absolute bottom-2 left-2 bg-black/75 text-white`) with a clock icon displaying the exact relative creation time on each transformation image.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack.
+  - Evaluated DOM in Chrome DevTools MCP verifying stats, thumbnails, and accurate tool count badges.
+
 ### [2026-11-04] - Sidebar AI Tools Navigation Reordering
 - **Reordered AI Tools List (`components/dashboard/dashboard-sidebar.tsx` & `app/dashboard/page.tsx`):**
   - Moved **Beauty** (`/dashboard/beauty`) to the 1st position at the top of the AI Tools navigation.
