@@ -12,6 +12,7 @@ const YOUCAM_API_KEY =
 export interface YouCamCallResult {
   success: boolean;
   imageUrl?: string;
+  data?: any;
   taskId?: string;
   status?: string;
   rawResponse?: any;
@@ -125,8 +126,9 @@ export async function callYouCamMCP(
       }
     }
 
-    // Extract image URL from finalResultData
+    // Extract image URL or analysis data from finalResultData
     let extractedUrl: string | undefined;
+    let analysisData: any = undefined;
     let taskId: string | undefined = fallbackTaskId || undefined;
     let status = "success";
 
@@ -136,6 +138,9 @@ export async function callYouCamMCP(
       if (structuredResult?.data?.results?.url) {
         extractedUrl = structuredResult.data.results.url;
       }
+      if (structuredResult?.data?.results) {
+        analysisData = structuredResult.data.results;
+      }
       if (structuredResult?.data?.task_id) {
         taskId = structuredResult.data.task_id;
       }
@@ -144,11 +149,14 @@ export async function callYouCamMCP(
       }
 
       // Or parse content[0].text
-      if (!extractedUrl && finalResultData.content?.[0]?.text) {
+      if (finalResultData.content?.[0]?.text) {
         try {
           const innerJson = JSON.parse(finalResultData.content[0].text);
           if (innerJson.data?.results?.url) {
             extractedUrl = innerJson.data.results.url;
+          }
+          if (innerJson.data?.results) {
+            analysisData = innerJson.data.results;
           }
           if (innerJson.data?.task_id) {
             taskId = innerJson.data.task_id;
@@ -163,18 +171,22 @@ export async function callYouCamMCP(
     }
 
     // If task is still processing or needs manual polling
-    if (!extractedUrl && taskId && (status === "running" || status === "processing")) {
+    if (!extractedUrl && !analysisData && taskId && (status === "running" || status === "processing")) {
       console.log(`[YouCam MCP] Task ${taskId} is still running. Initiating polling on ${targetUrl}...`);
       const polled = await pollTaskStatus(taskId, toolName, sessionId, 15, 3000, targetUrl);
       if (polled.imageUrl) {
         extractedUrl = polled.imageUrl;
         status = "success";
       }
+      if (polled.data) {
+        analysisData = polled.data;
+        status = "success";
+      }
     }
 
-    if (!extractedUrl) {
+    if (!extractedUrl && !analysisData) {
       throw new Error(
-        `YouCam did not return an image URL. Status: ${status}. Response: ${responseText.slice(
+        `YouCam did not return an image URL or analysis data. Status: ${status}. Response: ${responseText.slice(
           0,
           500
         )}`
@@ -184,6 +196,7 @@ export async function callYouCamMCP(
     return {
       success: true,
       imageUrl: extractedUrl,
+      data: analysisData,
       taskId,
       status,
       rawResponse: finalResultData,
@@ -209,7 +222,7 @@ async function pollTaskStatus(
   maxAttempts = 15,
   intervalMs = 3000,
   targetUrl = YOUCAM_BEAUTY_URL
-): Promise<{ imageUrl?: string; status?: string }> {
+): Promise<{ imageUrl?: string; data?: any; status?: string }> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
     try {
@@ -252,6 +265,9 @@ async function pollTaskStatus(
               (result.content?.[0]?.text ? JSON.parse(result.content[0].text) : null);
             if (raw?.data?.results?.url) {
               return { imageUrl: raw.data.results.url, status: "success" };
+            }
+            if (raw?.data?.results) {
+              return { data: raw.data.results, status: "success" };
             }
           }
         }

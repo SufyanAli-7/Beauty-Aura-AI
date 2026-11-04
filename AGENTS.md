@@ -69,15 +69,85 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
+  - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, Hair Frizziness Detection, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
   - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
-  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty & Fashion MCP tools with automated polling and S3 resolution.
+  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty & Fashion MCP tools with automated polling, S3 resolution, and detection analysis data extraction.
   - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
+  - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 4 YouCam MCP tools, live 4K viewport, Before/After compare split slider, trichology diagnostic dashboard, and credit management.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-04] - Hair & Beard Studio: Header Credit Pill Synchronization (Matching Beauty Studio)
+- **Top Header Credit Pill & Balance Synchronization (`app/dashboard/hair-beard/page.tsx`):**
+  - Replaced the large stacked 2-column studio rate box with the exact minimalist design from the Beauty Studio:
+    - Left pill: `flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200/80 px-3.5 py-1 text-xs font-bold text-zinc-800` with filled `#FF5500` `Zap` icon and text `5 Credits / render`.
+    - Right label: `text-xs font-bold text-zinc-500` with `Balance:` and bold value `<span className="text-zinc-900 font-black">{credits}</span>`.
+  - Added top Error Alert Banner with rose styling and quick refill button when credits drop below 5.
+- **Verification:**
+  - Verified DOM rendered elements via Chrome DevTools MCP matching Beauty Studio (`creditBadgeText: "5 Credits / render"`, `Balance: 50`).
+  - Production build compiled with zero errors across all 20 routes (`npm run build`).
+
+### [2026-11-04] - Hair & Beard Studio: Tool Thumbnail Images & Light Scrollbar Alignment
+- **Added Official Tool Thumbnail Images (`app/dashboard/hair-beard/page.tsx`):**
+  - Updated the "1 CHOOSE TOOL" section to feature visual preview cards identical to the Beauty and Fashion Studios.
+  - Linked each tool to its designated image in `public/ai-photo-editing-images/`:
+    1. *AI Hair Color Virtual Try-On* -> `hair-color-try-on.png`
+    2. *AI Hairstyle Virtual Try-On* -> `hairstyle.jpg`
+    3. *AI Hair Frizziness Detection* -> `hair-frizziness-detect.jpg`
+    4. *AI Beard Style Generator* -> `beard-try-on.jpg`
+  - Replaced the 2x2 icon-only grid with full-width studio cards displaying the thumbnail on the left (`h-14 w-14 rounded-xl border border-orange-200/70 shadow-2xs`), tool title, badge, tagline, and active check circle indicator.
+- **Light Theme Scrollbar Synchronization:**
+  - Removed the solid dark orange scrollbar (`[scrollbar-color:#FF5500_#FFF7ED]`).
+  - Implemented the light, soft pastel scrollbar matching Beauty and Fashion Studios:
+    `[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70`.
+  - Also applied light scrollbar styling to internal catalog grids (Hairstyles & Beard templates).
+- **Verification:**
+  - Confirmed all 4 tool thumbnail images render and load completely in Chrome DevTools.
+  - Verified computed scrollbar color matches `rgb(254, 215, 170) rgba(0, 0, 0, 0)`.
+  - Production build compiled with zero errors across all 20 routes (`npm run build`).
+
+### [2026-11-04] - Hair & Beard Studio Implementation (4 Tools, YouCam MCP Integration, 80+ Styles, Barber Catalog & Trichology Diagnostics)
+- **Hair & Beard Studio Implemented (`app/dashboard/hair-beard/page.tsx` & `app/api/hair-beard/generate/route.ts`):**
+  - Built a comprehensive, high-aesthetic Hair & Beard Studio maintaining exact UI/UX consistency, warm orange theme, shadcn components, and studio layout from the Beauty Studio.
+  - Implemented all 4 requested AI tools powered by YouCam MCP:
+    1. **AI Hair Color Virtual Try-On (`AI-Hair-Color-Virtual-Try-On`):**
+       - 10 Full Tone salon presets (`Jet Black`, `Chocolate Brown`, `Honey Blonde`, `Platinum Blonde`, `Ash Gray`, `Rose Gold`, `Burgundy`, `Copper Red`, `Lavender`, `Teal Blue`).
+       - 10 Ombre Dual-Tone presets (`Dark Brown/Caramel Blonde`, `Jet Black/Silver Gray`, `Ash Brown/Lavender`, `Rose Gold/Peach Blonde`, `Burgundy/Magenta Pink`, `Deep Blue/Teal Green`, `Plum Purple/Pastel Lilac`, `Copper Red/Golden Blonde`, `Dark Gray/Ice Blonde`, `Midnight Blue/Denim Blue`).
+       - Custom Color Lab with interactive Hex color pickers, Pigment Saturation slider (10% to 100%), Strand Gloss & Sheen slider (0% to 100%), and Ombre Gradient Transition slider (10% to 90%).
+    2. **AI Hairstyle Virtual Try-On (`AI-Hair-Style-Virtual-Try-On`):**
+       - Connected to YouCam's official predefined templates (`AI-Hair-Style-Virtual-Try-On-Templates`) featuring official Perfect Corp CDN thumbnails and categories.
+       - Category filters: All, Women's Cuts (Blunt Bob, Sleek Middle Part, Bouncy Curls, Wolf Cut, Messy Bun, Wavy Lob, etc.), Men's Cuts (Short Curly, Gray Taper Fade, Textured Crop, Textured Comma, Afro, Wavy Undercut, Dreadlocks, Crewcut, etc.).
+       - Natural color preservation toggle: "Keep My Natural Hair Color" (`src`) vs "Use Template Hair Color" (`ref`).
+    3. **AI Hair Frizziness Detection (`AI-Hair-Frizziness-Detection`):**
+       - **Explicit Resource Disclosure**: Checked YouCam Beauty MCP resources and confirmed that YouCam does **NOT** provide pre-hosted sample multi-angle photos for Hair Frizziness Detection.
+       - Disclosed YouCam 180° camera angle requirements: Front view (`<10°`), Right profile (`>15°`), and Left profile (`>15°`).
+       - Added 3-slot multi-angle photo upload interface with angle guidance badges and sensitivity toggles (Standard vs Deep Cuticle Scan).
+       - Live Studio Canvas renders an interactive Trichology Hair Frizz Diagnostic Report card: Frizz Severity Index gauge (0-100), 4-tier classification (`Smooth`, `Slightly Frizzy`, `Moderately Frizzy`, `Extremely Frizzy`), Cuticle Alignment % score, Flyaway density metric, and tailored Salon Anti-Frizz Prescriptions (Keratin Serum, Moisture Bond Shampoo, Thermal Heat Defense).
+    4. **AI Beard Style Generator (`AI-Beard-Style-Generator`):**
+       - Connected to YouCam's official predefined templates (`AI-Beard-Style-Generator-Templates`) featuring all 15 official beard style templates with real CDN thumbnails:
+         `Circle Beard`, `Anchor Beard`, `Clean Shaved`, `Classic Mustache`, `Garibaldi`, `Ducktail Beard`, `Bandholz`, `Long Bandholz`, `Soul Patch`, `Chin Curtain`, `Walrus Mustache`, `Mutton Chops`, `French Fork`, `Goatee`, and `Horseshoe Mustache`.
+       - Smart model hint recommending Lucas for male facial hair simulation.
+- **Client & Backend Enhancements (`lib/youcam-client.ts` & `app/api/hair-beard/generate/route.ts`):**
+  - Enhanced `lib/youcam-client.ts` to parse and extract both `imageUrl` and structured `analysisData`, allowing detection tools to return full trichology diagnostic payloads without throwing missing URL errors.
+  - Implemented automated InSForge cloud storage caching (`transformations/{userId}/{timestamp}-hair-beard-{toolId}.jpg`) for permanent lossless 4K retrieval.
+  - Atomic deduction of 5 credits per generation in `public.users`.
+  - Logged all transformations with full metadata and settings in `public.transformations`.
+- **UI/UX Consistency & Responsive Behavior:**
+  - Single-line CTA button (`whitespace-nowrap overflow-hidden`) with rotating spinner during generation and mobile auto-scroll to canvas.
+  - Multi-stage Studio Loader with dynamic active tool icon, pulsing rings, live percentage progress counter (12% -> 96% -> 100%), and 4 visual pipeline checkpoints.
+  - Before/After interactive compare split slider with `clipPath: inset(0 ${100 - sliderPosition}% 0 0)` and smooth mouse/touch dragging.
+  - Direct file download using programmatic blob URLs (`beautyaura-hair-beard-[tool]-[timestamp].jpg`).
+  - Left column `maxHeight` synchronized with Live Studio Canvas via `ResizeObserver` on desktop, unconstrained on mobile with natural ordering.
+- **Verification:**
+  - Production build compiled with zero errors across all 20 routes (`npm run build`).
+  - Live API testing confirmed:
+    - Hair Color Try-On returned `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage.
+    - Beard Style Generator returned `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage.
+  - DevTools browser verification verified all 4 tools, dynamic tabs, templates, and buttons.
 
 ### [2026-11-04] - Single-Line Generate Button & World-Class AI Fitting Studio Loader
 - **Generate CTA Button Single-Line Text Fix (`app/dashboard/fashion/page.tsx` & `app/dashboard/beauty/page.tsx`):**

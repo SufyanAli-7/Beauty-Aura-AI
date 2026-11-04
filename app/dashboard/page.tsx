@@ -94,13 +94,13 @@ export default function DashboardPage() {
     },
     {
       title: "Hair & Beard Salon",
-      description: "Preview 40+ hairstyles, realistic hair dyes, beard shaping & density restoration.",
+      description: "AI hair color virtual try-on, 80+ haircuts, 180° hair frizz detection & 15 beard styles.",
       href: "/dashboard/hair-beard",
       image: "/ai-photo-editing-images/hairstyle.jpg",
       icon: Scissors,
-      badge: "Realistic",
+      badge: "New AI Studio",
       toolsCount: "4 Tools",
-      gradient: "from-emerald-500/10 to-orange-500/5",
+      gradient: "from-amber-600/10 to-orange-500/5",
     },
     {
       title: "AI Extras & Studio Retouch",
