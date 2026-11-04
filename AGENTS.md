@@ -85,6 +85,24 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Studio Canvas Overhaul: Height Reduction, Clean Minimal Loader & Redundant Button/Text Removal
+- **Canvas Height Optimization Across Studios:**
+  - Reduced viewport canvas min-height from `min-h-[460px] sm:min-h-[520px]` to a sleek, compact `min-h-[360px] sm:min-h-[400px]` across Beauty, Fashion, Hair & Beard, and Skin & Face studios.
+  - In AI Extras studio, tightened aspect ratio to `aspect-[4/3] sm:aspect-[16/11]` with matching `min-h-[360px] sm:min-h-[400px]`.
+- **Minimal, Modern AI Generation Loader:**
+  - Replaced the cluttered multi-step animation (4 pipeline milestone pills, heavy glowing halos, active engine badges, concentric dashed rings) with a clean, minimal loader across all 5 studios:
+    - Elegant 2-tone rotating border spinner with centered pulsing sparkle icon.
+    - Concise title: `Generating {tool}...` with subtle status subtitle.
+    - Ultra-clean 1.5px progress bar with real-time percentage readout.
+- **Pre-Generation Canvas Cleanup:**
+  - Removed "Ready to Transform / Ready for Virtual Fitting / Ready to Style Hair & Beard" headings and redundant subtitle text.
+  - Removed the duplicate "Render {tool}" button inside the canvas body (generation is cleanly triggered from Step 3 in the left control panel).
+  - Removed the duplicate "Quick Preview" button from the bottom action bar.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Next.js production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 9.1s with zero errors.
+  - Chrome DevTools MCP: Evaluated DOM on all 5 studio routes verifying 0 occurrences of redundant text/buttons and confirmed `hasCanvasWithReducedHeight: true`.
+
 ### [2026-11-04] - Standardize Tool Cards Across All Studios: Badge on Top, Title on 2nd Line, Descriptions Removed
 - **All 4 Remaining AI Studio Pages Synchronized:**
   - **Fashion Studio (`app/dashboard/fashion/page.tsx`):**

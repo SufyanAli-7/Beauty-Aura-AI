@@ -1663,42 +1663,33 @@ export default function HairBeardStudioPage() {
             </div>
 
             {/* Viewport Center Area */}
-            <div className="relative my-auto flex min-h-[460px] sm:min-h-[500px] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-stone-50/80 to-stone-100/60 p-2 sm:p-4">
-              {/* CASE 1: Generating Loading State */}
+            <div className="relative my-auto flex min-h-[360px] sm:min-h-[400px] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-stone-50/80 to-stone-100/60 p-2 sm:p-4">
+              {/* CASE 1: Generating Loading State - Minimal & Clean */}
               {isGenerating ? (
-                <div className="relative flex flex-col items-center justify-center p-6 text-center space-y-6 max-w-md w-full">
-                  <div className="relative flex items-center justify-center">
-                    <div className="h-28 w-28 rounded-3xl bg-gradient-to-tr from-[#FF5500] to-amber-400 flex items-center justify-center text-white shadow-xl shadow-orange-500/30 animate-pulse">
-                      <currentTool.icon className="h-14 w-14" />
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm p-6 overflow-hidden">
+                  <div className="relative flex flex-col items-center text-center max-w-xs w-full space-y-3.5">
+                    {/* Sleek Minimal Spinner */}
+                    <div className="relative flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full border-2 border-orange-100 border-t-[#FF5500] animate-spin" />
+                      <Sparkles className="absolute h-4 w-4 text-[#FF5500] animate-pulse" />
                     </div>
-                    <div className="absolute inset-0 -m-3 rounded-full border-2 border-dashed border-[#FF5500]/40 animate-spin" />
-                  </div>
 
-                  <div className="space-y-2 w-full">
-                    <div className="flex items-center justify-between text-xs font-black text-zinc-800 px-1">
-                      <span>Neural Hair &amp; Beard Synthesis</span>
-                      <span className="text-[#FF5500] font-mono text-sm">{generationProgress}%</span>
+                    {/* Clean Minimal Text */}
+                    <div className="space-y-0.5">
+                      <h4 className="text-sm font-bold text-zinc-900">
+                        Styling {currentTool.title}...
+                      </h4>
+                      <p className="text-xs text-zinc-400">
+                        Synthesizing hair follicles ({generationProgress}%)
+                      </p>
                     </div>
-                    <div className="h-2.5 w-full rounded-full bg-stone-200 overflow-hidden shadow-inner">
+
+                    {/* Clean Minimal Progress Bar */}
+                    <div className="h-1.5 w-full max-w-[180px] rounded-full bg-orange-100 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#FF5500] via-amber-400 to-[#FF5500] transition-all duration-300"
+                        className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] transition-all duration-300 ease-out"
                         style={{ width: `${generationProgress}%` }}
                       />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-left w-full pt-1">
-                    <div className="p-2 rounded-xl bg-white/80 border border-orange-100 text-[11px] text-zinc-600">
-                      ✓ Follicle Landmark Map
-                    </div>
-                    <div className="p-2 rounded-xl bg-white/80 border border-orange-100 text-[11px] text-zinc-600">
-                      ✓ Strand-Level Simulation
-                    </div>
-                    <div className="p-2 rounded-xl bg-white/80 border border-orange-100 text-[11px] text-zinc-600">
-                      ✓ Lighting &amp; Texture Blend
-                    </div>
-                    <div className="p-2 rounded-xl bg-white/80 border border-orange-100 text-[11px] text-zinc-600">
-                      ✓ Lossless 4K UHD Export
                     </div>
                   </div>
                 </div>
@@ -1886,11 +1877,11 @@ export default function HairBeardStudioPage() {
                 )
               ) : (
                 /* CASE 3: Pre-generation State */
-                <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
+                <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center">
                   <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-orange-400/10 blur-3xl" />
 
-                  <div className="relative z-10 flex flex-col items-center space-y-4 max-w-sm">
-                    <div className="relative h-64 w-48 sm:h-72 sm:w-56 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative h-56 w-44 sm:h-64 sm:w-52 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={activeSourceImage}
@@ -1901,25 +1892,6 @@ export default function HairBeardStudioPage() {
                         Source Portrait Ready
                       </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <h4 className="text-base font-extrabold text-zinc-900">
-                        Ready to Style Hair &amp; Beard
-                      </h4>
-                      <p className="text-xs text-zinc-500 leading-relaxed">
-                        Click <span className="font-bold text-[#FF5500]">Generate Transformation</span> on the left to render your style (5 Credits).
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerate}
-                      disabled={isGenerating}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>Render {currentTool.title}</span>
-                    </button>
                   </div>
                 </div>
               )}
@@ -1934,7 +1906,7 @@ export default function HairBeardStudioPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {hasGenerated ? (
+                {hasGenerated && (
                   <>
                     <button
                       type="button"
@@ -1961,16 +1933,6 @@ export default function HairBeardStudioPage() {
                       </button>
                     )}
                   </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Quick Preview</span>
-                  </button>
                 )}
               </div>
             </div>

@@ -1595,123 +1595,33 @@ export default function FashionStudioPage() {
             </div>
 
             {/* Viewport Main Display Canvas */}
-            <div className="relative my-4 flex-1 flex items-center justify-center min-h-[460px] sm:min-h-[520px] rounded-2xl bg-gradient-to-b from-stone-50 to-orange-50/20 border border-orange-100 overflow-hidden">
-              {/* CASE 1: Generating Loading State - World-Class Professional Studio Loader */}
+            <div className="relative my-4 flex-1 flex items-center justify-center min-h-[360px] sm:min-h-[400px] rounded-2xl bg-gradient-to-b from-stone-50 to-orange-50/20 border border-orange-100 overflow-hidden">
+              {/* CASE 1: Generating Loading State - Minimal & Clean */}
               {isGenerating && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-4 sm:p-6 overflow-hidden">
-                  {/* Subtle Background Glow Aura */}
-                  <div className="pointer-events-none absolute h-80 w-80 rounded-full bg-gradient-to-tr from-orange-400/20 via-[#FF5500]/15 to-amber-300/20 blur-3xl animate-pulse" />
-
-                  {/* Central Animated Content Card */}
-                  <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full space-y-4 sm:space-y-5">
-                    {/* Top Studio Engine Badge */}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/80 bg-orange-50/80 px-3.5 py-1 text-[11px] font-extrabold text-[#FF5500] shadow-2xs">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF5500]"></span>
-                      </span>
-                      <span>AI Neural Studio Engine Active</span>
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm p-6 overflow-hidden">
+                  <div className="relative flex flex-col items-center text-center max-w-xs w-full space-y-3.5">
+                    {/* Sleek Minimal Spinner */}
+                    <div className="relative flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full border-2 border-orange-100 border-t-[#FF5500] animate-spin" />
+                      <Sparkles className="absolute h-4 w-4 text-[#FF5500] animate-pulse" />
                     </div>
 
-                    {/* Dynamic Tool Icon with Orbiting Rings & Glow */}
-                    <div className="relative my-1 sm:my-2 flex items-center justify-center">
-                      {/* Outer Rotating Dashed Ring */}
-                      <div className="absolute h-28 w-28 rounded-full border-2 border-dashed border-orange-300/80 animate-spin [animation-duration:12s]" />
-
-                      {/* Inner Rotating Glowing Ring */}
-                      <div className="absolute h-24 w-24 rounded-full border-2 border-transparent border-t-[#FF5500] border-r-amber-400 animate-spin [animation-duration:3s]" />
-
-                      {/* Pulsing Ambient Halo */}
-                      <div className="absolute h-20 w-20 rounded-3xl bg-gradient-to-tr from-[#FF5500] to-[#FFA033] blur-lg opacity-60 animate-pulse" />
-
-                      {/* Main Icon Container */}
-                      <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#FF5500] via-[#FF6E1A] to-[#FFA033] text-white shadow-xl shadow-orange-500/35 ring-4 ring-white">
-                        <currentTool.icon className="h-9 w-9 text-white drop-shadow-sm animate-pulse" />
-
-                        {/* Sparkle Badge */}
-                        <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-950 text-amber-300 border-2 border-white shadow-sm">
-                          <Sparkles className="h-3 w-3 animate-spin [animation-duration:4s]" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Heading & Subtitle */}
-                    <div className="space-y-1">
-                      <h4 className="text-base sm:text-lg font-black tracking-tight text-zinc-900">
-                        Generating {currentTool.title.replace("AI ", "")}...
+                    {/* Clean Minimal Text */}
+                    <div className="space-y-0.5">
+                      <h4 className="text-sm font-bold text-zinc-900">
+                        Fitting {currentTool.title.replace("AI ", "")}...
                       </h4>
-                      <p className="text-xs font-semibold text-zinc-500 min-h-[1.25rem] transition-all">
-                        {FASHION_STAGES[generationStageIndex]?.detail ||
-                          "Synthesizing fabric physics, lighting & shadow contours..."}
+                      <p className="text-xs text-zinc-400">
+                        {FASHION_STAGES[generationStageIndex]?.label || "Processing image"} ({generationProgress}%)
                       </p>
                     </div>
 
-                    {/* Progress Bar & Percentage Readout */}
-                    <div className="w-full max-w-xs space-y-1.5 pt-1">
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-zinc-600 flex items-center gap-1.5">
-                          <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
-                          <span>{FASHION_STAGES[generationStageIndex]?.label}</span>
-                        </span>
-                        <span className="text-[#FF5500] font-mono font-black">
-                          {generationProgress}%
-                        </span>
-                      </div>
-
-                      {/* Fluid Track */}
-                      <div className="h-2 w-full rounded-full bg-stone-100 overflow-hidden border border-orange-200/60 p-0.5 shadow-inner">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#FF5500] via-[#FF7A1A] to-[#FFA033] shadow-xs shadow-orange-500/40 transition-all duration-300 ease-out relative"
-                          style={{ width: `${generationProgress}%` }}
-                        >
-                          <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 4 Multi-Step Visual Pipeline Milestones */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
-                      {FASHION_STAGES.map((stage, idx) => {
-                        const isDone =
-                          generationStageIndex > idx || generationProgress >= (idx + 1) * 25;
-                        const isCurrent = generationStageIndex === idx && !isDone;
-                        return (
-                          <div
-                            key={stage.id}
-                            className={cn(
-                              "flex flex-col items-center justify-center p-2 rounded-xl border text-[10px] font-bold transition-all duration-300",
-                              isDone
-                                ? "bg-orange-50/80 border-orange-200/90 text-orange-900"
-                                : isCurrent
-                                ? "bg-white border-[#FF5500] text-zinc-900 shadow-sm shadow-orange-500/10 ring-1 ring-[#FF5500]/25"
-                                : "bg-stone-50/50 border-stone-200/60 text-zinc-400 opacity-60"
-                            )}
-                          >
-                            <div className="flex items-center gap-1 mb-0.5">
-                              {isDone ? (
-                                <Check className="h-3 w-3 text-[#FF5500] stroke-[3]" />
-                              ) : isCurrent ? (
-                                <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
-                              ) : (
-                                <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />
-                              )}
-                              <span className="text-[9px] uppercase tracking-wider">
-                                Step {idx + 1}
-                              </span>
-                            </div>
-                            <span className="truncate max-w-full font-bold">{stage.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Bottom Metadata Disclaimer */}
-                    <div className="pt-1 text-[11px] font-medium text-zinc-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
-                      <span>Deducting 5 Credits</span>
-                      <span>&bull;</span>
-                      <span>Lossless 4K Spec</span>
-                      <span>&bull;</span>
-                      <span>Saved to Cloud</span>
+                    {/* Clean Minimal Progress Bar */}
+                    <div className="h-1.5 w-full max-w-[180px] rounded-full bg-orange-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] transition-all duration-300 ease-out"
+                        style={{ width: `${generationProgress}%` }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1828,11 +1738,11 @@ export default function FashionStudioPage() {
                 </>
               ) : (
                 /* CASE 3: Pre-generation State (Show Source Model Ready) */
-                <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
+                <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center">
                   <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-orange-400/10 blur-3xl" />
 
-                  <div className="relative z-10 flex flex-col items-center space-y-4 max-w-sm">
-                    <div className="relative h-64 w-48 sm:h-72 sm:w-56 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative h-56 w-44 sm:h-64 sm:w-52 overflow-hidden rounded-2xl border-2 border-orange-200/80 bg-white shadow-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={activeSourceImage}
@@ -1843,25 +1753,6 @@ export default function FashionStudioPage() {
                         Model Silhouette Ready
                       </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <h4 className="text-base font-extrabold text-zinc-900">
-                        Ready for Virtual Fitting
-                      </h4>
-                      <p className="text-xs text-zinc-500 leading-relaxed">
-                        Click <span className="font-bold text-[#FF5500]">Generate Fitting</span> on the left to render your makeover (5 Credits).
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerate}
-                      disabled={isGenerating}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>Render {currentTool.title.replace("AI ", "")}</span>
-                    </button>
                   </div>
                 </div>
               )}
@@ -1877,7 +1768,7 @@ export default function FashionStudioPage() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
-                {hasGenerated ? (
+                {hasGenerated && (
                   <>
                     <button
                       type="button"
@@ -1902,16 +1793,6 @@ export default function FashionStudioPage() {
                       <span>{isDownloading ? "Downloading..." : "Download 4K Result"}</span>
                     </button>
                   </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Quick Preview</span>
-                  </button>
                 )}
               </div>
             </div>

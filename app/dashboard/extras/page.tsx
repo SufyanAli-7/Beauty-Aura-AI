@@ -1279,7 +1279,7 @@ export default function ExtrasStudioPage() {
             {/* Canvas Viewport Frame */}
             <div
               className={cn(
-                "relative aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/4.5] w-full overflow-hidden rounded-2xl flex items-center justify-center transition-all border border-orange-100",
+                "relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/11] min-h-[360px] sm:min-h-[400px] w-full overflow-hidden rounded-2xl flex items-center justify-center transition-all border border-orange-100",
                 selectedTool === "bg-remove" && hasGenerated && selectedBackdrop === "transparent"
                   ? "bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%),linear-gradient(-45deg,#f0f0f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f0f0f0_75%),linear-gradient(-45deg,transparent_75%,#f0f0f0_75%)] bg-[size:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0]"
                   : "bg-gradient-to-b from-stone-50 via-white to-orange-50/20"
@@ -1293,122 +1293,39 @@ export default function ExtrasStudioPage() {
                   : undefined
               }
             >
-              {/* STATE A: GENERATING MULTI-STAGE LOADER (LIGHT THEME MATCHING BEAUTY & FASHION) */}
+              {/* STATE A: MINIMAL CLEAN STUDIO LOADER */}
               {isGenerating ? (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-4 sm:p-6 overflow-hidden">
-                  {/* Subtle Background Glow Aura */}
-                  <div className="pointer-events-none absolute h-80 w-80 rounded-full bg-gradient-to-tr from-orange-400/20 via-[#FF5500]/15 to-amber-300/20 blur-3xl animate-pulse" />
-
-                  {/* Central Animated Content Card */}
-                  <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full space-y-4 sm:space-y-5">
-                    {/* Top Studio Engine Badge */}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/80 bg-orange-50/80 px-3.5 py-1 text-[11px] font-extrabold text-[#FF5500] shadow-2xs">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF5500]"></span>
-                      </span>
-                      <span>AI Neural Extras Engine Active</span>
-                    </div>
-
-                    {/* Dynamic Tool Icon with Orbiting Rings & Glow */}
-                    <div className="relative my-1 sm:my-2 flex items-center justify-center">
-                      {/* Outer Rotating Dashed Ring */}
-                      <div className="absolute h-28 w-28 rounded-full border-2 border-dashed border-orange-300/80 animate-spin [animation-duration:12s]" />
-
-                      {/* Inner Rotating Glowing Ring */}
-                      <div className="absolute h-24 w-24 rounded-full border-2 border-transparent border-t-[#FF5500] border-r-amber-400 animate-spin [animation-duration:3s]" />
-
-                      {/* Pulsing Ambient Halo */}
-                      <div className="absolute h-20 w-20 rounded-3xl bg-gradient-to-tr from-[#FF5500] to-[#FFA033] blur-lg opacity-60 animate-pulse" />
-
-                      {/* Main Icon Container */}
-                      <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#FF5500] via-[#FF6E1A] to-[#FFA033] text-white shadow-xl shadow-orange-500/35 ring-4 ring-white">
-                        <CurrentIcon className="h-9 w-9 text-white drop-shadow-sm animate-pulse" />
-
-                        {/* Sparkle Badge */}
-                        <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-950 text-amber-300 border-2 border-white shadow-sm">
-                          <Sparkles className="h-3 w-3 animate-spin [animation-duration:4s]" />
-                        </div>
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-6 overflow-hidden">
+                  <div className="relative z-10 flex flex-col items-center text-center max-w-xs w-full space-y-4">
+                    {/* Sleek Modern Spinner */}
+                    <div className="relative flex items-center justify-center">
+                      <div className="h-14 w-14 rounded-full border-[3px] border-orange-100 border-t-[#FF5500] animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Sparkles className="h-5 w-5 text-[#FF5500] animate-pulse" />
                       </div>
                     </div>
 
-                    {/* Heading & Subtitle */}
                     <div className="space-y-1">
-                      <h4 className="text-base sm:text-lg font-black tracking-tight text-zinc-900">
+                      <h4 className="text-sm font-bold text-zinc-900">
                         Generating {currentTool.title}...
                       </h4>
-                      <p className="text-xs font-semibold text-zinc-500 min-h-[1.25rem] transition-all">
-                        {EXTRAS_STAGES[generationStageIndex]?.detail ||
-                          "Synthesizing high-fidelity neural layers & blend..."}
+                      <p className="text-xs text-zinc-500">
+                        Applying high-precision AI transformation
                       </p>
                     </div>
 
-                    {/* Progress Bar & Percentage Readout */}
-                    <div className="w-full max-w-xs space-y-1.5 pt-1">
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-zinc-600 flex items-center gap-1.5">
-                          <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
-                          <span>{EXTRAS_STAGES[generationStageIndex]?.label}</span>
-                        </span>
-                        <span className="text-[#FF5500] font-mono font-black">
-                          {generationProgress}%
-                        </span>
+                    {/* Progress Bar & Percentage */}
+                    <div className="w-full space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-zinc-500">
+                        <span>Processing</span>
+                        <span className="text-[#FF5500] font-black">{generationProgress}%</span>
                       </div>
-
-                      {/* Fluid Track */}
-                      <div className="h-2 w-full rounded-full bg-stone-100 overflow-hidden border border-orange-200/60 p-0.5 shadow-inner">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#FF5500] via-[#FF7A1A] to-[#FFA033] shadow-xs shadow-orange-500/40 transition-all duration-300 ease-out relative"
+                          className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] transition-all duration-300"
                           style={{ width: `${generationProgress}%` }}
-                        >
-                          <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                        </div>
+                        />
                       </div>
-                    </div>
-
-                    {/* 4 Multi-Step Visual Pipeline Milestones */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
-                      {EXTRAS_STAGES.map((stage, idx) => {
-                        const isDone =
-                          generationStageIndex > idx || generationProgress >= (idx + 1) * 25;
-                        const isCurrent = generationStageIndex === idx && !isDone;
-                        return (
-                          <div
-                            key={stage.id}
-                            className={cn(
-                              "flex flex-col items-center justify-center p-2 rounded-xl border text-[10px] font-bold transition-all duration-300",
-                              isDone
-                                ? "bg-orange-50/80 border-orange-200/90 text-orange-900"
-                                : isCurrent
-                                ? "bg-white border-[#FF5500] text-zinc-900 shadow-sm shadow-orange-500/10 ring-1 ring-[#FF5500]/25"
-                                : "bg-stone-50/50 border-stone-200/60 text-zinc-400 opacity-60"
-                            )}
-                          >
-                            <div className="flex items-center gap-1 mb-0.5">
-                              {isDone ? (
-                                <Check className="h-3 w-3 text-[#FF5500] stroke-[3]" />
-                              ) : isCurrent ? (
-                                <RefreshCw className="h-3 w-3 animate-spin text-[#FF5500]" />
-                              ) : (
-                                <span className="h-1.5 w-1.5 rounded-full bg-stone-300" />
-                              )}
-                              <span className="text-[9px] uppercase tracking-wider">
-                                Step {idx + 1}
-                              </span>
-                            </div>
-                            <span className="truncate max-w-full font-bold">{stage.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Bottom Metadata Disclaimer */}
-                    <div className="pt-1 text-[11px] font-medium text-zinc-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
-                      <span>Deducting 5 Credits</span>
-                      <span>&bull;</span>
-                      <span>Lossless 4K Spec</span>
-                      <span>&bull;</span>
-                      <span>Saved to Cloud</span>
                     </div>
                   </div>
                 </div>
