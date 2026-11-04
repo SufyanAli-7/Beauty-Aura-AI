@@ -553,7 +553,7 @@ export default function SkinFaceStudioPage() {
     SAMPLE_MODELS.find((m) => m.src === selectedSource)?.name || "Elena";
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-2">
       {/* =========================================================================
           TOP HEADER & CREDIT STATUS (MATCHING BEAUTY STUDIO EXACTLY)
       ========================================================================= */}

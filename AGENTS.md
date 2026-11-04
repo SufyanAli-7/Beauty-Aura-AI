@@ -85,6 +85,14 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Fix Bottom Spacing on Skin & Face Studio to Match Beauty Page
+- **Removed Excessive Bottom Padding (`app/dashboard/skin-face/page.tsx`):**
+  - Changed root wrapper class from `space-y-6 pb-16` to `space-y-6 pb-2`, perfectly harmonizing bottom whitespace with `beauty/page.tsx`, `fashion/page.tsx`, `hair-beard/page.tsx`, and `extras/page.tsx`.
+- **Verification via Chrome DevTools MCP:**
+  - Evaluated root offset height on `/dashboard/skin-face`: reduced from 744px to 688px (matching beauty's compact 668px layout).
+  - Verified visual alignment via viewport screenshot.
+  - `npx tsc --noEmit`: 0 errors.
+
 ### [2026-11-04] - Harmonize Studio Canvas Dimensions Across All AI Studios to Match Extras
 - **Exact Height & Layout Synchronization Matching AI Extras (`extras/page.tsx`):**
   - Updated `beauty/page.tsx`, `fashion/page.tsx`, `hair-beard/page.tsx`, and `skin-face/page.tsx`:
