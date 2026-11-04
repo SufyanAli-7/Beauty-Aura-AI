@@ -85,6 +85,20 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Sidebar AI Tools Navigation Reordering
+- **Reordered AI Tools List (`components/dashboard/dashboard-sidebar.tsx` & `app/dashboard/page.tsx`):**
+  - Moved **Beauty** (`/dashboard/beauty`) to the 1st position at the top of the AI Tools navigation.
+  - Moved **AI Skin, Face & Body** (`/dashboard/skin-face`) right above **AI Extras** (4th position).
+  - Updated order in both the sidebar and dashboard overview cards:
+    1. `Beauty`
+    2. `Fashion`
+    3. `Hair & Beard`
+    4. `AI Skin, Face & Body`
+    5. `AI Extras`
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Evaluated DOM in Chrome DevTools MCP verifying both `sidebarToolsOrder` and `homeCardsOrder` adhere exactly to the new sequence.
+
 ### [2026-11-04] - UI Cleanup: Sidebar Badges, Templates Page, and Header Elements Removal
 - **Sidebar Badges Removal (`components/dashboard/dashboard-sidebar.tsx`):**
   - Removed all status badges (`POPULAR`, `HD`, `TRENDING`, `NEW`) from the AI Tools navigation list (`AI Skin, Face & Body`, `Beauty`, `Fashion`, `AI Extras`).

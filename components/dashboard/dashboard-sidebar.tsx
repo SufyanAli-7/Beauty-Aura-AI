@@ -40,13 +40,6 @@ export const navigationItems = [
 
 export const aiToolItems = [
   {
-    name: "AI Skin, Face & Body",
-    href: "/dashboard/skin-face",
-    icon: Smile,
-    badge: null,
-    description: "Abs, smile, age progression & body contour",
-  },
-  {
     name: "Beauty",
     href: "/dashboard/beauty",
     icon: Wand2,
@@ -66,6 +59,13 @@ export const aiToolItems = [
     icon: Scissors,
     badge: null,
     description: "Hair styling, colors & beard grooming",
+  },
+  {
+    name: "AI Skin, Face & Body",
+    href: "/dashboard/skin-face",
+    icon: Smile,
+    badge: null,
+    description: "Abs, smile, age progression & body contour",
   },
   {
     name: "AI Extras",

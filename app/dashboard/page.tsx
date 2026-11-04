@@ -63,16 +63,6 @@ export default function DashboardPage() {
 
   const aiStudios = [
     {
-      title: "AI Skin, Face & Body",
-      description: "Abs filter, smile generator, age progression, 3D body contouring & dermatology.",
-      href: "/dashboard/skin-face",
-      image: "/ai-photo-editing-images/ai-skin-analaysis.webp",
-      icon: Smile,
-      badge: "6 AI Engines",
-      toolsCount: "6 Tools",
-      gradient: "from-amber-500/10 to-orange-500/5",
-    },
-    {
       title: "Beauty & Makeup Transfer",
       description: "Extract lipstick, eyeshadow & blush from any look and transfer instantly.",
       href: "/dashboard/beauty",
@@ -101,6 +91,16 @@ export default function DashboardPage() {
       badge: "New AI Studio",
       toolsCount: "4 Tools",
       gradient: "from-amber-600/10 to-orange-500/5",
+    },
+    {
+      title: "AI Skin, Face & Body",
+      description: "Abs filter, smile generator, age progression, 3D body contouring & dermatology.",
+      href: "/dashboard/skin-face",
+      image: "/ai-photo-editing-images/ai-skin-analaysis.webp",
+      icon: Smile,
+      badge: "6 AI Engines",
+      toolsCount: "6 Tools",
+      gradient: "from-amber-500/10 to-orange-500/5",
     },
     {
       title: "AI Extras & Studio Retouch",
