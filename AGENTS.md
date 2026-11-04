@@ -66,7 +66,7 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - SDK: `@insforge/sdk`
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
-  - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
+  - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, AI Body Reshape, AI Fitzpatrick Skin Type Analysis, and AI Skin Analysis with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
   - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, Hair Frizziness Detection, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
@@ -78,11 +78,75 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 4 YouCam MCP tools, live 4K viewport, Before/After compare split slider, trichology diagnostic dashboard, and credit management.
   - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 5 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, 69 headshots, and synchronized studio layout.
+  - `app/dashboard/skin-face/page.tsx`: Complete AI Skin, Face & Body Studio with 6 YouCam Beauty MCP tools (Abs Filter, Smile Generator, Aging Simulation, 3D Body Reshape, Fitzpatrick Mapping, 12-Point Skin Analysis), Before/After split slider, clinical dermatological report dashboards, curated models, and 4K export.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-04] - AI Skin & Face & Body Studio: Before/After Slider Orientation Fix & Complete Third-Party Branding Removal
+- **Before / After Comparison Slider Fix (`app/dashboard/skin-face/page.tsx`):**
+  - Resolved image inversion issue where the AI transformed image was displaying on the left under the "Original" label:
+    - Layer 1 (background base layer) is now set to `generatedImageUrl` (Transformed AI image), revealed on the right side.
+    - Layer 2 (top layer) is now set to `getActiveSourceUrl()` (Original source image), clipped from the right via `clipPath: inset(0 ${100 - sliderPosition}% 0 0)`.
+    - At `sliderPosition = 50%`, the **LEFT** half displays the **Original** face under the "Original" badge, and the **RIGHT** half displays the **AI Transformed** face under the tool badge.
+    - Container-level badge positioning with `pointer-events-none` prevents clipping artifacts.
+- **Third-Party Provider Branding Removal (`app/dashboard/skin-face/page.tsx`, `extras/page.tsx`, `hair-beard/page.tsx`):**
+  - Removed all user-facing references to "YouCam" and "InSForge" across the interface:
+    - Removed resource transparency callout box completely from `skin-face/page.tsx`.
+    - Renamed `6 YouCam AI Engines` to `6 Studio AI Engines`.
+    - Renamed `YouCam Neural Engine Active` to `Neural Studio Engine Active`.
+    - Updated studio specs footer: `Neural Studio Cloud • High Precision Synthesis`.
+    - Cleaned up branding in `app/dashboard/extras/page.tsx` (`Colorized Variations`, `Neural Studio Cloud`) and `app/dashboard/hair-beard/page.tsx` (`Hair Frizz Analyzer`, `Trichology Diagnostic Specs`).
+- **Verification:**
+  - TypeScript checked with 0 errors (`npx tsc --noEmit`).
+  - Evaluated DOM in Chrome DevTools MCP verifying `hasYouCam: false` and `hasInSForge: false`.
+  - Tested live generation of `AI-Smile` and confirmed visually via screenshot that the Original face is on the left and the AI smiled face is on the right.
+
+### [2026-11-04] - AI Skin & Face & Body Studio Implementation (6 Tools, YouCam Beauty MCP, Abs Filter, Smile, Aging, Body Reshape, Fitzpatrick & Skin Analysis)
+- **AI Skin, Face & Body Studio Implemented (`app/dashboard/skin-face/page.tsx` & `app/api/skin-face/generate/route.ts`):**
+  - Integrated all 6 requested AI tools powered by YouCam Beauty MCP (`https://mcp-api-01.makeupar.com/mcp/beauty`):
+    1. **AI Abs Filter (`AI-Abs-Filter`):**
+       - Mode selector: "Six-pack" (deep rectus abdominis muscle definition) vs "Vest-line" (11-line sleek central abdominal definition for athletic fit look).
+       - Intensity selector: Level 1 (Natural Sculpt) vs Level 2 (Deep Athletic).
+    2. **AI Smile Generator (`AI-Smile`):**
+       - Expression type selector: "Bright Smile with Teeth Visible" (`smile_with_teeth_visible`) vs "Gentle Closed-Lip" (`closed_mouth_smile`).
+       - Photorealistic dental harmonization with automated facial feature detection.
+    3. **AI Aging Simulation (`AI-Aging-Simulation`):**
+       - Simulates chronological multi-decade progression from a single portrait selfie.
+       - Multi-stage image gallery allowing users to navigate and inspect each generation checkpoint.
+    4. **AI Body Reshape & Slimming (`AI-Body-Reshape`):**
+       - Quick presets: Hourglass Curve, Runway Tall & Slim, Athletic Fit, Natural Slim.
+       - 6 precision anatomy sliders: Waist Slimming (-100 to 100), Belly Flattening (-100 to 100), Height / Leg Lengthening (0 to 100), Overall Body Slim (-100 to 100), Hip Curve & Lift (-100 to 100), Arm Toning (-100 to 100).
+    5. **AI Fitzpatrick Skin Type Analysis (`AI-Fitzpatrick-Skin-Type-Analysis`):**
+       - Classifies skin phototype across the clinical Fitzpatrick Scale (Types I through VI).
+       - Interactive clinical phototype card with visual spectrum bar, melanin index, erythema sunburn susceptibility, prescribed SPF/PA rating, and dermatologist guidance.
+    6. **AI Clinical Skin Analysis (`AI-Skin-Analysis`):**
+       - Complete 12-point clinical dermal scan measuring pore refinement, wrinkle depth, surface texture, hydration barrier, sebum balance, radiance, and erythema redness.
+       - Comprehensive clinical health score (e.g. 89/100 Grade A-), skin type classification (Balanced Combination), 8-metric score meters, and AM/PM active skincare protocols.
+       - Auto-fallback to SD actions when source image resolution is below HD threshold.
+- **Resource Disclosures:**
+  - **Explicit Resource Disclosure**: Checked YouCam Beauty MCP resources (`resources/list`) and verified that YouCam does **NOT** provide pre-hosted sample image galleries or template endpoints for Abs Filter, Smile, Aging, Body Reshape, Fitzpatrick, or Skin Analysis.
+  - Curated high-resolution sample models in `public/skin-body-samples/` (`body-sample-01.jpg`, `body-sample-02.jpg`, `face-sample-01.png`, `face-sample-02.png`, `face-sample-03.png`, `face-sample-04.jpg`) with automatic tool-specific filtering and custom upload support.
+- **Client & FastMCP Enhancements (`lib/youcam-client.ts`):**
+  - Added support for array results in `urls: string[]` (for multi-stage generation like Aging Simulation).
+  - Added user-friendly, descriptive error translations for `error_multiple_people`, `error_pose`, `error_src_face_too_small`, and `error_below_min_image_size`.
+- **Backend & Database Storage:**
+  - Automated resolution of base64 uploads and local files to InSForge Storage (`generated-images` bucket).
+  - InSForge cloud caching for all generated 4K results (`transformations/{userId}/{timestamp}-skin-face-{toolId}.jpg`).
+  - Atomic deduction of 5 credits per generation in `public.users`.
+  - Full audit logging in `public.transformations` table.
+- **UI/UX Consistency:**
+  - Single-line CTA button (`whitespace-nowrap overflow-hidden`) with dynamic icon and credit indicator.
+  - Light warm Studio Loader (`bg-white/95 backdrop-blur-md`, orbital glowing rings, active tool icon, spinning gold sparkle badge, real-time percentage progress bar, 4 visual pipeline checkpoints).
+  - Before/After interactive split slider with draggable handle and touch/mouse tracking.
+  - Responsive layout with desktop left column height synchronized to Live Studio Canvas via `ResizeObserver`.
+  - Soft pastel scrollbar styling matching Beauty, Fashion, and Extras Studios.
+- **Verification:**
+  - Full production build compiled with zero errors across all 22 routes (`npm run build`).
+  - Verified live API inference: `AI-Smile` returned `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage; `AI-Fitzpatrick-Skin-Type-Analysis` returned `status: 200`, `fitzpatrick_scale: "I"`.
+  - Verified live rendering, tool switching, and diagnostic report generation in Chrome DevTools MCP.
 
 ### [2026-11-04] - AI Extras Studio: Tool Verification, Dynamic Extender Bounds & Robust FastMCP Polling
 - **AI Photo Extender Dimension Calculation Fix (`app/api/extras/generate/route.ts` & `lib/image-size.ts`):**

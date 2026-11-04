@@ -13,6 +13,7 @@ const YOUCAM_API_KEY =
 export interface YouCamCallResult {
   success: boolean;
   imageUrl?: string;
+  urls?: string[];
   data?: any;
   taskId?: string;
   status?: string;
@@ -139,6 +140,7 @@ export async function callYouCamMCP(
 
     // Extract image URL or analysis data from finalResultData
     let extractedUrl: string | undefined;
+    let extractedUrls: string[] | undefined;
     let analysisData: any = undefined;
     let taskId: string | undefined = fallbackTaskId || undefined;
     let status = "running";
@@ -151,13 +153,21 @@ export async function callYouCamMCP(
         detectedError = structuredResult.error_message;
       }
       if (structuredResult?.data?.results?.url) {
-        extractedUrl = structuredResult.data.results.url;
+        if (Array.isArray(structuredResult.data.results.url)) {
+          extractedUrls = structuredResult.data.results.url;
+          extractedUrl = structuredResult.data.results.url[0];
+        } else {
+          extractedUrl = structuredResult.data.results.url;
+          extractedUrls = [structuredResult.data.results.url];
+        }
         status = "success";
       } else if (structuredResult?.data?.results?.output?.[0]?.url) {
         extractedUrl = structuredResult.data.results.output[0].url;
+        extractedUrls = structuredResult.data.results.output.map((o: any) => o.url).filter(Boolean);
         status = "success";
       } else if (Array.isArray(structuredResult?.data?.results) && structuredResult.data.results[0]?.url) {
         extractedUrl = structuredResult.data.results[0].url;
+        extractedUrls = structuredResult.data.results.map((o: any) => o.url).filter(Boolean);
         status = "success";
       }
 
@@ -180,13 +190,21 @@ export async function callYouCamMCP(
             detectedError = innerJson.error_message;
           }
           if (innerJson.data?.results?.url) {
-            extractedUrl = innerJson.data.results.url;
+            if (Array.isArray(innerJson.data.results.url)) {
+              extractedUrls = innerJson.data.results.url;
+              extractedUrl = innerJson.data.results.url[0];
+            } else {
+              extractedUrl = innerJson.data.results.url;
+              extractedUrls = [innerJson.data.results.url];
+            }
             status = "success";
           } else if (innerJson.data?.results?.output?.[0]?.url) {
             extractedUrl = innerJson.data.results.output[0].url;
+            extractedUrls = innerJson.data.results.output.map((o: any) => o.url).filter(Boolean);
             status = "success";
           } else if (Array.isArray(innerJson.data?.results) && innerJson.data.results[0]?.url) {
             extractedUrl = innerJson.data.results[0].url;
+            extractedUrls = innerJson.data.results.map((o: any) => o.url).filter(Boolean);
             status = "success";
           }
 
@@ -210,6 +228,14 @@ export async function callYouCamMCP(
       let friendlyError = detectedError;
       if (detectedError.includes("error_no_shoulders")) {
         friendlyError = "Please choose or upload a portrait where the neck and shoulders are clearly visible.";
+      } else if (detectedError.includes("error_src_face_too_small")) {
+        friendlyError = "The face in your photo is too small for skin analysis. Please choose a closer front-facing selfie portrait where the face occupies at least 60% of the image width.";
+      } else if (detectedError.includes("error_below_min_image_size")) {
+        friendlyError = "The photo resolution is below the minimum required for dermal scanning. Please use a higher resolution portrait.";
+      } else if (detectedError.includes("error_multiple_people")) {
+        friendlyError = "Multiple people detected in the image. Please upload a portrait with a single person.";
+      } else if (detectedError.includes("error_pose")) {
+        friendlyError = "Abdominal area not detected or torso pose unsuitable. Please upload or select a photo where the midriff or upper body is clearly visible.";
       } else if (detectedError.includes("invalid_parameter")) {
         friendlyError = "Image dimensions or aspect ratio parameter out of bounds. Please try another preset.";
       } else if (detectedError.includes("error_no_face")) {
@@ -225,6 +251,9 @@ export async function callYouCamMCP(
       if (polled.imageUrl) {
         extractedUrl = polled.imageUrl;
         status = "success";
+      }
+      if (polled.urls) {
+        extractedUrls = polled.urls;
       }
       if (polled.data) {
         analysisData = polled.data;
@@ -244,6 +273,7 @@ export async function callYouCamMCP(
     return {
       success: true,
       imageUrl: extractedUrl,
+      urls: extractedUrls,
       data: analysisData,
       taskId,
       status,
@@ -270,7 +300,7 @@ async function pollTaskStatus(
   maxAttempts = 4,
   intervalMs = 2000,
   targetUrl = YOUCAM_BEAUTY_URL
-): Promise<{ imageUrl?: string; data?: any; status?: string }> {
+): Promise<{ imageUrl?: string; urls?: string[]; data?: any; status?: string }> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (attempt > 1) {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
@@ -316,13 +346,18 @@ async function pollTaskStatus(
               result.structuredContent?.result ||
               (result.content?.[0]?.text ? JSON.parse(result.content[0].text) : null);
             if (raw?.data?.results?.url) {
-              return { imageUrl: raw.data.results.url, status: "success" };
+              const urls = Array.isArray(raw.data.results.url)
+                ? raw.data.results.url
+                : [raw.data.results.url];
+              return { imageUrl: urls[0], urls, status: "success" };
             }
             if (raw?.data?.results?.output?.[0]?.url) {
-              return { imageUrl: raw.data.results.output[0].url, status: "success" };
+              const urls = raw.data.results.output.map((o: any) => o.url).filter(Boolean);
+              return { imageUrl: urls[0], urls, status: "success" };
             }
             if (Array.isArray(raw?.data?.results) && raw.data.results[0]?.url) {
-              return { imageUrl: raw.data.results[0].url, status: "success" };
+              const urls = raw.data.results.map((o: any) => o.url).filter(Boolean);
+              return { imageUrl: urls[0], urls, status: "success" };
             }
             if (raw?.data?.results) {
               return { data: raw.data.results, status: "success" };

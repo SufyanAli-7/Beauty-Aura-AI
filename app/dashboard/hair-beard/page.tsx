@@ -941,7 +941,7 @@ export default function HairBeardStudioPage() {
                           180° Multi-Angle Photo Calibration
                         </span>
                         <p className="text-[11px] text-zinc-600 leading-relaxed mt-0.5">
-                          YouCam Hair Frizz Analyzer requires 3 camera angles for follicle depth scan: Front (<span className="font-bold text-[#FF5500]">&lt;10°</span>), Right Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>), Left Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>).
+                          Hair Frizz Analyzer requires 3 camera angles for follicle depth scan: Front (<span className="font-bold text-[#FF5500]">&lt;10°</span>), Right Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>), Left Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>).
                         </p>
                       </div>
                     </div>
@@ -1553,7 +1553,7 @@ export default function HairBeardStudioPage() {
                 </div>
 
                 <div className="rounded-xl border border-orange-100 bg-stone-50 p-2.5 text-[11px] text-zinc-500 space-y-1">
-                  <span className="font-bold text-zinc-700 block">YouCam Trichology Specs:</span>
+                  <span className="font-bold text-zinc-700 block">Trichology Diagnostic Specs:</span>
                   <p>• Requires 3 distinct views for full 180° strand depth modeling.</p>
                   <p>• Output provides personalized defrizz salon product prescriptions.</p>
                 </div>

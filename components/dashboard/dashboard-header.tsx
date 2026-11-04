@@ -75,7 +75,7 @@ export function DashboardHeader({
 
   // Get readable page title based on pathname
   const getPageTitle = () => {
-    if (pathname.includes("/dashboard/skin-face")) return "AI Skin & Face Analysis";
+    if (pathname.includes("/dashboard/skin-face")) return "AI Skin, Face & Body Studio";
     if (pathname.includes("/dashboard/beauty")) return "Beauty & Makeup Studio";
     if (pathname.includes("/dashboard/fashion")) return "Fashion & Virtual Try-On";
     if (pathname.includes("/dashboard/hair-beard")) return "Hair & Beard Salon";

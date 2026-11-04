@@ -41,11 +41,11 @@ export const navigationItems = [
 
 export const aiToolItems = [
   {
-    name: "AI Skin & Face Analysis",
+    name: "AI Skin, Face & Body",
     href: "/dashboard/skin-face",
     icon: Smile,
     badge: "Popular",
-    description: "Retouch, skin tone & age progression",
+    description: "Abs, smile, age progression & body contour",
   },
   {
     name: "Beauty",

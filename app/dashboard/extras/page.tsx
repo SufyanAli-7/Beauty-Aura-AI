@@ -1528,7 +1528,7 @@ export default function ExtrasStudioPage() {
             {hasGenerated && extraVariations.length > 1 && (
               <div className="space-y-1.5 pt-1">
                 <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wide">
-                  Colorized Variations (YouCam Multi-Pass):
+                  Colorized Variations:
                 </span>
                 <div className="flex items-center gap-2">
                   {extraVariations.map((_, idx) => (
@@ -1557,7 +1557,7 @@ export default function ExtrasStudioPage() {
                 <span>Lossless 4K Neural Diffusion Engine</span>
               </span>
               <span className="text-[11px] font-semibold text-zinc-400">
-                YouCam Creators MCP
+                Neural Studio Cloud
               </span>
             </div>
           </div>
