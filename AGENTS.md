@@ -85,6 +85,20 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - My Projects Page: Interactive High-Res Preview Modal on Card Click
+- **Transformation Preview Modal (`app/dashboard/projects/page.tsx`):**
+  - Added full interactive preview modal when clicking on any transformation card in the project library.
+  - Hover affordance: frosted glass "View Modal" indicator appears on thumbnail hover.
+  - Modal Features:
+    - Left Viewport: High-res image display with Transformed vs Original Before/After toggle (when source photo is present), external link for 4K open, and elapsed time badge.
+    - Right Sidebar: Tool tag, look name, created date, exact clock time, credits deducted, clickable source photo thumbnail.
+    - Actions: Direct "Download High-Res" action, "Open in Studio" navigation link, and delete button with modal auto-close.
+    - Accessibility: Backdrop click to dismiss, `Escape` key listener, and background body scroll prevention while open.
+    - Event isolation: `e.stopPropagation()` on card action buttons (Download, Trash) prevents unintentional modal triggers.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
+
 ### [2026-11-04] - Recent Transformations: Move Time Badge to Bottom-Right
 - **Time Badge Position Alignment (`app/dashboard/page.tsx`):**
   - Updated the frosted glass time badge positioning on the transformation card thumbnail from `bottom-2 left-2` to `bottom-2 right-2`.
