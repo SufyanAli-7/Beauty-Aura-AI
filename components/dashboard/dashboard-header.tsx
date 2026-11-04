@@ -5,11 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Menu,
-  Search,
-  Bell,
   Sparkles,
   Zap,
-  Plus,
   CreditCard,
   User,
   LogOut,
@@ -34,18 +31,13 @@ export function DashboardHeader({
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
 
-  // Close menus when clicking outside
+  // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setNotificationsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -81,7 +73,6 @@ export function DashboardHeader({
     if (pathname.includes("/dashboard/hair-beard")) return "Hair & Beard Salon";
     if (pathname.includes("/dashboard/extras")) return "AI Extras & Studio Tools";
     if (pathname.includes("/dashboard/projects")) return "My Projects";
-    if (pathname.includes("/dashboard/templates")) return "Style Templates";
     if (pathname.includes("/dashboard/billing")) return "Billing & Credits";
     return "Dashboard Studio";
   };
@@ -114,33 +105,8 @@ export function DashboardHeader({
         </div>
       </div>
 
-      {/* Center: Search Bar (Hidden on small mobile) */}
-      <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
-        <div className="relative w-full">
-          <label htmlFor="dashboard-search" className="sr-only">
-            Search AI tools, styles, looks
-          </label>
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-400">
-            <Search className="h-4 w-4" />
-          </div>
-          <input
-            id="dashboard-search"
-            name="search"
-            type="text"
-            aria-label="Search AI tools, styles, looks"
-            placeholder="Search AI tools, styles, looks..."
-            className="w-full rounded-full border border-orange-200/80 bg-stone-50/70 py-1.5 pl-10 pr-12 text-xs font-medium text-zinc-800 placeholder:text-zinc-400 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 transition-all"
-          />
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            <kbd className="hidden sm:inline-block rounded border border-orange-200/70 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side: Credits, Quick Action, Notifications, Profile Avatar */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* Right Side: Credits & Profile Avatar */}
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Credits Badge */}
         <Link
           href="/dashboard/billing"
@@ -151,64 +117,6 @@ export function DashboardHeader({
           <span className="text-zinc-900 font-extrabold">{creditsRemaining}</span>
           <span className="hidden sm:inline text-zinc-500 font-medium">Credits</span>
         </Link>
-
-        {/* Quick Transformation Action Button */}
-        <Link
-          href="/dashboard/skin-face"
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 hover:shadow-orange-500/40 transition-all duration-200"
-        >
-          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-          <span>New Transformation</span>
-        </Link>
-
-        {/* Notifications Dropdown */}
-        <div className="relative" ref={notifRef}>
-          <button
-            type="button"
-            onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-orange-100 bg-white text-zinc-600 hover:border-orange-200 hover:bg-orange-50 hover:text-[#FF5500] transition cursor-pointer"
-            aria-label="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#FF5500] ring-2 ring-white" />
-          </button>
-
-          {/* Notifications Flyout */}
-          {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-orange-100 bg-white p-4 shadow-xl ring-1 ring-black/5 z-50">
-              <div className="flex items-center justify-between border-b border-orange-100 pb-2.5">
-                <span className="text-xs font-bold text-zinc-900">Notifications</span>
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">
-                  2 New
-                </span>
-              </div>
-              <div className="mt-3 space-y-2.5">
-                <div className="flex items-start gap-2.5 rounded-xl bg-orange-50/60 p-2.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500 text-white">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-zinc-900">Welcome to BeautyAura Studio!</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5">
-                      Explore our 5 new AI beauty and fashion engines.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5 rounded-xl bg-stone-50 p-2.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white">
-                    <Zap className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-zinc-900">Credits Refreshed</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5">
-                      You have 5 complimentary free transformations available.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* User Profile Avatar on Right Side */}
         <div className="relative" ref={menuRef}>

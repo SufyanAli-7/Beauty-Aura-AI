@@ -334,13 +334,6 @@ export default function DashboardPage() {
                   <Plus className="h-4 w-4 stroke-[2.5]" />
                   <span>Create First Transformation</span>
                 </Link>
-
-                <Link
-                  href="/dashboard/templates"
-                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-700 hover:bg-orange-50 hover:text-[#FF5500] hover:border-orange-300 transition cursor-pointer"
-                >
-                  <span>Browse Templates</span>
-                </Link>
               </div>
             </div>
           </div>

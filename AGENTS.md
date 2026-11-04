@@ -85,6 +85,28 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - UI Cleanup: Sidebar Badges, Templates Page, and Header Elements Removal
+- **Sidebar Badges Removal (`components/dashboard/dashboard-sidebar.tsx`):**
+  - Removed all status badges (`POPULAR`, `HD`, `TRENDING`, `NEW`) from the AI Tools navigation list (`AI Skin, Face & Body`, `Beauty`, `Fashion`, `AI Extras`).
+  - Set all badge fields in `aiToolItems` to `null` for a minimal, clean sidebar presentation.
+- **Templates Page Removal:**
+  - Removed `Templates` link from the sidebar (`secondaryItems` in `components/dashboard/dashboard-sidebar.tsx`).
+  - Removed `app/dashboard/templates/` directory completely.
+  - Removed `Browse Templates` button from the dashboard empty state (`app/dashboard/page.tsx`).
+  - Removed `Style Templates` route check from `dashboard-header.tsx`.
+- **Dashboard Header Cleanup (`components/dashboard/dashboard-header.tsx`):**
+  - Removed the central search input bar (`Search AI tools, styles, looks... ⌘K`).
+  - Removed the notification bell button and notification flyout.
+  - Removed the `+ New Transformation` button from the header.
+  - Retained the Credits pill (`⚡ Credits`) and user profile avatar dropdown.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 21 remaining routes in Turbopack.
+  - Evaluated DOM in Chrome DevTools MCP verifying:
+    - Sidebar tools have zero badges.
+    - Templates link is not present anywhere in the DOM.
+    - Header search, notification bell, and New Transformation button are completely removed.
+
 ### [2026-11-04] - AI Skin & Face & Body Studio: Full Design & Layout Synchronization with Beauty AI Studio
 - **Source Image Card Synchronization (`app/dashboard/skin-face/page.tsx`):**
   - **Upload Photo Tab First by Default**: Set `sourceTab` to `"upload"` by default so the upload dropzone is immediately visible on first load.
