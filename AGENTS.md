@@ -79,6 +79,30 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Single-Line Generate Button & World-Class AI Fitting Studio Loader
+- **Generate CTA Button Single-Line Text Fix (`app/dashboard/fashion/page.tsx` & `app/dashboard/beauty/page.tsx`):**
+  - Resolved text wrapping bug where long stage descriptions (`"Synthesizing body posture & garment physics..."`) broke into two lines.
+  - Added strict `whitespace-nowrap overflow-hidden` classes on the primary CTA button.
+  - Set punchy, concise single-line action copy during generation:
+    - Fashion: `Generating Fitting...` (with rotating `RefreshCw` icon).
+    - Beauty: `Generating Transformation...` (with rotating `RefreshCw` icon).
+    - Idle: `Generate Fitting (5 Credits)` / `Generate Transformation (5 Credits)` cleanly fitting on a single unbroken line across all viewports (320px mobile to ultra-wide desktop).
+- **World-Class AI Studio Loader in Live Studio Canvas:**
+  - Upgraded the plain bouncing shirt loader to a multi-stage studio generation experience:
+    - **Dynamic Active Tool Icon**: Automatically renders the active tool's icon (`Shirt` for Clothes, `ShoppingBag` for Bag, `Footprints` for Shoes, `Crown` for Hat, `Wand2` for Beauty) inside a warm orange gradient squircle with pulsing halo and rotating orbital dashed rings.
+    - **Live Progress Percentage Counter**: Smooth real-time numerical counter advancing progressively from 12% to 96% and 100% on completion.
+    - **Fluid Shimmer Progress Bar**: Rounded progress bar with a glowing leading gradient edge.
+    - **4-Stage Visual Pipeline Milestones**: Real-time checkpoints showing completion badges and active indicators for:
+      1. *Silhouette Detection / Facial Landmark Map*
+      2. *3D Fit Simulation / Cosmetic Synthesis*
+      3. *Shadow & Physics / Texture & Skin Blend*
+      4. *4K UHD Export*
+    - **Glassmorphic Studio Metadata**: Badges for "AI Neural Studio Engine Active" and "Deducting 5 Credits • Lossless 4K Spec • Saved to Cloud".
+- **Verification:**
+  - Tested live generation in Chrome DevTools MCP on both desktop (1440x900) and mobile (375x812).
+  - Confirmed button height is exactly locked to 1 line (`44px` on mobile, `48px` on desktop) with zero text wrapping.
+  - Production build compiled with zero errors across all 19 routes (`npm run build`).
+
 ### [2026-11-03] - Custom Dropdown Styling & Mobile View Live Studio Canvas Ordering (Beauty & Fashion)
 - **Custom Dropdown Component Implementation (`app/dashboard/fashion/page.tsx`):**
   - Replaced native OS `<select>` elements in Fashion Style (Bag Try-On) and Aesthetic Style (Hat Try-On) with custom styled `CustomDropdown` component.
