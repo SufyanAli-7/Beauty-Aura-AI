@@ -656,25 +656,22 @@ export default function SkinFaceStudioPage() {
                     </div>
 
                     {/* Tool Information */}
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="truncate text-xs font-black text-zinc-900">
-                          {tool.title}
-                        </span>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div>
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0",
+                            "inline-block rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider mb-1",
                             isActive
-                              ? "bg-[#FF5500] text-white"
+                              ? "bg-[#FF5500] text-white shadow-2xs"
                               : "bg-orange-100 text-orange-700"
                           )}
                         >
                           {tool.badge}
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-500 truncate font-medium">
-                        {tool.tagline}
-                      </p>
+                      <span className="text-xs font-black text-zinc-900 leading-snug">
+                        {tool.title}
+                      </span>
                     </div>
 
                     {/* Active Check Indicator */}

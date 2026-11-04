@@ -714,25 +714,22 @@ export default function ExtrasStudioPage() {
                       />
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-zinc-900 truncate">
-                          {tool.title}
-                        </span>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div>
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide",
+                            "inline-block rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide mb-1",
                             isActive
-                              ? "bg-[#FF5500] text-white"
+                              ? "bg-[#FF5500] text-white shadow-2xs"
                               : "bg-orange-100/90 text-orange-800"
                           )}
                         >
                           {tool.badge}
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5">
-                        {tool.tagline}
-                      </p>
+                      <span className="text-xs font-black text-zinc-900 leading-snug">
+                        {tool.title}
+                      </span>
                     </div>
 
                     {isActive && (

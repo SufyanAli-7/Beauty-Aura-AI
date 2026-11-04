@@ -85,6 +85,35 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Standardize Tool Cards Across All Studios: Badge on Top, Title on 2nd Line, Descriptions Removed
+- **All 4 Remaining AI Studio Pages Synchronized:**
+  - **Fashion Studio (`app/dashboard/fashion/page.tsx`):**
+    - Stacked badge pill (`FLAGSHIP`, `LUXURY`, `PRECISION FIT`, `HEADWEAR`) directly above tool title.
+    - Full width tool title on second line without truncation; removed subtitle descriptions.
+  - **Hair & Beard Studio (`app/dashboard/hair-beard/page.tsx`):**
+    - Stacked badge pill (`TRENDING COLOR`, `HAIR TRANSFORMATION`, `TRICHOLOGY AI`, `MASCULINE GROOMING`) directly above tool title.
+    - Removed subtitle descriptions across all 4 hair/beard tools.
+  - **Skin, Face & Body Studio (`app/dashboard/skin-face/page.tsx`):**
+    - Stacked badge pill (`SCULPT 4K`, `GENERATIVE`, `TIME TRAVEL`, `3D CONTOUR`, `PHOTOMETRIC`, `DERMATOLOGY 4K`) directly above tool title.
+    - Removed subtitle descriptions across all 6 tools.
+  - **AI Extras Studio (`app/dashboard/extras/page.tsx`):**
+    - Stacked badge pill (`PRO INPAINT`, `CUTOUT HD`, `RESTORATION`, `OUTPAINT AI`, `CORPORATE 4K`) directly above tool title.
+    - Removed subtitle descriptions across all 5 tools.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack with zero errors.
+  - Chrome DevTools MCP: Evaluated DOM across Fashion, Skin & Face, and Extras studios confirming clean vertical stacking and zero unwanted ellipsis.
+
+### [2026-11-04] - Beauty AI Studio: Reorder Tool Badges Above Titles & Remove Descriptions
+- **Choose Beauty AI Tool Layout (`app/dashboard/beauty/page.tsx`):**
+  - Updated tool cards to place the badge pill (e.g. `VIRAL TREND`, `POPULAR`, `HD OPTICS`) directly on top of the tool title.
+  - Placed tool name on the second line with full width, eliminating unwanted text truncation (e.g. `AI Makeup Virtual Try-On`, `AI Eye Color Virtual Try-On`).
+  - Removed all tool descriptions/taglines across the 3 tool cards for a cleaner, unified presentation.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
+  - Chrome DevTools MCP: Evaluated DOM and captured screenshot confirming exact badge + title vertical stacking and description removal.
+
 ### [2026-11-04] - My Projects Page: Interactive High-Res Preview Modal on Card Click
 - **Transformation Preview Modal (`app/dashboard/projects/page.tsx`):**
   - Added full interactive preview modal when clicking on any transformation card in the project library.
