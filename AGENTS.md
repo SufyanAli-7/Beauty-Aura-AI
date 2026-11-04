@@ -71,15 +71,96 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
   - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, Hair Frizziness Detection, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
   - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
-  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty & Fashion MCP tools with automated polling, S3 resolution, and detection analysis data extraction.
+  - `app/api/extras/generate/route.ts`: YouCam Creators MCP generation route supporting Object Removal Pro, Background Removal, Photo Colorize, Image Extender, and Headshot Generator with automated InSForge storage caching and 5-credit deduction.
+  - `lib/headshot-templates.ts`: 69 official YouCam Headshot Generator templates with categories (Suit, Shirt, Casual, Medical Attire, Blouse) and live CDN thumbnails.
+  - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty, Fashion, and Creators MCP tools with automated polling, S3 resolution, and detection analysis data extraction.
   - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 4 YouCam MCP tools, live 4K viewport, Before/After compare split slider, trichology diagnostic dashboard, and credit management.
+  - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 5 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, 69 headshots, and synchronized studio layout.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-04] - AI Extras Studio: Tool Verification, Dynamic Extender Bounds & Robust FastMCP Polling
+- **AI Photo Extender Dimension Calculation Fix (`app/api/extras/generate/route.ts` & `lib/image-size.ts`):**
+  - Resolved root cause of `YcoApiException - AI Image Extender Polling failed: invalid_parameter`:
+    - Previously, `input_width: 720` and `input_height: 720` were hardcoded. When run on `extender-landscape.jpg` (which has dimensions `900x600`), `crop_input_height: 720` exceeded the image height of `600`, causing YouCam to fail.
+    - Created `lib/image-size.ts` with zero-dependency binary header dimension extraction for JPEG, PNG, and WebP buffers.
+    - Updated `app/api/extras/generate/route.ts` to dynamically calculate `output_width`, `output_height`, `input_x`, `input_y`, `input_width = sw`, `input_height = sh`, `crop_input_width = sw`, `crop_input_height = sh` based on true aspect ratios and actual source dimensions.
+- **YouCam FastMCP Client Robust Polling Upgrade (`lib/youcam-client.ts`):**
+  - Resolved `YouCam did not return an image URL or analysis data. Status: success. Response: ...`:
+    - Fixed status default from `"success"` to `"running"`, so tasks returning `"Task Created"` or SSE notifications trigger downstream polling rather than exiting early with missing URL errors.
+    - Added fallback task ID extraction from `parsed.params?.data?.extra?.request_id` and `parsed.params?.data?.task_id` in addition to `extra.task_id`.
+    - Upgraded `pollTaskStatus` to invoke `Get-Running-Task-Status` with `polling: true` on the server-side, enabling full 120-150s coverage for long-running diffusion models like `AI-Headshot-Generator`.
+    - Added comprehensive output URL resolution supporting `results.url`, `results.output[0].url`, `results[0].url`, and raw analysis data payloads.
+- **Automated Verification Across All 5 AI Extras Studio Tools:**
+  1. *AI Photo Background Remover (`AI-Photo-Background-Removal`)*: `200 OK`, `16.2s`, generates alpha transparent PNG, caches to InSForge Storage, deducts 5 credits.
+  2. *AI Photo Colorize (`AI-Photo-Colorize`)*: `200 OK`, `18.7s`, generates 4 distinct colorized variations, caches to InSForge Storage, deducts 5 credits.
+  3. *AI Photo Extender (`AI-Image-Extender`)*: `200 OK`, `17.1s`, expands borders dynamically adhering to 16:9 aspect ratio, caches to InSForge Storage, deducts 5 credits.
+  4. *AI Object Remover (`AI-Object-Removal-Pro`)*: `200 OK`, `22.2s`, inpainting with brush mask completes cleanly, caches to InSForge Storage, deducts 5 credits.
+  5. *AI Headshot Generator (`AI-Headshot-Generator`)*: `200 OK`, full diffusion generation completes with `male_dark_gray_suit` template and Lucas portrait.
+- **Build Verification:**
+  - Production build compiled with zero errors across all 21 routes (`npm run build`).
+
+### [2026-11-04] - AI Extras Studio: Light Warm Studio Loader Theme Synchronization (Matching Beauty & Fashion)
+- **Light Studio Loader Synchronization (`app/dashboard/extras/page.tsx`):**
+  - Replaced the dark black backdrop (`bg-stone-950/85`) and dark viewport canvas (`bg-stone-900`) with the clean, light, warm studio theme from Beauty and Fashion Studios:
+    - Viewport Canvas Frame: `bg-gradient-to-b from-stone-50 via-white to-orange-50/20 border border-orange-100`.
+    - Loader Backdrop: `bg-white/95 backdrop-blur-md` with ambient warm orange blur aura (`bg-gradient-to-tr from-orange-400/20 via-[#FF5500]/15 to-amber-300/20 blur-3xl`).
+    - Top Engine Badge: Light orange pill `bg-orange-50/80 border border-orange-200/80 text-[#FF5500]` with pulsing beacon dot (`AI Neural Extras Engine Active`).
+    - Icon Squircle: 3D orange gradient with orbital dashed and glowing rings, ambient halo, active tool icon (`Eraser`, `Scissors`, `Palette`, `Maximize2`, `Crown`), and spinning gold sparkle badge (`bg-zinc-950 text-amber-300 ring-4 ring-white`).
+    - Typography: High-contrast `text-zinc-900` heading and `text-zinc-500` detail text.
+    - Progress Bar: Light track `bg-stone-100 border border-orange-200/60 shadow-inner` with gradient bar (`from-[#FF5500] via-[#FF7A1A] to-[#FFA033]`) and real-time numerical percentage.
+    - 4 Pipeline Milestones: Light themed step cards with orange badges (`Step 1: Segmentation & Mask`, `Step 2: Diffusion Synthesis`, `Step 3: Lighting & Texture Blend`, `Step 4: 4K UHD Export`).
+    - Disclaimer Footer: Clean muted metadata `Deducting 5 Credits • Lossless 4K Spec • Saved to Cloud`.
+- **Verification:**
+  - Tested live generation in Chrome DevTools MCP, verified DOM computed styles and visually confirmed light warm theme.
+  - Production build compiled with zero errors across all 21 routes (`npm run build`).
+
+### [2026-11-04] - AI Extras Studio Implementation (5 Tools, YouCam Creators MCP, 69 Headshots, Object Brush, BG Cutouts, Colorize & Extender)
+- **AI Extras Studio Implemented (`app/dashboard/extras/page.tsx` & `app/api/extras/generate/route.ts`):**
+  - Integrated all 5 requested AI tools powered by YouCam Creators MCP (`https://mcp-api-01.makeupar.com/mcp/creators`):
+    1. **AI Object Remover (`AI-Object-Removal-Pro`):**
+       - Interactive HTML5 canvas brush overlay with adjustable brush radius (10px to 64px) rendered in high-visibility luminous orange (`rgba(255, 85, 0, 0.75)`).
+       - Generates offscreen black/white mask (`#000000` base, `#ffffff` painted strokes) and auto-uploads to InSForge storage.
+       - Clear Brush Mask button and "Erase Cast Shadows" toggle.
+    2. **AI Photo Background Remover (`AI-Photo-Background-Removal`):**
+       - Instant subject cutout with transparent alpha PNG export.
+       - Studio Backdrop selector: Transparent PNG (checkerboard grid), Pure Studio White (`#FFFFFF`), Executive Slate (`#F8FAFC`), Warm Amber Studio (`linear-gradient(#FFF7ED, #FED7AA)`), Editorial Noir (`#0F172A`), and Soft Bokeh Lens Blur.
+       - Edge feathering toggle: "Clean Crisp" vs "Soft Feather".
+    3. **AI Photo Colorize (`AI-Photo-Colorize`):**
+       - Restores monochrome vintage photographs into vivid 4K color palettes.
+       - 4 color profiles: Natural Warm, Rich Vivid, Kodachrome 1960, and Modern Daylight.
+       - Pigment Saturation slider (60% to 140%) and Restore/De-Scratch filter toggle.
+       - Multi-variation switcher: If YouCam returns all 4 color variations, interactive variation chips let users switch results dynamically in the canvas.
+    4. **AI Photo Extender (`AI-Image-Extender`):**
+       - Generative outpainting & boundary expansion.
+       - Aspect Ratio presets: 16:9 Cinema Landscape (YouTube/Desktop), 9:16 Mobile Story/Reels (Vertical), 1:1 Square Feed, 4:5 Portrait Feed, and 1.5x Wide Panoramic with interactive visual ratio badges.
+    5. **AI Headshot Generator (`AI-Headshot-Generator`):**
+       - Connected to 69 official YouCam Headshot templates (`lib/headshot-templates.ts`) retrieved via `AI-Headshot-Generator-Templates` with CDN thumbnails.
+       - Category filter pills: All, Suit, Shirt, Casual, Medical Attire, Blouse.
+- **Resource Disclosures:**
+  - **Explicit Resource Disclosure**: Checked YouCam Creators MCP resources (`resources/list`) and confirmed that YouCam only provides templates for `AI-Headshot-Generator-Templates` (69 templates). YouCam does **NOT** provide pre-hosted sample images for Object Remover, Background Remover, Colorize, or Extender.
+  - Connected high-resolution curated project sample assets in `public/extras-samples/` (`object-remove-scene.jpg`, `bg-remove-product.jpg`, `colorize-bw-01.jpg`, `extender-landscape.jpg`, `headshot-source-01.jpg`, `headshot-source-02.jpg`) with automatic tool-specific filtering.
+- **Backend & Storage Architecture (`app/api/extras/generate/route.ts`):**
+  - Resolves local images, base64 uploads, and drawn masks to InSForge Storage (`generated-images` bucket).
+  - Configured Next.js remote patterns in `next.config.ts` for `cdn.perfectcorp.com`, `**.amazonaws.com`, and `**.insforge.app`.
+  - Automatically downloads generated outputs from AWS S3 and caches permanently in InSForge Storage (`transformations/{userId}/{timestamp}-extras-{toolId}.jpg`/`.png`).
+  - Atomic deduction of 5 credits per generation in `public.users`.
+  - Logs full transformation metadata to `public.transformations`.
+- **UI/UX Consistency:**
+  - Synchronized header credit pill (`5 Credits / render` + `Balance: X`) and rose Error Alert Banner with refill link.
+  - Light soft pastel scrollbar matching Beauty and Fashion Studios: `[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]`.
+  - Desktop left column height locked to Live Studio Canvas via `ResizeObserver`; unconstrained on mobile.
+  - Multi-stage Studio Loader with dynamic active tool icon, pulsing glow, real-time percentage counter, and 4 visual pipeline checkpoints.
+  - Before/After interactive comparison split slider with touch/mouse dragging.
+  - Strictly single-line CTA button (`whitespace-nowrap overflow-hidden`).
+- **Verification:**
+  - Production build compiled with zero errors across all 21 routes (`npm run build`).
+  - Live API testing confirmed: Background Removal generated `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage, and rendered with Before/After slider.
 
 ### [2026-11-04] - Hair & Beard Studio: Header Credit Pill Synchronization (Matching Beauty Studio)
 - **Top Header Credit Pill & Balance Synchronization (`app/dashboard/hair-beard/page.tsx`):**

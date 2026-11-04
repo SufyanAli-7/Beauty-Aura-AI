@@ -5,6 +5,7 @@
 
 const YOUCAM_BEAUTY_URL = "https://mcp-api-01.makeupar.com/mcp/beauty";
 const YOUCAM_FASHION_URL = "https://mcp-api-01.makeupar.com/mcp/fashion";
+const YOUCAM_CREATORS_URL = "https://mcp-api-01.makeupar.com/mcp/creators";
 const YOUCAM_API_KEY =
   process.env.NEXT_YOUCAM_API_KEY ||
   "sk-XFFGN1JU3BgzDBhQ6tVn-9A0Qy5FHbscuZoTlo_UHVeyeH3cMe8dJi2qFj5PKBsp";
@@ -21,16 +22,18 @@ export interface YouCamCallResult {
 
 /**
  * Initializes an MCP session and calls a YouCam MCP tool.
- * Supports both "beauty" and "fashion" servers.
+ * Supports "beauty", "fashion", and "creators" servers.
  */
 export async function callYouCamMCP(
   toolName: string,
   args: Record<string, any>,
   timeoutMs = 60000,
-  serverType: "beauty" | "fashion" | string = "beauty"
+  serverType: "beauty" | "fashion" | "creators" | string = "beauty"
 ): Promise<YouCamCallResult> {
   const targetUrl =
-    serverType === "fashion"
+    serverType === "creators"
+      ? YOUCAM_CREATORS_URL
+      : serverType === "fashion"
       ? YOUCAM_FASHION_URL
       : serverType.startsWith("http")
       ? serverType
@@ -104,16 +107,24 @@ export async function callYouCamMCP(
     const lines = responseText.split("\n");
     let finalResultData: any = null;
     let fallbackTaskId: string | null = null;
-    let lastStatus: string | null = null;
+    let lastErrorMessage: string | null = null;
 
     for (const line of lines) {
       if (line.startsWith("data: ")) {
         try {
           const parsed = JSON.parse(line.slice(6));
 
-          // Check notifications for task_id or status
+          // Check notifications for task_id or request_id or status or error
           if (parsed.params?.data?.extra?.task_id) {
             fallbackTaskId = parsed.params.data.extra.task_id;
+          } else if (parsed.params?.data?.task_id) {
+            fallbackTaskId = parsed.params.data.task_id;
+          } else if (parsed.params?.data?.extra?.request_id && !fallbackTaskId) {
+            fallbackTaskId = parsed.params.data.extra.request_id;
+          }
+
+          if (parsed.params?.level === "error" && parsed.params?.data?.msg) {
+            lastErrorMessage = parsed.params.data.msg;
           }
 
           // Check final result
@@ -130,16 +141,29 @@ export async function callYouCamMCP(
     let extractedUrl: string | undefined;
     let analysisData: any = undefined;
     let taskId: string | undefined = fallbackTaskId || undefined;
-    let status = "success";
+    let status = "running";
+    let detectedError: string | null = lastErrorMessage;
 
     if (finalResultData) {
       // FastMCP structuredContent
       const structuredResult = finalResultData.structuredContent?.result;
+      if (structuredResult?.error_message) {
+        detectedError = structuredResult.error_message;
+      }
       if (structuredResult?.data?.results?.url) {
         extractedUrl = structuredResult.data.results.url;
+        status = "success";
+      } else if (structuredResult?.data?.results?.output?.[0]?.url) {
+        extractedUrl = structuredResult.data.results.output[0].url;
+        status = "success";
+      } else if (Array.isArray(structuredResult?.data?.results) && structuredResult.data.results[0]?.url) {
+        extractedUrl = structuredResult.data.results[0].url;
+        status = "success";
       }
+
       if (structuredResult?.data?.results) {
         analysisData = structuredResult.data.results;
+        status = "success";
       }
       if (structuredResult?.data?.task_id) {
         taskId = structuredResult.data.task_id;
@@ -152,11 +176,23 @@ export async function callYouCamMCP(
       if (finalResultData.content?.[0]?.text) {
         try {
           const innerJson = JSON.parse(finalResultData.content[0].text);
+          if (innerJson?.error_message) {
+            detectedError = innerJson.error_message;
+          }
           if (innerJson.data?.results?.url) {
             extractedUrl = innerJson.data.results.url;
+            status = "success";
+          } else if (innerJson.data?.results?.output?.[0]?.url) {
+            extractedUrl = innerJson.data.results.output[0].url;
+            status = "success";
+          } else if (Array.isArray(innerJson.data?.results) && innerJson.data.results[0]?.url) {
+            extractedUrl = innerJson.data.results[0].url;
+            status = "success";
           }
+
           if (innerJson.data?.results) {
             analysisData = innerJson.data.results;
+            status = "success";
           }
           if (innerJson.data?.task_id) {
             taskId = innerJson.data.task_id;
@@ -170,10 +206,22 @@ export async function callYouCamMCP(
       }
     }
 
+    if (detectedError && !extractedUrl && !analysisData) {
+      let friendlyError = detectedError;
+      if (detectedError.includes("error_no_shoulders")) {
+        friendlyError = "Please choose or upload a portrait where the neck and shoulders are clearly visible.";
+      } else if (detectedError.includes("invalid_parameter")) {
+        friendlyError = "Image dimensions or aspect ratio parameter out of bounds. Please try another preset.";
+      } else if (detectedError.includes("error_no_face")) {
+        friendlyError = "No face detected in the portrait. Please upload a clear photo looking towards the camera.";
+      }
+      throw new Error(friendlyError);
+    }
+
     // If task is still processing or needs manual polling
-    if (!extractedUrl && !analysisData && taskId && (status === "running" || status === "processing")) {
-      console.log(`[YouCam MCP] Task ${taskId} is still running. Initiating polling on ${targetUrl}...`);
-      const polled = await pollTaskStatus(taskId, toolName, sessionId, 15, 3000, targetUrl);
+    if (!extractedUrl && !analysisData && taskId && status !== "failed") {
+      console.log(`[YouCam MCP] Task ${taskId} is still in progress (${status}). Initiating polling on ${targetUrl}...`);
+      const polled = await pollTaskStatus(taskId, toolName, sessionId, 4, 2000, targetUrl);
       if (polled.imageUrl) {
         extractedUrl = polled.imageUrl;
         status = "success";
@@ -219,12 +267,14 @@ async function pollTaskStatus(
   taskId: string,
   taskType: string,
   sessionId?: string | null,
-  maxAttempts = 15,
-  intervalMs = 3000,
+  maxAttempts = 4,
+  intervalMs = 2000,
   targetUrl = YOUCAM_BEAUTY_URL
 ): Promise<{ imageUrl?: string; data?: any; status?: string }> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    if (attempt > 1) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
     try {
       const toolHeaders: Record<string, string> = {
         Authorization: `Bearer ${YOUCAM_API_KEY}`,
@@ -232,6 +282,8 @@ async function pollTaskStatus(
         Accept: "application/json, text/event-stream",
       };
       if (sessionId) toolHeaders["mcp-session-id"] = sessionId;
+
+      console.log(`[YouCam Polling] Attempt ${attempt}/${maxAttempts} for task ${taskId} (${taskType})...`);
 
       const res = await fetch(targetUrl, {
         method: "POST",
@@ -245,7 +297,7 @@ async function pollTaskStatus(
             arguments: {
               task_id: taskId,
               task_type: taskType,
-              polling: false,
+              polling: true,
             },
           },
         }),
@@ -265,6 +317,12 @@ async function pollTaskStatus(
               (result.content?.[0]?.text ? JSON.parse(result.content[0].text) : null);
             if (raw?.data?.results?.url) {
               return { imageUrl: raw.data.results.url, status: "success" };
+            }
+            if (raw?.data?.results?.output?.[0]?.url) {
+              return { imageUrl: raw.data.results.output[0].url, status: "success" };
+            }
+            if (Array.isArray(raw?.data?.results) && raw.data.results[0]?.url) {
+              return { imageUrl: raw.data.results[0].url, status: "success" };
             }
             if (raw?.data?.results) {
               return { data: raw.data.results, status: "success" };

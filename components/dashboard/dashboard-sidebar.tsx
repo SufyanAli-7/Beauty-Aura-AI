@@ -73,7 +73,7 @@ export const aiToolItems = [
     href: "/dashboard/extras",
     icon: Layers,
     badge: "New",
-    description: "Object erase, enhance & relighting",
+    description: "Object erase, cutout, colorize & headshots",
   },
 ];
 
