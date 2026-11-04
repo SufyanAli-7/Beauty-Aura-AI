@@ -1292,10 +1292,10 @@ export default function BeautyStudioPage() {
         {/* =========================================================================
             RIGHT COLUMN: Generated Result / Studio Viewport
            ========================================================================= */}
-        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 flex flex-col space-y-4 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 space-y-4">
           <div
             ref={canvasCardRef}
-            className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 sm:p-5 shadow-lg flex flex-col justify-between min-h-[580px] sm:min-h-[660px]"
+            className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 shadow-lg space-y-4"
           >
             {/* Viewport Top Controls Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-100/80 pb-3.5">
@@ -1358,7 +1358,7 @@ export default function BeautyStudioPage() {
             </div>
 
             {/* Viewport Main Display Canvas */}
-            <div className="relative my-4 flex-1 flex items-center justify-center min-h-[360px] sm:min-h-[400px] rounded-2xl bg-gradient-to-b from-stone-50 to-orange-50/20 border border-orange-100 overflow-hidden">
+            <div className="relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/11] min-h-[360px] sm:min-h-[400px] w-full overflow-hidden rounded-2xl flex items-center justify-center transition-all border border-orange-100 bg-gradient-to-b from-stone-50 via-white to-orange-50/20">
               {/* CASE 1: Generating Loading State - Minimal & Clean */}
               {isGenerating && (
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm p-6 overflow-hidden">

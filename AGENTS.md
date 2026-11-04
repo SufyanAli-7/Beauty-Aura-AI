@@ -85,6 +85,22 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Harmonize Studio Canvas Dimensions Across All AI Studios to Match Extras
+- **Exact Height & Layout Synchronization Matching AI Extras (`extras/page.tsx`):**
+  - Updated `beauty/page.tsx`, `fashion/page.tsx`, `hair-beard/page.tsx`, and `skin-face/page.tsx`:
+    - Removed `min-h-[580px] sm:min-h-[660px]` and `flex flex-col justify-between` on the outer card (`canvasCardRef`), replacing with `p-4 shadow-lg space-y-4` matching AI Extras.
+    - Replaced `flex-1` stretching with proportional aspect ratio and height matching AI Extras: `relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/11] min-h-[360px] sm:min-h-[400px] w-full`.
+    - Left options column `maxHeight` automatically synchronized to the newly reduced card height (~530px), eliminating unwanted dead vertical whitespace.
+- **Verification Across All 5 Studios via Chrome DevTools DOM Inspection:**
+  - `Beauty Studio`: Canvas height = 400px, Card = 530px
+  - `Fashion Studio`: Canvas height = 400px, Card = 530px
+  - `Hair & Beard`: Canvas height = 400px, Card = 530px
+  - `Skin, Face & Body`: Canvas height = 400px, Card = 530px
+  - `AI Extras`: Canvas height = 400px, Card = 517px
+- **Build Verification:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled successfully across all 21 routes in Turbopack in 8.0s with 0 errors.
+
 ### [2026-11-04] - Studio Canvas Overhaul: Height Reduction, Clean Minimal Loader & Redundant Button/Text Removal
 - **Canvas Height Optimization Across Studios:**
   - Reduced viewport canvas min-height from `min-h-[460px] sm:min-h-[520px]` to a sleek, compact `min-h-[360px] sm:min-h-[400px]` across Beauty, Fashion, Hair & Beard, and Skin & Face studios.
