@@ -85,6 +85,67 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-04] - Fix Time Formatter Calculation Bug: "1w ago" on Recent Today Renders
+- **Root Cause Analysis (`app/dashboard/projects/page.tsx` & `app/dashboard/page.tsx`):**
+  - In `formatTimeAgo`, `diffInHours` was computed as `Math.floor(diffInSeconds / 60)` instead of `Math.floor(diffInSeconds / 3600)`.
+  - Because `diffInSeconds` was divided by 60, `diffInHours` represented the elapsed minutes instead of hours.
+  - When ~170 minutes (less than 3 hours) had elapsed on a transformation created today, `diffInHours` evaluated to 170.
+  - Subsequently `diffInDays = Math.floor(170 / 24) = 7`, and `diffInWeeks = Math.floor(7 / 7) = 1`, resulting in the incorrect display of `1w ago`.
+- **Fix:**
+  - Corrected `diffInHours` to `Math.floor(diffInSeconds / 3600)` (and `diffInDays` to `Math.floor(diffInSeconds / 86400)`).
+  - Verified with test cases across 30s (`Just now`), 5m (`5 min ago`), 56m (`56 min ago`), 2h (`2h ago`), 3h (`3h ago`), 1d (`1d ago`), 3d (`3d ago`), and 8d (`1w ago`).
+- **Verification:**
+  - Node test suite passed.
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+
+### [2026-11-04] - Card Time Badge: Standardized "5 min ago / 1d ago" Formatting
+- **Standardized Time Formatter (`app/dashboard/projects/page.tsx` & `app/dashboard/page.tsx`):**
+  - Updated `formatTimeAgo` across both the My Projects library and Dashboard Recent Transformations to display friendly elapsed time:
+    - `< 60s`: `Just now`
+    - Minutes: `X min ago` (e.g. `5 min ago`)
+    - Hours: `Xh ago` (e.g. `1h ago`, `3h ago`)
+    - Days: `Xd ago` (e.g. `1d ago`, `2d ago`)
+    - Weeks: `Xw ago`
+    - Months: `Xmo ago`
+  - Positioned inside frosted glass glassmorphic badge with clock icon (`bg-black/40 backdrop-blur-md border border-white/20`).
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack.
+
+### [2026-11-04] - My Projects Page: 16 Cards Pagination, 4K Badge Removal & Relative Timestamps
+- **16 Cards Pagination (`app/dashboard/projects/page.tsx`):**
+  - Configured `ITEMS_PER_PAGE = 16`.
+  - Added full responsive pagination controls (`Previous`, page numbers with dynamic ellipsis for large sets, `Next`).
+  - Added item counter (`Showing 1–16 of X transformations`).
+  - Added auto-scroll to top on page navigation and auto-reset to page 1 on filter tab changes.
+- **Removed "4K UHD" Badge (`app/dashboard/projects/page.tsx`):**
+  - Completely removed the static `4K UHD` badge from the top-right of the transformation thumbnail.
+- **Frosted Glass Relative Timestamp on Bottom-Right (`app/dashboard/projects/page.tsx`):**
+  - Added a frosted glass pill badge (`absolute bottom-2 right-2 bg-black/40 backdrop-blur-md border border-white/20`) with clock icon and relative creation time (e.g. `Just now`, `56 min ago`, `3h ago`, `2d ago`).
+- **Expanded Studio Filter Tabs (`app/dashboard/projects/page.tsx`):**
+  - Updated categories from legacy makeup-only to all 5 AI studios: All Items, Beauty Studio, Fashion Try-On, Hair & Beard, Skin & Face, AI Extras.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
+  - Chrome DevTools MCP: Evaluated DOM to confirm `has4KUHD: false` and studio tabs rendered accurately.
+
+### [2026-11-04] - Recent Transformations: Limit Display to 4 Cards
+- **Card Limit (`app/dashboard/page.tsx`):**
+  - Updated `loadRecent()` to store `data.slice(0, 4)` in `transformations` state while keeping `totalProjectsCount` at `data.length`.
+  - Added `.slice(0, 4)` in the JSX grid map to ensure only the 4 most recent transformation cards are displayed on the dashboard in a single clean row (`lg:grid-cols-4`).
+  - Total count across the user's workspace remains accurate on the "My Projects" stat card and "See All (X)" link.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+
+### [2026-11-04] - Recent Transformations: Clickable Cards Navigating to Projects Page
+- **Clickable Cards (`app/dashboard/page.tsx`):**
+  - Converted the Recent Transformations cards from non-interactive `<div>` containers into Next.js `<Link href="/dashboard/projects">` elements.
+  - Added interactive affordances: subtle image zoom (`group-hover:scale-105`), title hover color change (`group-hover:text-[#FF5500]`), and an animated sliding `ArrowRight` icon.
+  - Clicking anywhere on any transformation card now smoothly navigates directly to `/dashboard/projects`.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 6.0s with zero errors.
+
 ### [2026-11-04] - Recent Transformations: "See All" Projects Link & Frosted Glass Timestamp Badges
 - **"See All" Header Action Button (`app/dashboard/page.tsx`):**
   - Replaced the static text counter (`{displayProjectCount} Total Transformations`) with an interactive, clickable **"See All ({displayProjectCount})"** link button (`href="/dashboard/projects"`).

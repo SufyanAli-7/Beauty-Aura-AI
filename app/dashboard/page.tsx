@@ -30,7 +30,7 @@ interface TransformationRecord {
   created_at: string;
 }
 
-// Compact relative time formatter for transformation cards (e.g. 56 min ago, 1d ago)
+// Relative time formatter (e.g. "Just now", "5 min ago", "1h ago", "1d ago")
 function formatTimeAgo(dateString: string): string {
   try {
     const date = new Date(dateString);
@@ -40,9 +40,9 @@ function formatTimeAgo(dateString: string): string {
     if (diffInSeconds < 60) return "Just now";
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
-    const diffInHours = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInSeconds / 3600);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInDays = Math.floor(diffInSeconds / 86400);
     if (diffInDays < 7) return `${diffInDays}d ago`;
     const diffInWeeks = Math.floor(diffInDays / 7);
     if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
         if (!error && Array.isArray(data)) {
           setTotalProjectsCount(data.length);
-          setTransformations(data.slice(0, 8) as TransformationRecord[]);
+          setTransformations(data.slice(0, 4) as TransformationRecord[]);
         }
       } catch (e) {
         console.warn("Failed to load transformations:", e);
@@ -372,19 +372,20 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          /* Real Transformations Grid */
+          /* Real Transformations Grid (Max 4 items) */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {transformations.map((t) => (
-              <div
+            {transformations.slice(0, 4).map((t) => (
+              <Link
                 key={t.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-md transition"
+                href="/dashboard/projects"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-md transition cursor-pointer"
               >
                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 mb-2.5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={t.result_image_url}
                     alt={t.tool_name}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
                   />
                   <div className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-800">
                     {t.tool_name}
@@ -396,15 +397,18 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-zinc-900 truncate">
-                    {t.look_name || t.tool_name}
-                  </h4>
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-bold text-zinc-900 truncate group-hover:text-[#FF5500] transition-colors">
+                      {t.look_name || t.tool_name}
+                    </h4>
+                    <ArrowRight className="h-3 w-3 text-zinc-300 opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[#FF5500] shrink-0" />
+                  </div>
                   <div className="flex items-center justify-between text-[10px] text-zinc-400">
                     <span>{new Date(t.created_at).toLocaleDateString()}</span>
                     <span>-5 Credits</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
