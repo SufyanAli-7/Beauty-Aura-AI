@@ -364,6 +364,7 @@ export async function POST(req: NextRequest) {
     // 5. Handle Image Results vs Analysis Diagnostic Results
     let finalImageUrl = youcamResult.imageUrl;
     let finalUrls: string[] = [];
+    let mainStorageKey: string | null = null;
 
     // For tools that produce rendered images (abs, smile, aging, body_reshape)
     if (youcamResult.imageUrl) {
@@ -371,12 +372,11 @@ export async function POST(req: NextRequest) {
         const imageRes = await fetch(youcamResult.imageUrl);
         if (imageRes.ok) {
           const imageArrayBuffer = await imageRes.arrayBuffer();
-          const ext = toolId === "aging" ? "jpg" : "jpg";
-          const storageKey = `transformations/${targetUserId}/${Date.now()}-skin-face-${toolId}.${ext}`;
+          mainStorageKey = `transformations/${targetUserId}/${Date.now()}-skin-face-${toolId}.jpg`;
           const imageBlob = new Blob([imageArrayBuffer], { type: "image/jpeg" });
 
-          await admin.storage.from(BUCKET_NAME).upload(storageKey, imageBlob);
-          finalImageUrl = getPublicStorageUrl(storageKey);
+          await admin.storage.from(BUCKET_NAME).upload(mainStorageKey, imageBlob);
+          finalImageUrl = getPublicStorageUrl(mainStorageKey);
           finalUrls = [finalImageUrl];
         }
       } catch (err) {
@@ -421,23 +421,48 @@ export async function POST(req: NextRequest) {
       .update({ credits: newCredits, updated_at: new Date().toISOString() })
       .eq("id", targetUserId);
 
+    // Compute descriptive look name
+    let lookName = `${toolName} Transformation`;
+    if (toolId === "abs") {
+      lookName = settings?.mode === "Vest-line" ? "Athletic Vest-Line Abs" : "Athletic Six-Pack Abs";
+    } else if (toolId === "smile") {
+      lookName = settings?.expressionType === "closed_mouth_smile" ? "Subtle Natural Smile" : "Radiant Open Smile";
+    } else if (toolId === "aging") {
+      lookName = "Time-Lapse Age Progression";
+    } else if (toolId === "body_reshape") {
+      lookName = "3D Proportional Body Contour";
+    }
+
     // 7. Log Transformation in InsForge Database
-    await admin.database.from("transformations").insert([
-      {
-        user_id: targetUserId,
-        tool_id: `skin-face-${toolId}`,
-        tool_name: toolName,
-        source_image_url: publicSourceUrl,
-        result_image_url: finalImageUrl,
-        settings: {
-          ...settings,
-          analysisData: youcamResult.data || null,
-          multiUrls: finalUrls,
+    const { data: transformation, error: dbErr } = await admin.database
+      .from("transformations")
+      .insert([
+        {
+          user_id: targetUserId,
+          tool_id: `skin-face-${toolId}`,
+          tool_name: toolName,
+          source_image_url: publicSourceUrl,
+          result_image_url: finalImageUrl,
+          storage_key: mainStorageKey,
+          look_name: lookName,
+          settings: {
+            ...settings,
+            toolId,
+            toolName,
+            analysisData: youcamResult?.data || null,
+            multiUrls: finalUrls,
+          },
+          task_id: youcamResult?.taskId || null,
+          status: "completed",
+          credits_deducted: REQUIRED_CREDITS,
         },
-        credits_cost: REQUIRED_CREDITS,
-        created_at: new Date().toISOString(),
-      },
-    ]);
+      ])
+      .select()
+      .maybeSingle();
+
+    if (dbErr) {
+      console.error("[SkinFace DB Insert Error]:", dbErr);
+    }
 
     return NextResponse.json({
       success: true,
@@ -447,6 +472,8 @@ export async function POST(req: NextRequest) {
       resultImageUrl: finalImageUrl,
       urls: finalUrls.length > 0 ? finalUrls : [finalImageUrl],
       analysisData: youcamResult.data || null,
+      transformation,
+      remainingCredits: newCredits,
       creditsRemaining: newCredits,
     });
   } catch (err: any) {

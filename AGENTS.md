@@ -85,6 +85,34 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Fix AI Skin, Face & Body Studio Transformations Not Showing in "My Projects"
+- **Root Cause Identified (`app/api/skin-face/generate/route.ts`):**
+  - In `app/api/skin-face/generate/route.ts`, the database insertion payload was attempting to write to a non-existent column `credits_cost: REQUIRED_CREDITS`.
+  - In the InsForge Postgres `public.transformations` table, the actual column name is `credits_deducted INTEGER NOT NULL`.
+  - Postgres immediately rejected the insert with HTTP 400 (`column "credits_cost" of relation "transformations" does not exist`).
+  - Because the error was unhandled during the insert promise, the API returned success to the client without persisting the transformation row into Postgres.
+  - As a result, `/dashboard/projects` and the "Skin & Face" project tab showed 0 items for all skin & face renders.
+- **Backend Fixes (`app/api/skin-face/generate/route.ts`):**
+  - Fixed database column mapping: updated `credits_cost` to `credits_deducted: REQUIRED_CREDITS`.
+  - Stored `storage_key: mainStorageKey` in the transformation record for permanent S3 reference.
+  - Added dynamic `look_name` generation for all 4 tools:
+    - AI Abs Filter: `"Athletic Six-Pack Abs"` or `"Athletic Vest-Line Abs"` based on mode.
+    - AI Smile: `"Radiant Open Smile"` or `"Subtle Natural Smile"` based on expression.
+    - AI Aging Simulation: `"Time-Lapse Age Progression"`.
+    - AI Body Reshape: `"3D Proportional Body Contour"`.
+  - Added `task_id: youcamResult?.taskId || null` and `status: "completed"`.
+  - Added error logging on `.insert(...)` failure.
+  - Returned full `transformation` object and `remainingCredits` in the API response JSON.
+- **Frontend Enhancements (`app/dashboard/skin-face/page.tsx`):**
+  - Destructured `setCredits` from `useAuth()` to immediately reflect the decremented balance in the UI upon generation.
+- **Verification:**
+  - Database schema & insert verified via REST PostgREST client: returned HTTP 201 Created with UUID id `54ab9361-48c5-4fbd-acd4-9730b8c8d369`.
+  - Live API endpoint test (`/api/skin-face/generate` with AI-Smile tool): returned HTTP 200, successfully generated transformation `9259532b-7867-4ddb-aaec-52b78c54e6e5`, look name `"Radiant Open Smile"`, and remaining credits.
+  - Verified user balance reset to 50 credits in InsForge database.
+  - Verified `transformations` table contains active records under both `skin-face-abs` and `skin-face-smile`.
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Next.js production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 9.5s with 0 errors.
+
 ### [2026-11-06] - Remove Fitzpatrick Skin Type Mapping & AI Clinical Skin Analysis
 - **Removed Dermatology Diagnostic Tools (`app/dashboard/skin-face/page.tsx`):**
   - Updated `SkinBodyToolId` type to `"abs" | "smile" | "aging" | "body_reshape"`.

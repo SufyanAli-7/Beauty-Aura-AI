@@ -125,7 +125,7 @@ const STUDIO_STAGES = [
 ];
 
 export default function SkinFaceStudioPage() {
-  const { credits, refreshCredits, user } = useAuth();
+  const { credits, setCredits, refreshCredits, user } = useAuth();
 
   // 1. Tool Selection State
   const [selectedTool, setSelectedTool] = useState<SkinBodyToolId>("abs");
@@ -407,6 +407,11 @@ export default function SkinFaceStudioPage() {
         setHasGenerated(true);
         setViewMode("result");
         setIsGenerating(false);
+        if (typeof data.remainingCredits === "number") {
+          setCredits(data.remainingCredits);
+        } else if (typeof data.creditsRemaining === "number") {
+          setCredits(data.creditsRemaining);
+        }
         refreshCredits();
       }, 400);
     } catch (err: any) {
