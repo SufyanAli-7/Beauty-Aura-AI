@@ -402,7 +402,7 @@ const OFFICIAL_BEARD_TEMPLATES: BeardTemplate[] = [
 ];
 
 export default function HairBeardStudioPage() {
-  const { credits, refreshCredits } = useAuth();
+  const { user, credits, setCredits, refreshCredits } = useAuth();
 
   // 1. Tool Selection State
   const [selectedTool, setSelectedTool] = useState<HairBeardToolId>("color");
@@ -561,6 +561,11 @@ export default function HairBeardStudioPage() {
 
   // Primary Generation Action
   const handleGenerate = async () => {
+    if (credits !== null && credits < 5) {
+      setErrorMessage("Insufficient credits (5 required). Please refill your credit balance.");
+      return;
+    }
+
     setErrorMessage(null);
     setIsGenerating(true);
     setGenerationProgress(12);
@@ -623,11 +628,13 @@ export default function HairBeardStudioPage() {
         };
       }
 
+      const userId = user?.id || "guest-user";
+
       const res = await fetch("/api/hair-beard/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "active-user",
+          userId,
           toolId: selectedTool,
           sourceImageUrl: activeSourceImage,
           multiAngleUrls: {
@@ -653,6 +660,9 @@ export default function HairBeardStudioPage() {
       }
       setHasGenerated(true);
       setViewMode("result");
+      if (typeof json.remainingCredits === "number") {
+        setCredits(json.remainingCredits);
+      }
       refreshCredits();
     } catch (err: any) {
       console.error("Hair & Beard Generation Error:", err);

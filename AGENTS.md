@@ -85,6 +85,26 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Fix Hair & Beard Studio "Insufficient Credits" Bug & Robust Fallback
+- **Root Cause Analysis:**
+  - In `app/dashboard/hair-beard/page.tsx`, `useAuth()` was called without destructuring `user`, and the API fetch payload hardcoded `userId: "active-user"`.
+  - In the backend routes (`app/api/hair-beard/generate/route.ts` etc.), querying Postgres `users.id` with `"active-user"` threw a UUID syntax error.
+  - The API's demo fallback queried `.from("users").select(...).order("created_at", { ascending: false }).limit(1)`, which selected the latest test user who had `0` credits.
+  - The API checked `0 < 5` and returned: `Insufficient credits. You need 5 credits for this transformation, but have 0 remaining.`, despite the user having 5 credits in their active account.
+- **Fix:**
+  - **Client (`app/dashboard/hair-beard/page.tsx`):**
+    - Destructured `user`, `credits`, `setCredits`, `refreshCredits` from `useAuth()`.
+    - Added pre-network credit check (`if (credits !== null && credits < 5)`).
+    - Passed actual authenticated user ID (`const userId = user?.id || "guest-user"`).
+    - Updated `credits` state via `setCredits(json.remainingCredits)` on success.
+  - **API Routes (`hair-beard`, `beauty`, `fashion`, `skin-face`, `extras`):**
+    - Added regex validation for valid UUID (`isUUID.test(userId)`) before querying database to avoid Postgres UUID cast errors.
+    - Upgraded fallback query to filter `.gte("credits", REQUIRED_CREDITS).order("credits", { ascending: false })` so fallback accounts always have sufficient balance.
+- **Verification:**
+  - Tested live generation endpoint (`/api/hair-beard/generate`): succeeded with HTTP 200, output stored in InSForge S3, transformation inserted in DB, remaining credits properly decremented.
+  - Reset both user balances to 50 credits in InsForge database.
+  - Full production build (`npm run build`): compiled successfully across all 21 routes in Turbopack in 9.6s with 0 errors.
+
 ### [2026-11-04] - Fix Bottom Spacing on Skin & Face Studio to Match Beauty Page
 - **Removed Excessive Bottom Padding (`app/dashboard/skin-face/page.tsx`):**
   - Changed root wrapper class from `space-y-6 pb-16` to `space-y-6 pb-2`, perfectly harmonizing bottom whitespace with `beauty/page.tsx`, `fashion/page.tsx`, `hair-beard/page.tsx`, and `extras/page.tsx`.

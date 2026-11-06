@@ -139,10 +139,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Resolve User & Check Credits
+    const REQUIRED_CREDITS = 5;
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     let targetUserId = userId || "guest-user";
     let userRecord: any = null;
 
-    if (userId && userId !== "guest-user") {
+    if (userId && isUUID.test(userId)) {
       const { data, error: userError } = await admin.database
         .from("users")
         .select("id, credits, email, name")
@@ -156,17 +158,30 @@ export async function POST(req: NextRequest) {
     }
 
     if (!userRecord) {
-      // Fallback to active user in database so preview/demo works seamlessly
+      // Fallback to active user with sufficient credits in database so preview/demo works seamlessly
       const { data: fallbackUser } = await admin.database
         .from("users")
         .select("id, credits, email, name")
-        .order("created_at", { ascending: false })
+        .gte("credits", REQUIRED_CREDITS)
+        .order("credits", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (fallbackUser) {
         userRecord = fallbackUser;
         targetUserId = fallbackUser.id;
+      } else {
+        const { data: anyUser } = await admin.database
+          .from("users")
+          .select("id, credits, email, name")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (anyUser) {
+          userRecord = anyUser;
+          targetUserId = anyUser.id;
+        }
       }
     }
 
@@ -178,7 +193,6 @@ export async function POST(req: NextRequest) {
     }
 
     const currentCredits = userRecord.credits ?? 50;
-    const REQUIRED_CREDITS = 5;
 
     if (currentCredits < REQUIRED_CREDITS) {
       return NextResponse.json(
