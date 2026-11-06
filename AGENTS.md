@@ -104,6 +104,20 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Landing Page Yearly Pricing Marked as "Coming Soon"
+- **User Request:** "landing page year price ko coming soon kar doo"
+- **Changes Applied (`components/landing/pricing.tsx`):**
+  1. **Yearly Toggle Badge:**
+     - Updated the billing toggle button's pill from static `"Save 20%"` to `"Coming Soon"`.
+     - When active, styled with `bg-white/20 text-white`; when inactive, styled with `bg-orange-100 text-[#FF5500]`.
+  2. **Yearly Plan Price Display:**
+     - In both Basic Plan and Pro Plan, when the `Yearly` toggle is selected, the price prominently displays **"Coming Soon"** (with a luxury `"Save 20%"` badge) and subtitle *"Annual plan with 20% savings launching soon"* instead of arbitrary yearly dollar amounts.
+  3. **Seamless CTA Button:**
+     - The CTA button dynamically updates to `"Start Monthly (Yearly Soon)"`, allowing interested users to subscribe directly to the active monthly plan while yearly recurring billing is in development.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Turbopack production build (`npm run build`): Compiled successfully across 25 routes in 5.9s with 0 errors.
+
 ### [2026-11-06] - Replace Next.js Default Favicon with Luxury BeautyAura Brand Favicon & Multi-DPI Icons
 - **User Request:** "is ka favicon change karo next js wala remove karo"
 - **Actions Taken:**

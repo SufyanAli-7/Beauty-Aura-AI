@@ -54,8 +54,14 @@ export function Pricing() {
                 }`}
               >
                 <span>Yearly</span>
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-[#FF5500]">
-                  Save 20%
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                    billingCycle === "yearly"
+                      ? "bg-white/20 text-white"
+                      : "bg-orange-100 text-[#FF5500]"
+                  }`}
+                >
+                  Coming Soon
                 </span>
               </button>
             </div>
@@ -146,19 +152,31 @@ export function Pricing() {
               </h3>
 
               <div className="mt-5 space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                    {billingCycle === "monthly" ? "$9.99" : "$95.90"}
-                  </span>
-                  <div className="flex flex-col text-[11px] leading-tight font-semibold">
-                    <span className="text-orange-200 line-through">
-                      {billingCycle === "monthly" ? "$19" : "$190"}
+                {billingCycle === "monthly" ? (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                      $9.99
                     </span>
-                    <span className="text-orange-100 whitespace-nowrap">
-                      {billingCycle === "monthly" ? "/ month" : "/ year"}
+                    <div className="flex flex-col text-[11px] leading-tight font-semibold">
+                      <span className="text-orange-200 line-through">$19</span>
+                      <span className="text-orange-100 whitespace-nowrap">/ month</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        Coming Soon
+                      </span>
+                      <span className="rounded-full bg-white/20 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                        Save 20%
+                      </span>
+                    </div>
+                    <span className="text-xs text-orange-100 font-medium">
+                      Annual plan with 20% savings launching soon
                     </span>
                   </div>
-                </div>
+                )}
                 <div>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-xs px-3 py-1 text-xs font-bold text-white shadow-xs whitespace-nowrap">
                     <Zap className="h-3.5 w-3.5 fill-white shrink-0" />
@@ -193,7 +211,7 @@ export function Pricing() {
                 href="/sign-up?plan=basic"
                 className="w-full flex h-12 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
-                Subscribe to Basic
+                {billingCycle === "monthly" ? "Subscribe to Basic" : "Start Monthly (Yearly Soon)"}
               </Link>
             </div>
           </div>
@@ -216,19 +234,31 @@ export function Pricing() {
               </h3>
 
               <div className="mt-5 space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">
-                    {billingCycle === "monthly" ? "$24.99" : "$239.90"}
-                  </span>
-                  <div className="flex flex-col text-[11px] leading-tight font-semibold">
-                    <span className="text-zinc-400 line-through">
-                      {billingCycle === "monthly" ? "$49" : "$490"}
+                {billingCycle === "monthly" ? (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">
+                      $24.99
                     </span>
-                    <span className="text-zinc-500 whitespace-nowrap">
-                      {billingCycle === "monthly" ? "/ month" : "/ year"}
+                    <div className="flex flex-col text-[11px] leading-tight font-semibold">
+                      <span className="text-zinc-400 line-through">$49</span>
+                      <span className="text-zinc-500 whitespace-nowrap">/ month</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">
+                        Coming Soon
+                      </span>
+                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-[#FF5500] uppercase tracking-wider">
+                        Save 20%
+                      </span>
+                    </div>
+                    <span className="text-xs text-zinc-500 font-medium">
+                      Annual plan with 20% savings launching soon
                     </span>
                   </div>
-                </div>
+                )}
                 <div>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-bold text-[#FF5500] whitespace-nowrap">
                     <Zap className="h-3.5 w-3.5 fill-current shrink-0" />
@@ -263,7 +293,7 @@ export function Pricing() {
                 href="/sign-up?plan=pro"
                 className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer border-0 border-none outline-none ring-0 focus:outline-none"
               >
-                Subscribe to Pro
+                {billingCycle === "monthly" ? "Subscribe to Pro" : "Start Monthly (Yearly Soon)"}
               </Link>
             </div>
           </div>
