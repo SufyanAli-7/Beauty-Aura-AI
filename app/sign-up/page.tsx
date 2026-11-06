@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, syncUserToDatabase } from "@/lib/auth-context";
 import { Logo } from "@/components/landing/logo";
 import {
@@ -18,11 +18,16 @@ import {
   KeyRound,
   RotateCcw,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 
-export default function SignUpPage() {
+function SignUpContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading, signUpWithEmail, signInWithGoogle, verifyEmailOtp, resendVerification } = useAuth();
+
+  const redirectParam = searchParams.get("redirect");
+  const targetDestination = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/dashboard";
 
   // Step 1: Form state
   const [name, setName] = useState("");
@@ -70,12 +75,12 @@ export default function SignUpPage() {
     };
   }, []);
 
-  // If user is already logged in (and not during newly completed signup animation), redirect to home
+  // If user is already logged in (and not during newly completed signup animation), redirect to dashboard
   useEffect(() => {
     if (!loading && user && !isSuccess) {
-      router.replace("/");
+      router.replace(targetDestination);
     }
-  }, [user, loading, isSuccess, router]);
+  }, [user, loading, isSuccess, router, targetDestination]);
 
   // Handle Sign Up
   const handleSignUp = async (e: React.FormEvent) => {
@@ -117,7 +122,7 @@ export default function SignUpPage() {
           setName("");
           setEmail("");
           setPassword("");
-          router.push("/");
+          router.push(targetDestination);
           router.refresh();
         }, 1200);
       }
@@ -171,7 +176,7 @@ export default function SignUpPage() {
           setEmail("");
           setPassword("");
           setOtpCode("");
-          router.push("/");
+          router.push(targetDestination);
           router.refresh();
         }, 1200);
       }
@@ -203,6 +208,21 @@ export default function SignUpPage() {
       setErrorMessage(err.message || "Failed to resend code.");
     }
   };
+
+  // Prevent flash of form if user is already authenticated
+  if (!loading && user && !isSuccess) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FFFDFB]">
+        <div className="flex flex-col items-center gap-3">
+          <Logo />
+          <div className="flex items-center gap-2 text-stone-600 text-sm font-semibold">
+            <Loader2 className="w-4 h-4 animate-spin text-[#FF5500]" />
+            <span>Already signed in. Redirecting to studio...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#FFFDFB] overflow-hidden">
@@ -483,5 +503,19 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#FF5500]" />
+        </div>
+      }
+    >
+      <SignUpContent />
+    </Suspense>
   );
 }

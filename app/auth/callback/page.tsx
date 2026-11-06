@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { insforge } from "@/lib/insforge";
 import { syncUserToDatabase } from "@/lib/auth-context";
+import { syncAuthCookies } from "@/lib/auth-cookies";
 import { Sparkles, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/landing/logo";
@@ -40,11 +41,17 @@ function CallbackContent() {
           throw new Error(userError?.message || "Failed to retrieve your signed-in session.");
         }
 
+        // Sync auth cookies for server and middleware route protection
+        const token = (insforge.auth as any)?.tokenManager?.getAccessToken?.() || null;
+        syncAuthCookies(token, data.user.id);
+
         // Save user details into public.users in InSForge database
         await syncUserToDatabase(data.user);
 
         if (active) {
-          router.replace("/");
+          const redirectParam = searchParams.get("redirect");
+          const target = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/dashboard";
+          router.replace(target);
         }
       } catch (err: any) {
         console.error("Auth callback error:", err);

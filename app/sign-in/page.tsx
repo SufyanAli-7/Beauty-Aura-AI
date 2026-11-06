@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Logo } from "@/components/landing/logo";
 import {
@@ -16,11 +16,16 @@ import {
   CheckCircle2,
   KeyRound,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading, signInWithEmail, signInWithGoogle, verifyEmailOtp, resendVerification } = useAuth();
+
+  const redirectParam = searchParams.get("redirect");
+  const targetDestination = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,12 +62,12 @@ export default function SignInPage() {
     };
   }, []);
 
-  // Redirect to home if already logged in
+  // Redirect to dashboard if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/");
+      router.replace(targetDestination);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, targetDestination]);
 
   // Handle Email/Password Sign In
   const handleEmailSignIn = async (e: React.FormEvent) => {
@@ -94,7 +99,7 @@ export default function SignInPage() {
         setEmail("");
         setPassword("");
         setErrorMessage(null);
-        router.push("/");
+        router.push(targetDestination);
         router.refresh();
       }
     } catch (err: any) {
@@ -142,7 +147,7 @@ export default function SignInPage() {
         setOtpCode("");
         setErrorMessage(null);
         setRequiresVerification(false);
-        router.push("/");
+        router.push(targetDestination);
         router.refresh();
       }
     } catch (err: any) {
@@ -173,6 +178,21 @@ export default function SignInPage() {
       setErrorMessage(err.message || "Failed to resend code.");
     }
   };
+
+  // Prevent flash of form if user is already authenticated
+  if (!loading && user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FFFDFB]">
+        <div className="flex flex-col items-center gap-3">
+          <Logo />
+          <div className="flex items-center gap-2 text-stone-600 text-sm font-semibold">
+            <Loader2 className="w-4 h-4 animate-spin text-[#FF5500]" />
+            <span>Already signed in. Redirecting to studio...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#FFFDFB] overflow-hidden">
@@ -411,5 +431,19 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#FF5500]" />
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }

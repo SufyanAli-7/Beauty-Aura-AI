@@ -103,7 +103,7 @@ export function DashboardSidebar({
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.push("/");
+      router.push("/sign-in");
       router.refresh();
     } catch (e) {
       console.error("Sign out error:", e);

@@ -66,6 +66,11 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - SDK: `@insforge/sdk`
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
+  - `proxy.ts`: Next.js 16 Proxy/Middleware route protection engine validating JWT sessions, guarding `/dashboard/:path*`, blocking authenticated access to auth routes, and aliasing `/login` and `/register`.
+  - `lib/auth-cookies.ts`: Client/server session cookie synchronizer managing `insforge_access_token` and `insforge_has_session`.
+  - `app/api/auth/session/route.ts`: Secure cookie management API handler supporting `POST`, `DELETE`, and `GET` session verification.
+  - `app/dashboard/layout.tsx`: Client-side authentication guard with branded loading screen and zero-flash redirect.
+  - `app/sign-in/page.tsx` & `app/sign-up/page.tsx`: Official authentication pages with client-side login guards and dynamic redirects.
   - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, and AI Body Reshape with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
@@ -84,6 +89,38 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Full Route Protection & Complete Authentication Security
+- **Server-Side Next.js Proxy/Middleware Protection (`proxy.ts`):**
+  - Protected all `/dashboard` and `/dashboard/:path*` routes:
+    - If user is NOT authenticated (no valid JWT `insforge_access_token` or `insforge_has_session`), immediately blocks access with HTTP 307 redirect to `/sign-in?redirect=<destination>`.
+  - Protected all auth routes (`/sign-in`, `/sign-up`, `/login`, `/register`):
+    - If user IS authenticated, immediately blocks access and redirects to `/dashboard` with HTTP 307.
+  - Added URL alias handlers for `/login` and `/register`:
+    - `/login`: Redirects to `/dashboard` if logged in, otherwise redirects to `/sign-in` (preserving query params).
+    - `/register`: Redirects to `/dashboard` if logged in, otherwise redirects to `/sign-up` (preserving query params).
+- **Client-Side Authentication Guard (`app/dashboard/layout.tsx`):**
+  - Integrated `useAuth()` into `DashboardLayout` wrapping all studio tools (`/dashboard`, `/dashboard/beauty`, `/dashboard/fashion`, `/dashboard/hair-beard`, `/dashboard/skin-face`, `/dashboard/extras`, `/dashboard/projects`, `/dashboard/billing`).
+  - Added full-screen branded loading state (`Loader2` + `Logo`) while credentials are being validated.
+  - Added strict programmatic kickout (`router.replace(/sign-in?redirect=...)`) if user is unauthenticated, rendering `null` to prevent any flash of protected studio content (FOUC).
+- **Client-Side Auth Form Guards (`app/sign-in/page.tsx`, `app/sign-up/page.tsx`):**
+  - Redirects logged-in users to `redirect || /dashboard` if they attempt to view sign-in or sign-up forms.
+  - Wrapped both pages in `<Suspense>` to ensure clean SSR/Turbopack prerendering with `useSearchParams()`.
+  - On successful sign-in (email/password, OTP, or OAuth callback), dynamically redirects to `redirect` param or `/dashboard` (replacing previous default `"/"`).
+- **Session Cookie Synchronization (`lib/auth-cookies.ts`, `app/api/auth/session/route.ts`, `lib/auth-context.tsx`):**
+  - Created `syncAuthCookies()` in `lib/auth-cookies.ts` to manage `insforge_access_token` and `insforge_has_session` across browser `document.cookie` and HTTP `Set-Cookie` via `/api/auth/session`.
+  - Integrated cookie sync on `hydrateAuth`, `signInWithEmail`, `signUpWithEmail`, `verifyEmailOtp`, and `signOut`.
+  - Added `/api/auth/session/route.ts` with `POST` (set cookies), `DELETE` (clear cookies), and `GET` (verify session).
+- **URL Aliases Handled in Middleware (`proxy.ts`):**
+  - Project retains only the official pages: `/sign-in` and `/sign-up` (no redundant folders in `app/`).
+  - If a user manually types `/login` or `/register` in the browser, `proxy.ts` automatically aliases and redirects them to `/sign-in` and `/sign-up` (or `/dashboard` if logged in).
+- **Sign-Out UX Optimization (`components/dashboard/dashboard-header.tsx`, `components/dashboard/dashboard-sidebar.tsx`):**
+  - Updated `handleSignOut` to navigate to `/sign-in` upon logging out, cleanly completing the session termination lifecycle.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 24 routes in Turbopack in 2.8s with 0 errors.
+  - Automated integration test suite (`scratch/test-route-protection.mjs`): 11/11 tests passed with 100% success rate across unauthenticated and authenticated states.
+  - Chrome DevTools MCP browser verification: Confirmed real-time URL navigation, cookie clearing on sign-out, and auto-redirect from `/dashboard` to `/sign-in?redirect=%2Fdashboard`.
 
 ### [2026-11-06] - Hair & Beard Studio: Update Upload Action Label to "Clear"
 - **Updated Button Label (`app/dashboard/hair-beard/page.tsx`):**

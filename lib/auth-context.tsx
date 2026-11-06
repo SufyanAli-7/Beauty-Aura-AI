@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { insforge } from "@/lib/insforge";
+import { syncAuthCookies } from "@/lib/auth-cookies";
 
 export interface UserProfile {
   id: string;
@@ -170,8 +171,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setProfile(null);
         setCreditsState(50);
+        syncAuthCookies(null, null);
       } else {
         setUser(data.user);
+        const token = (insforge.auth as any)?.tokenManager?.getAccessToken?.() || null;
+        syncAuthCookies(token, data.user.id);
         // Sync & fetch user profile from public.users table
         const userProfile = await syncUserToDatabase(data.user);
         setProfile(userProfile);
@@ -184,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setProfile(null);
       setCreditsState(50);
+      syncAuthCookies(null, null);
     } finally {
       setLoading(false);
     }
@@ -223,6 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (res.data?.user) {
       setUser(res.data.user);
+      syncAuthCookies(res.data.accessToken || null, res.data.user.id);
       const userProfile = await syncUserToDatabase(res.data.user);
       setProfile(userProfile);
       if (userProfile?.credits != null) {
@@ -245,6 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (res.data?.user && !res.data?.requireEmailVerification) {
       setUser(res.data.user);
+      syncAuthCookies(res.data.accessToken || null, res.data.user.id);
       const userProfile = await syncUserToDatabase(res.data.user, name);
       setProfile(userProfile);
       setCreditsState(50);
@@ -262,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (res.data?.user) {
       setUser(res.data.user);
+      syncAuthCookies(res.data.accessToken || null, res.data.user.id);
       const userProfile = await syncUserToDatabase(res.data.user, name);
       setProfile(userProfile);
       setCreditsState(50);
@@ -293,6 +301,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await insforge.auth.signOut();
     } finally {
+      syncAuthCookies(null, null);
       setUser(null);
       setProfile(null);
       setCreditsState(50);
