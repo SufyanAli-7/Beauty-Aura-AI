@@ -104,6 +104,58 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Pricing Typography Wrap & Alignment Fix (`$49 / month` Split Bug)
+- **Eliminated Pricing Text Wrap & Border Bleed:**
+  - **Identified Issue:** In the pricing cards, `$24.99` (rendered at `text-4xl xl:text-5xl`) along with strikethrough `$49` and `/ Per Month` in a flat flex row exceeded the card's column width on 1024px-1280px viewports, causing `/ month` to break awkwardly onto a second line right at the border.
+  - **Resolution (`components/landing/pricing.tsx` & `app/dashboard/billing/page.tsx`):**
+    - Standardized typography to `text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight`.
+    - Grouped strikethrough price and renewal cycle into a dedicated mini vertical column:
+      ```tsx
+      <div className="flex flex-col text-[11px] leading-tight font-semibold">
+        <span className="text-zinc-400 line-through">$49</span>
+        <span className="text-zinc-500 whitespace-nowrap">/ month</span>
+      </div>
+      ```
+    - Added `whitespace-nowrap` to prevent any line breaks between `/` and `month`.
+    - Placed credit badges on a dedicated row beneath the price with `whitespace-nowrap` (`450 Credits / mo`, `1,000 Credits / mo`).
+    - Total block width reduced to ~125px inside ~240px container, ensuring >110px of breathing room with 0% risk of overflow or wrapping.
+- **Verification:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled successfully with Turbopack across all 23 routes in 6.8s with 0 errors.
+
+### [2026-11-06] - Billing UX Polish: Fixed Pricing Overflow, Single-Line Button & Mobile Responsive Invoices
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the large price $9.99, strikethrough discount $19, cycle text / Per Month, and credit badge 450 Credits/mo with `ml-auto` were all forced into a single flex row. Inside a ~220px card content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
+- **Billing History Button Fixed to Single Line (`app/dashboard/billing/page.tsx`):**
+  - Added `whitespace-nowrap shrink-0` to the "Billing History" button, icon, and text span.
+  - Placed action buttons inside `flex flex-row items-center gap-2.5 sm:gap-3 shrink-0`, preventing text wrap and truncation across all screen sizes.
+  - Linked button smoothly to `#invoices-section` so clicking it navigates directly to the user's transaction history.
+- **Mobile Responsive Invoices & Payment History (`app/dashboard/billing/page.tsx`):**
+  - Designed dual-responsive layout:
+    - **Mobile View (`block md:hidden`)**: Sleek stacked luxury transaction cards for smartphones showing date, status badge ("completed"), plan title, credit allotment pill ("+450 Credits"), price, and full-width "Download Stripe PDF Receipt" button.
+    - **Desktop View (`hidden md:block`)**: Full table wrapped inside `overflow-x-auto` with `min-w-[620px]` preventing layout breakage or squashing on smaller screens.
+- **Updated Studio Tier Cards to Match Landing Page Aesthetic (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - Updated `components/landing/pricing.tsx` with official real plans and prices:
+    - Free Creator: $0/forever, 50 complimentary credits on signup, full access to 5 AI studios.
+    - Basic Plan: $9.99/mo (or $95.90/yr), 450 credits/mo, center featured solid radiant orange gradient card (`bg-gradient-to-b from-[#FF5500] via-[#FF6600] to-[#FF771C]`).
+    - Pro Plan: $24.99/mo (or $239.90/yr), 1,000 credits/mo, VIP GPU priority, commercial license.
+  - Synced `app/dashboard/billing/page.tsx` cards to use the exact same landing page luxury design.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Turbopack production build (`npm run build`): Compiled successfully in 10.2s across all 23 routes with 0 errors.
+
+
+
 ### [2026-11-06] - Fix Double Crediting, Webhook Idempotency & Auto-Cancel Concurrent Stripe Subscriptions
 - **Root Cause Analysis:**
   1. **Double Crediting:** The client-side `/api/billing/sync` was called upon returning from Stripe with `sessionId`, while Stripe simultaneously sent an `invoice.paid` webhook with `invoice_id`. Because the two calls did not cross-reference keys, both inserted rows into `public.billing_transactions`, causing every purchase to be recorded twice (+450 +450 or +1000 +1000).
@@ -124,6 +176,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Canceled the 2 older orphaned test subscriptions in Stripe, leaving only the active Basic subscription (`sub_1UYmOpGStzBzliwjxxvab3xJ`).
   - Consolidated `billing_transactions` down to the exact 3 purchases made by the user.
   - Corrected user credits to 1950 credits (50 initial + 450 Basic + 1000 Pro + 450 Basic) with active Basic status.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Turbopack production build (`npm run build`): Compiled successfully across all 23 routes in 9.9s with 0 errors.
@@ -154,6 +212,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Header & Sidebar Dynamic Plan Indicators (`components/dashboard/dashboard-header.tsx`, `components/dashboard/dashboard-sidebar.tsx`):**
   - Updated user profile menu to display the user's active plan badge (e.g. "Basic Plan", "Pro Plan", "Free Plan").
   - Updated sidebar credit meter to calculate progress dynamically based on current plan maximum (50, 450, or 1000 credits) and label active tier.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Turbopack production build (`npm run build`): Compiled successfully across all 23 routes in 8.1s with 0 errors.
@@ -173,6 +237,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
       - Secondary: `"Homepage"` (linking to `/`).
       - Utility: `"Go Back"` (`router.back()`).
     - Quick AI Studio Shortcuts directory: Instant one-click pills for all 5 Studios (Beauty & Makeup, Fashion Try-On, Hair & Beard, Skin & Body, AI Extras).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 22 routes in Turbopack in 13.6s with 0 errors.
@@ -192,6 +262,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Integrated Across Studio & Auth Screens (`app/dashboard/layout.tsx`, `app/sign-in/page.tsx`, `app/sign-up/page.tsx`, `app/auth/callback/page.tsx`):**
   - Dashboard refresh screen now displays the cool luxury loader with zero text.
   - Sign-in and Sign-up redirect screens and `<Suspense>` fallbacks unified with `<CoolLoader size="lg" />`.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully with 0 errors and zero dropped segment warnings across all 22 routes in Turbopack.
@@ -223,6 +299,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - If a user manually types `/login` or `/register` in the browser, `proxy.ts` automatically aliases and redirects them to `/sign-in` and `/sign-up` (or `/dashboard` if logged in).
 - **Sign-Out UX Optimization (`components/dashboard/dashboard-header.tsx`, `components/dashboard/dashboard-sidebar.tsx`):**
   - Updated `handleSignOut` to navigate to `/sign-in` upon logging out, cleanly completing the session termination lifecycle.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 24 routes in Turbopack in 2.8s with 0 errors.
@@ -252,6 +334,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Updated `/dashboard` overview:
     - AI Extras card badge updated to `4 Tools` (was `5 Tools`).
     - AI Makeover Engine active tools stat updated to `18 Tools` (was `19 Tools`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 2.5s with 0 errors.
@@ -286,6 +374,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Updated `pollTaskStatus` default `maxAttempts` to 40 and `intervalMs` to 3000ms (120 seconds total coverage).
   - Increased timeout in `app/api/extras/generate/route.ts` for headshot tool to 150000ms (150 seconds = 2.5 minutes).
   - Added immediate error detection if `raw.data.task_status === "failed"` or `error_message` is returned.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Next.js production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with 0 errors.
@@ -301,6 +395,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Removed `16 STAGES` badge pill from the top-right of project card thumbnails in `app/dashboard/projects/page.tsx` and `app/dashboard/page.tsx`.
   - Removed `Includes 16 chronological stages` text under project card titles, keeping card presentation clean, minimal, and uniform with all other tools.
   - Standardized hover quick-view overlay to `"View Modal"` across all cards.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 2.6s with 0 errors.
@@ -329,6 +429,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Dashboard Overview (`app/dashboard/page.tsx`):**
   - Updated `TransformationRecord` type to support `settings?: any`.
   - Added `16 Stages` badge on Recent Transformation card thumbnails for multi-stage entries.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack in 2.8s with 0 errors.
@@ -353,6 +459,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Returned full `transformation` object and `remainingCredits` in the API response JSON.
 - **Frontend Enhancements (`app/dashboard/skin-face/page.tsx`):**
   - Destructured `setCredits` from `useAuth()` to immediately reflect the decremented balance in the UI upon generation.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Database schema & insert verified via REST PostgREST client: returned HTTP 201 Created with UUID id `54ab9361-48c5-4fbd-acd4-9730b8c8d369`.
   - Live API endpoint test (`/api/skin-face/generate` with AI-Smile tool): returned HTTP 200, successfully generated transformation `9259532b-7867-4ddb-aaec-52b78c54e6e5`, look name `"Radiant Open Smile"`, and remaining credits.
@@ -378,6 +490,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Updated "AI Makeover Engine" active tool count stat from `21 Tools` to `19 Tools` (3 Beauty + 4 Fashion + 3 Hair & Beard + 4 Skin & Face + 5 AI Extras = 19).
 - **Backend Clean-up (`app/api/skin-face/generate/route.ts`):**
   - Removed `case "fitzpatrick":` and `case "skin_analysis":` handlers, standardizing the route exclusively for visual rendering tools.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 6.5s with 0 errors.
@@ -401,6 +519,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Backend Clean-up (`app/api/hair-beard/generate/route.ts`):**
   - Removed `frizziness` from allowed tool IDs validation and dispatch handler.
   - Simplified source photo handling to single portrait URL.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): 0 errors.
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 9.0s with 0 errors.
@@ -423,6 +547,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - **API Routes (`hair-beard`, `beauty`, `fashion`, `skin-face`, `extras`):**
     - Added regex validation for valid UUID (`isUUID.test(userId)`) before querying database to avoid Postgres UUID cast errors.
     - Upgraded fallback query to filter `.gte("credits", REQUIRED_CREDITS).order("credits", { ascending: false })` so fallback accounts always have sufficient balance.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Tested live generation endpoint (`/api/hair-beard/generate`): succeeded with HTTP 200, output stored in InSForge S3, transformation inserted in DB, remaining credits properly decremented.
   - Reset both user balances to 50 credits in InsForge database.
@@ -465,6 +595,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Removed "Ready to Transform / Ready for Virtual Fitting / Ready to Style Hair & Beard" headings and redundant subtitle text.
   - Removed the duplicate "Render {tool}" button inside the canvas body (generation is cleanly triggered from Step 3 in the left control panel).
   - Removed the duplicate "Quick Preview" button from the bottom action bar.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Next.js production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 9.1s with zero errors.
@@ -484,6 +620,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - **AI Extras Studio (`app/dashboard/extras/page.tsx`):**
     - Stacked badge pill (`PRO INPAINT`, `CUTOUT HD`, `RESTORATION`, `OUTPAINT AI`, `CORPORATE 4K`) directly above tool title.
     - Removed subtitle descriptions across all 5 tools.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack with zero errors.
@@ -494,6 +636,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Updated tool cards to place the badge pill (e.g. `VIRAL TREND`, `POPULAR`, `HD OPTICS`) directly on top of the tool title.
   - Placed tool name on the second line with full width, eliminating unwanted text truncation (e.g. `AI Makeup Virtual Try-On`, `AI Eye Color Virtual Try-On`).
   - Removed all tool descriptions/taglines across the 3 tool cards for a cleaner, unified presentation.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
@@ -509,6 +657,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Actions: Direct "Download High-Res" action, "Open in Studio" navigation link, and delete button with modal auto-close.
     - Accessibility: Backdrop click to dismiss, `Escape` key listener, and background body scroll prevention while open.
     - Event isolation: `e.stopPropagation()` on card action buttons (Download, Trash) prevents unintentional modal triggers.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
@@ -517,6 +671,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Time Badge Position Alignment (`app/dashboard/page.tsx`):**
   - Updated the frosted glass time badge positioning on the transformation card thumbnail from `bottom-2 left-2` to `bottom-2 right-2`.
   - Harmonized layout with the My Projects page (`app/dashboard/projects/page.tsx`), keeping tool name tag on top-left and time badge on bottom-right.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack with zero errors.
@@ -530,6 +690,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Fix:**
   - Corrected `diffInHours` to `Math.floor(diffInSeconds / 3600)` (and `diffInDays` to `Math.floor(diffInSeconds / 86400)`).
   - Verified with test cases across 30s (`Just now`), 5m (`5 min ago`), 56m (`56 min ago`), 2h (`2h ago`), 3h (`3h ago`), 1d (`1d ago`), 3d (`3d ago`), and 8d (`1w ago`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Node test suite passed.
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
@@ -544,6 +710,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Weeks: `Xw ago`
     - Months: `Xmo ago`
   - Positioned inside frosted glass glassmorphic badge with clock icon (`bg-black/40 backdrop-blur-md border border-white/20`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack.
@@ -560,6 +732,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Added a frosted glass pill badge (`absolute bottom-2 right-2 bg-black/40 backdrop-blur-md border border-white/20`) with clock icon and relative creation time (e.g. `Just now`, `56 min ago`, `3h ago`, `2d ago`).
 - **Expanded Studio Filter Tabs (`app/dashboard/projects/page.tsx`):**
   - Updated categories from legacy makeup-only to all 5 AI studios: All Items, Beauty Studio, Fashion Try-On, Hair & Beard, Skin & Face, AI Extras.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with zero errors.
@@ -570,6 +748,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Updated `loadRecent()` to store `data.slice(0, 4)` in `transformations` state while keeping `totalProjectsCount` at `data.length`.
   - Added `.slice(0, 4)` in the JSX grid map to ensure only the 4 most recent transformation cards are displayed on the dashboard in a single clean row (`lg:grid-cols-4`).
   - Total count across the user's workspace remains accurate on the "My Projects" stat card and "See All (X)" link.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
 
@@ -578,6 +762,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Converted the Recent Transformations cards from non-interactive `<div>` containers into Next.js `<Link href="/dashboard/projects">` elements.
   - Added interactive affordances: subtle image zoom (`group-hover:scale-105`), title hover color change (`group-hover:text-[#FF5500]`), and an animated sliding `ArrowRight` icon.
   - Clicking anywhere on any transformation card now smoothly navigates directly to `/dashboard/projects`.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 6.0s with zero errors.
@@ -588,6 +778,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Styled with glowing hover states (`hover:border-orange-300 hover:bg-orange-50 hover:text-[#FF5500]`) and an animated `ArrowRight` icon.
 - **Glassmorphic Image Timestamp Badge (`app/dashboard/page.tsx`):**
   - Upgraded the bottom-left creation timestamp badges from a solid dark pill to a sleek frosted glass effect (`bg-black/40 backdrop-blur-md border border-white/20 shadow-lg shadow-black/25 text-white/95`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully in Turbopack across all 21 routes with 0 errors.
@@ -596,6 +792,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ### [2026-11-04] - Update AI Extras Studio Card Image
 - **Thumbnail Image Update (`app/dashboard/page.tsx`):**
   - Updated the **AI Extras & Studio Retouch** studio overview card image to `/ai-photo-editing-images/bg-change.jpg`.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Evaluated DOM in Chrome DevTools MCP verifying `AI Extras & Studio Retouch` image resolves to `bg-change.jpg`.
@@ -607,6 +809,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Removed `{ count: "exact" }` option in favor of direct array query `insforge.database.from("transformations").select("*").eq("user_id", user.id)` (matching `projects/page.tsx`).
   - Added strict defensive check `Number.isFinite(totalProjectsCount) && totalProjectsCount >= 0 ? totalProjectsCount : transformations.length` for both the stat card and the recent transformations header.
   - Zero `NaN` values across the page verified in live DOM inspection.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - `npx tsc --noEmit`: 0 errors.
   - Evaluated DOM: `hasNaNInPage: false`, `My Projects: 0 Saved` (or exact user database total).
@@ -630,6 +838,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - **Relative Creation Timestamps on Transformation Cards (`app/dashboard/page.tsx`):**
   - Added `formatTimeAgo(dateString)` helper calculating human-friendly relative time (e.g. `Just now`, `56 min ago`, `3h ago`, `1d ago`, `3d ago`, `2w ago`).
   - Added a sleek bottom-left glassmorphic pill badge (`absolute bottom-2 left-2 bg-black/75 text-white`) with a clock icon displaying the exact relative creation time on each transformation image.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled cleanly across all 21 routes in Turbopack.
@@ -645,6 +859,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     3. `Hair & Beard`
     4. `AI Skin, Face & Body`
     5. `AI Extras`
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Evaluated DOM in Chrome DevTools MCP verifying both `sidebarToolsOrder` and `homeCardsOrder` adhere exactly to the new sequence.
@@ -663,6 +883,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Removed the notification bell button and notification flyout.
   - Removed the `+ New Transformation` button from the header.
   - Retained the Credits pill (`⚡ Credits`) and user profile avatar dropdown.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 21 remaining routes in Turbopack.
@@ -691,6 +917,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Implemented `ResizeObserver` and `isDesktop` to synchronize the Left Column scrollable height (`maxHeight: ${canvasHeight}px`) with the Live Studio Canvas, eliminating awkward double scrollbars.
   - Added soft orange pastel scrollbar styling matching Beauty Studio (`[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]`).
   - Added "Render {currentTool.title}" primary action button inside Pre-generation State (matching Beauty Studio).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript build check (`npx tsc --noEmit`): Exited with code 0 (zero errors).
   - Production build (`npm run build`): Compiled successfully across all 22 routes in Turbopack.
@@ -711,6 +943,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Renamed `YouCam Neural Engine Active` to `Neural Studio Engine Active`.
     - Updated studio specs footer: `Neural Studio Cloud • High Precision Synthesis`.
     - Cleaned up branding in `app/dashboard/extras/page.tsx` (`Colorized Variations`, `Neural Studio Cloud`) and `app/dashboard/hair-beard/page.tsx` (`Hair Frizz Analyzer`, `Trichology Diagnostic Specs`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - TypeScript checked with 0 errors (`npx tsc --noEmit`).
   - Evaluated DOM in Chrome DevTools MCP verifying `hasYouCam: false` and `hasInSForge: false`.
@@ -755,6 +993,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Before/After interactive split slider with draggable handle and touch/mouse tracking.
   - Responsive layout with desktop left column height synchronized to Live Studio Canvas via `ResizeObserver`.
   - Soft pastel scrollbar styling matching Beauty, Fashion, and Extras Studios.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Full production build compiled with zero errors across all 22 routes (`npm run build`).
   - Verified live API inference: `AI-Smile` returned `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage; `AI-Fitzpatrick-Skin-Type-Analysis` returned `status: 200`, `fitzpatrick_scale: "I"`.
@@ -792,6 +1036,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Progress Bar: Light track `bg-stone-100 border border-orange-200/60 shadow-inner` with gradient bar (`from-[#FF5500] via-[#FF7A1A] to-[#FFA033]`) and real-time numerical percentage.
     - 4 Pipeline Milestones: Light themed step cards with orange badges (`Step 1: Segmentation & Mask`, `Step 2: Diffusion Synthesis`, `Step 3: Lighting & Texture Blend`, `Step 4: 4K UHD Export`).
     - Disclaimer Footer: Clean muted metadata `Deducting 5 Credits • Lossless 4K Spec • Saved to Cloud`.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Tested live generation in Chrome DevTools MCP, verified DOM computed styles and visually confirmed light warm theme.
   - Production build compiled with zero errors across all 21 routes (`npm run build`).
@@ -834,6 +1084,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Multi-stage Studio Loader with dynamic active tool icon, pulsing glow, real-time percentage counter, and 4 visual pipeline checkpoints.
   - Before/After interactive comparison split slider with touch/mouse dragging.
   - Strictly single-line CTA button (`whitespace-nowrap overflow-hidden`).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Production build compiled with zero errors across all 21 routes (`npm run build`).
   - Live API testing confirmed: Background Removal generated `status: 200`, `success: true`, deducted 5 credits, cached in InSForge storage, and rendered with Before/After slider.
@@ -844,6 +1100,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Left pill: `flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200/80 px-3.5 py-1 text-xs font-bold text-zinc-800` with filled `#FF5500` `Zap` icon and text `5 Credits / render`.
     - Right label: `text-xs font-bold text-zinc-500` with `Balance:` and bold value `<span className="text-zinc-900 font-black">{credits}</span>`.
   - Added top Error Alert Banner with rose styling and quick refill button when credits drop below 5.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Verified DOM rendered elements via Chrome DevTools MCP matching Beauty Studio (`creditBadgeText: "5 Credits / render"`, `Balance: 50`).
   - Production build compiled with zero errors across all 20 routes (`npm run build`).
@@ -862,6 +1124,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Implemented the light, soft pastel scrollbar matching Beauty and Fashion Studios:
     `[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70`.
   - Also applied light scrollbar styling to internal catalog grids (Hairstyles & Beard templates).
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Confirmed all 4 tool thumbnail images render and load completely in Chrome DevTools.
   - Verified computed scrollbar color matches `rgb(254, 215, 170) rgba(0, 0, 0, 0)`.
@@ -899,6 +1167,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Before/After interactive compare split slider with `clipPath: inset(0 ${100 - sliderPosition}% 0 0)` and smooth mouse/touch dragging.
   - Direct file download using programmatic blob URLs (`beautyaura-hair-beard-[tool]-[timestamp].jpg`).
   - Left column `maxHeight` synchronized with Live Studio Canvas via `ResizeObserver` on desktop, unconstrained on mobile with natural ordering.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Production build compiled with zero errors across all 20 routes (`npm run build`).
   - Live API testing confirmed:
@@ -925,6 +1199,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
       3. *Shadow & Physics / Texture & Skin Blend*
       4. *4K UHD Export*
     - **Glassmorphic Studio Metadata**: Badges for "AI Neural Studio Engine Active" and "Deducting 5 Credits • Lossless 4K Spec • Saved to Cloud".
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Tested live generation in Chrome DevTools MCP on both desktop (1440x900) and mobile (375x812).
   - Confirmed button height is exactly locked to 1 line (`44px` on mobile, `48px` on desktop) with zero text wrapping.
@@ -948,6 +1228,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
     - Right column (Live Studio Canvas): `order-2 lg:order-none`.
     - Canvas is now cleanly placed at the very bottom (last) in mobile view after all options and the primary Generate button.
   - Added smooth auto-scroll to the canvas when the user taps Generate on mobile view.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:**
   - Emulated mobile (`375x812`) and desktop (`1440x900`) viewports in Chrome DevTools MCP.
   - Verified `rightColTop >= leftColBottom` (no overlap, `isRightAfterLeft: true`).
@@ -1308,6 +1594,12 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - Removed all white borders, outlines, rings, and padding clips from the "Get Started" button (`border-0 border-none outline-none ring-0`) for a flush, seamless finish.
   - Replaced the "5 Free Credits" badge button with a dedicated **"Log in"** button with login icon (`LogIn`).
   - Updated both desktop navigation and responsive mobile/tablet drawer menus.
+- **Fixed Pricing Card Horizontal Overflow (`app/dashboard/billing/page.tsx` & `components/landing/pricing.tsx`):**
+  - **Root Cause:** In the 3-column grid (`lg:grid-cols-3`), the price `$9.99`, strikethrough `$19`, cycle text `/ Per Month`, and credit badge `450 Credits/mo` with `ml-auto` were all forced on a single horizontal row. Inside a ~220px content container, this caused the credit pill to overflow and bleed outside the right card border.
+  - **Fix:** Redesigned the pricing block into a clean, luxury 2-level stacked format:
+    - Top level: Large price (`text-4xl xl:text-5xl font-black`), optional strikethrough discount, and cycle (`/ month`).
+    - Dedicated badge row: Credit badge pill (`450 Credits every month`, `1,000 Credits every month`, `50 Free Credits`) with `Zap` icon displayed directly underneath.
+    - Adjusted grid gaps to `gap-6 xl:gap-8` and card padding to `p-6 sm:p-7 xl:p-8`, guaranteeing zero horizontal overflow across all screen widths.
 - **Verification:** Successfully rebuilt with `npm run build` (zero errors) and verified in Chrome DevTools MCP.
 
 ### [2026-11-02] - AI Photo & Virtual Try-On Landing Page Implementation (/screenshot-to-code)

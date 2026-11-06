@@ -88,7 +88,6 @@ function BillingContent() {
 
     if (canceled) {
       setCanceledBanner(true);
-      // Clean up URL parameters
       window.history.replaceState({}, "", "/dashboard/billing");
       return;
     }
@@ -97,7 +96,6 @@ function BillingContent() {
       const targetPlan = planParam || "basic";
       setSuccessBanner(targetPlan);
 
-      // Call sync endpoint to ensure immediate credit allocation
       setSyncing(true);
       fetch("/api/billing/sync", {
         method: "POST",
@@ -121,7 +119,6 @@ function BillingContent() {
         })
         .finally(() => {
           setSyncing(false);
-          // Clean up URL parameters
           window.history.replaceState({}, "", "/dashboard/billing");
         });
     }
@@ -233,82 +230,16 @@ function BillingContent() {
     }
   };
 
-  // Plan Configurations
-  const plans = [
-    {
-      id: "free",
-      name: "Free Creator",
-      badge: "Free Tier",
-      price: "$0",
-      cycle: "/ month",
-      credits: 50,
-      description: "Ideal for testing AI tools, quick exploration, and light personal makeover edits.",
-      isCurrent: currentPlan === "free",
-      isPopular: false,
-      color: "border-stone-200/90 hover:border-orange-200",
-      features: [
-        "50 Complimentary AI Credits on signup",
-        "Full access to all 5 AI Studios",
-        "Real-time Before / After split slider comparison",
-        "Standard 1080p resolution exports",
-        "Community support & tutorial library",
-      ],
-      ctaText: currentPlan === "free" ? "Current Active Plan" : "Included by Default",
-    },
-    {
-      id: "basic",
-      name: "Basic Plan",
-      badge: "Popular Choice",
-      price: "$9.99",
-      cycle: "/ month",
-      credits: 450,
-      description: "Designed for content creators, models, stylists, and daily social media influencers.",
-      isCurrent: currentPlan === "basic",
-      isPopular: true,
-      color: "border-[#FF5500] shadow-xl ring-2 ring-[#FF5500]/25 bg-gradient-to-b from-white via-orange-50/20 to-white",
-      features: [
-        "450 AI Generation Credits every month",
-        "Ultra-HD 4K lossless downloads & exports",
-        "Fast-track priority GPU cloud queue",
-        "Commercial usage rights for social media & ads",
-        "Access to all AI Hairstyles, Makeup & Fashion Try-On",
-        "Automatic monthly credit renewal & rollover",
-        "Cancel or update payment anytime in 1 click",
-      ],
-      ctaText:
-        currentPlan === "basic"
-          ? "Current Active Plan"
-          : currentPlan === "pro"
-          ? "Switch to Basic"
-          : "Upgrade to Basic",
-    },
-    {
-      id: "pro",
-      name: "Pro Plan",
-      badge: "Maximum Power",
-      price: "$24.99",
-      cycle: "/ month",
-      credits: 1000,
-      description: "For fashion brands, e-commerce storefronts, agencies, and high-volume creators.",
-      isCurrent: currentPlan === "pro",
-      isPopular: false,
-      color: "border-amber-300 hover:border-amber-400 shadow-md bg-gradient-to-b from-white via-amber-50/25 to-white",
-      features: [
-        "1,000 AI Generation Credits every month",
-        "Maximum VIP Dedicated GPU cloud priority",
-        "Full commercial license & white-label ready",
-        "Batch AI virtual try-on processing",
-        "Direct access to all future beta & pro studio models",
-        "Priority 24/7 dedicated creator support",
-        "Stripe Customer Billing Portal & tax invoices",
-      ],
-      ctaText: currentPlan === "pro" ? "Current Active Plan" : "Upgrade to Pro",
-    },
-  ];
+  const scrollToInvoices = () => {
+    const el = document.getElementById("invoices-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <div className="space-y-8 pb-16">
-      {/* 1. Header */}
+      {/* 1. Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange-100/80 pb-6">
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#FF5500]">
@@ -323,21 +254,21 @@ function BillingContent() {
           </p>
         </div>
 
-        {/* Stripe Customer Portal Button */}
-        <div className="flex items-center gap-3">
+        {/* Top Header Stripe Portal CTA */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={handleOpenCustomerPortal}
             disabled={portalLoading}
-            className="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-800 shadow-2xs hover:bg-orange-50/80 hover:border-orange-300 transition cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-800 shadow-2xs hover:bg-orange-50/80 hover:border-orange-300 transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
             title="Manage payment method, view invoices, or cancel subscription"
           >
             {portalLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-[#FF5500]" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#FF5500] shrink-0" />
             ) : (
-              <ExternalLink className="h-4 w-4 text-[#FF5500]" />
+              <ExternalLink className="h-4 w-4 text-[#FF5500] shrink-0" />
             )}
-            <span>Manage Stripe Portal</span>
+            <span className="whitespace-nowrap">Manage Stripe Portal</span>
           </button>
         </div>
       </div>
@@ -417,25 +348,25 @@ function BillingContent() {
 
       {/* 3. Current User Credits & Active Tier Banner */}
       <div className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-gradient-to-br from-orange-50 via-amber-50/60 to-white p-6 sm:p-8 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-4 sm:gap-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-start gap-4 sm:gap-5 min-w-0">
             <div className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FF5500] to-[#FFA033] text-white shadow-md shadow-orange-500/25">
               <Zap className="h-7 w-7 sm:h-8 sm:w-8 fill-current" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 whitespace-nowrap">
                   Available Studio Balance
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 whitespace-nowrap">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live &amp; Ready
                 </span>
               </div>
 
               <div className="flex items-baseline gap-2.5 mt-1">
-                <span className="text-3xl sm:text-4xl font-black text-zinc-900">
+                <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">
                   {credits}
                 </span>
                 <span className="text-sm font-bold text-[#FF5500]">
@@ -443,20 +374,20 @@ function BillingContent() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-zinc-500">
-                <span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-zinc-500">
+                <span className="whitespace-nowrap">
                   Current Subscription:{" "}
                   <strong className="text-zinc-900 font-extrabold capitalize">
                     {currentPlan} Plan
                   </strong>
                 </span>
                 <span>•</span>
-                <span>Each AI generation consumes 5 credits</span>
+                <span className="whitespace-nowrap">Each AI generation consumes 5 credits</span>
                 {profile?.plan_period_end && (
                   <>
                     <span>•</span>
-                    <span className="inline-flex items-center gap-1 text-zinc-600">
-                      <Clock className="h-3 w-3 text-orange-500" />
+                    <span className="inline-flex items-center gap-1 text-zinc-600 whitespace-nowrap">
+                      <Clock className="h-3 w-3 text-orange-500 shrink-0" />
                       Renews: {new Date(profile.plan_period_end).toLocaleDateString()}
                     </span>
                   </>
@@ -465,41 +396,41 @@ function BillingContent() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Action Buttons: strictly on 1 line with whitespace-nowrap shrink-0 */}
+          <div className="flex flex-row items-center gap-2.5 sm:gap-3 shrink-0 self-start lg:self-auto">
             <button
               type="button"
-              onClick={handleOpenCustomerPortal}
-              disabled={portalLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-orange-200/90 px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-800 shadow-2xs hover:bg-orange-50 transition cursor-pointer"
+              onClick={scrollToInvoices}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-orange-200/90 px-4 py-2.5 text-xs sm:text-sm font-bold text-zinc-800 shadow-2xs hover:bg-orange-50 transition cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Receipt className="h-4 w-4 text-[#FF5500]" />
-              <span>Billing History</span>
+              <Receipt className="h-4 w-4 text-[#FF5500] shrink-0" />
+              <span className="whitespace-nowrap">Billing History</span>
             </button>
 
             {currentPlan === "free" ? (
               <a
                 href="#subscription-plans"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition whitespace-nowrap shrink-0"
               >
-                <Sparkles className="h-4 w-4" />
-                <span>Upgrade Plan</span>
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span className="whitespace-nowrap">Upgrade Plan</span>
               </a>
             ) : (
               <button
                 type="button"
                 onClick={handleOpenCustomerPortal}
                 disabled={portalLoading}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition cursor-pointer whitespace-nowrap shrink-0 disabled:opacity-50"
               >
-                <ShieldCheck className="h-4 w-4" />
-                <span>Manage via Stripe</span>
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                <span className="whitespace-nowrap">Manage via Stripe</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* 4. Three Subscription Plans Grid */}
+      {/* 4. Three Subscription Plans Grid (Landing Page Style & Hierarchy) */}
       <div id="subscription-plans" className="space-y-6 pt-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -515,229 +446,459 @@ function BillingContent() {
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/50 px-3.5 py-1.5 text-xs font-bold text-zinc-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/50 px-3.5 py-1.5 text-xs font-bold text-zinc-700 shrink-0 self-start sm:self-auto">
             <ShieldCheck className="h-4 w-4 text-[#FF5500]" />
             <span>256-Bit SSL Encrypted by Stripe</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch">
-          {plans.map((plan) => {
-            const isLoading = loadingPlan === plan.id;
-            const isCurrent = plan.isCurrent;
+        {/* 3 Pricing Cards Grid matching Landing Page Structure */}
+        <div className="grid grid-cols-1 items-stretch gap-6 xl:gap-8 lg:grid-cols-3 max-w-6xl mx-auto pt-2">
+          {/* CARD 1: Free Creator */}
+          <div
+            className={`relative flex flex-col justify-between rounded-3xl border bg-white p-6 sm:p-7 xl:p-8 shadow-lg shadow-orange-900/5 transition-transform hover:-translate-y-1.5 duration-300 ${
+              currentPlan === "free"
+                ? "border-emerald-500 ring-2 ring-emerald-500/80 shadow-emerald-500/10"
+                : "border-orange-200/80"
+            }`}
+          >
+            {/* Top Badge Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#FF5500]">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              {currentPlan === "free" ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wider shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  YOUR ACTIVE PLAN
+                </span>
+              ) : (
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-[#FF5500] uppercase tracking-wider">
+                  FREE TIER
+                </span>
+              )}
+            </div>
 
-            return (
-              <div
-                key={plan.id}
-                className={`relative flex flex-col justify-between rounded-3xl p-6 sm:p-7 border bg-white transition-all duration-300 ${
-                  plan.color
-                } ${isCurrent ? "ring-2 ring-emerald-500/80 shadow-lg" : ""}`}
-              >
-                {/* Popular or Current Badge */}
-                {isCurrent ? (
-                  <div className="absolute -top-3.5 left-6 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                    <span>Your Active Plan</span>
-                  </div>
-                ) : plan.isPopular ? (
-                  <div className="absolute -top-3.5 right-6 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FFA033] px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-orange-500/25 flex items-center gap-1">
-                    <Flame className="h-3 w-3 fill-white" />
-                    <span>Most Popular</span>
-                  </div>
-                ) : plan.id === "pro" ? (
-                  <div className="absolute -top-3.5 right-6 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-xs flex items-center gap-1">
-                    <Crown className="h-3 w-3" />
-                    <span>Pro Power</span>
-                  </div>
-                ) : null}
+            <div className="mt-6">
+              <h3 className="text-xl font-bold text-zinc-900">
+                Free Creator{" "}
+                <span className="block text-zinc-500 text-sm font-medium">
+                  Starter Exploration
+                </span>
+              </h3>
 
-                <div className="space-y-4">
-                  {/* Title & Badge */}
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-black text-zinc-900">{plan.name}</h4>
-                      <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                        {plan.badge}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                      {plan.description}
-                    </p>
-                  </div>
-
-                  {/* Pricing Box */}
-                  <div className="flex items-baseline gap-1.5 border-b border-orange-100/70 pb-4">
-                    <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">
-                      {plan.price}
-                    </span>
-                    <span className="text-xs font-semibold text-zinc-500">
-                      {plan.cycle}
-                    </span>
-                    <div className="ml-auto rounded-full bg-orange-100/80 px-2.5 py-1 text-[11px] font-bold text-[#FF5500]">
-                      {plan.credits} Credits/mo
-                    </div>
-                  </div>
-
-                  {/* Features List */}
-                  <div className="space-y-2.5 pt-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Included with {plan.name}:
-                    </span>
-                    <ul className="space-y-2.5 text-xs text-zinc-600">
-                      {plan.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <CheckCircle2
-                            className={`h-4 w-4 shrink-0 mt-0.5 ${
-                              isCurrent
-                                ? "text-emerald-500"
-                                : plan.isPopular
-                                ? "text-[#FF5500]"
-                                : "text-amber-500"
-                            }`}
-                          />
-                          <span className="leading-snug">{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+              <div className="mt-5 space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">$0</span>
+                  <span className="text-xs font-semibold text-zinc-500 whitespace-nowrap">/ forever</span>
                 </div>
-
-                {/* Card CTA Action */}
-                <div className="mt-7 pt-4 border-t border-orange-100/70">
-                  {isCurrent ? (
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full rounded-2xl py-3 px-4 text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default flex items-center justify-center gap-1.5"
-                    >
-                      <Check className="h-4 w-4 stroke-[2.5]" />
-                      <span>Current Active Tier</span>
-                    </button>
-                  ) : plan.id === "free" ? (
-                    <button
-                      type="button"
-                      onClick={handleOpenCustomerPortal}
-                      disabled={portalLoading}
-                      className="w-full rounded-2xl py-3 px-4 text-xs sm:text-sm font-bold bg-stone-100 text-zinc-600 hover:bg-stone-200 transition cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      <span>Downgrade via Stripe</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleSubscribe(plan.id as "basic" | "pro")}
-                      disabled={isLoading || loadingPlan !== null}
-                      className={`w-full rounded-2xl py-3 px-4 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                        plan.isPopular
-                          ? "bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] text-white shadow-md shadow-orange-500/25 hover:opacity-95"
-                          : "bg-stone-900 text-white hover:bg-zinc-800 shadow-sm"
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Connecting Stripe...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{plan.ctaText}</span>
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </button>
-                  )}
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-bold text-[#FF5500] whitespace-nowrap">
+                    <Zap className="h-3.5 w-3.5 fill-current shrink-0" />
+                    <span>50 Free Credits</span>
+                  </span>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Feature list with Landing-page style circular dark checkmarks */}
+              <ul className="mt-8 space-y-3.5 border-t border-zinc-100 pt-6">
+                {[
+                  "50 Complimentary AI Credits on signup",
+                  "Full access to all 5 AI Studios",
+                  "Real-time Before / After split comparisons",
+                  "Standard 1080p resolution exports",
+                  "Community support & tutorial library",
+                  "Interactive canvas & style selector",
+                ].map((feat, i) => (
+                  <li key={i} className="flex items-center gap-3 text-xs sm:text-sm text-zinc-700">
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </div>
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-8 pt-4">
+              {currentPlan === "free" ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full flex h-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold cursor-default gap-1.5"
+                >
+                  <Check className="h-4 w-4 stroke-[2.5]" />
+                  <span>Current Active Tier</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOpenCustomerPortal}
+                  disabled={portalLoading}
+                  className="w-full flex h-11 items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 text-zinc-700 text-xs font-bold transition-all cursor-pointer border-0 outline-none"
+                >
+                  <span>Downgrade via Stripe</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* CARD 2: Basic Plan (Featured Solid Orange Card - Center, Landing Page Masterpiece) */}
+          <div
+            className={`relative flex flex-col justify-between rounded-3xl bg-gradient-to-b from-[#FF5500] via-[#FF6600] to-[#FF771C] p-6 sm:p-7 xl:p-8 text-white shadow-2xl shadow-orange-600/30 lg:-translate-y-4 lg:py-10 transition-transform hover:-translate-y-5 duration-300 ${
+              currentPlan === "basic" ? "ring-4 ring-white/80" : ""
+            }`}
+          >
+            {/* Top Badge Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-xs">
+                <Flame className="h-5 w-5 fill-white" />
+              </div>
+              {currentPlan === "basic" ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700 uppercase tracking-wider shadow-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  YOUR ACTIVE PLAN
+                </span>
+              ) : (
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#FF5500] uppercase tracking-wider shadow-sm">
+                  MOST POPULAR
+                </span>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-2xl font-bold text-white">
+                Basic Plan{" "}
+                <span className="block text-orange-100 text-sm font-medium">
+                  Daily Creator Studio
+                </span>
+              </h3>
+
+              <div className="mt-5 space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">$9.99</span>
+                  <div className="flex flex-col text-[11px] leading-tight font-semibold">
+                    <span className="text-orange-200 line-through">$19</span>
+                    <span className="text-orange-100 whitespace-nowrap">/ month</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-xs px-3 py-1 text-xs font-bold text-white shadow-xs whitespace-nowrap">
+                    <Zap className="h-3.5 w-3.5 fill-white shrink-0" />
+                    <span>450 Credits / mo</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Feature list with White circular checkmarks */}
+              <ul className="mt-8 space-y-3.5 border-t border-white/20 pt-6">
+                {[
+                  "450 AI Generation Credits every month",
+                  "Ultra-HD 4K lossless downloads & exports",
+                  "Fast-track priority GPU cloud queue",
+                  "Commercial usage rights for social media & ads",
+                  "Access to all AI Hairstyles, Makeup & Virtual Try-On",
+                  "Automatic monthly credit renewal & rollover",
+                  "Cancel or update payment anytime in 1 click",
+                ].map((feat, i) => (
+                  <li key={i} className="flex items-start gap-3 text-xs sm:text-sm text-white font-medium">
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[#FF5500] mt-0.5 shadow-xs">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </div>
+                    <span className="leading-tight">{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-8 pt-4">
+              {currentPlan === "basic" ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full flex h-12 items-center justify-center rounded-full bg-white/95 text-xs font-bold text-emerald-700 shadow-md cursor-default gap-1.5"
+                >
+                  <Check className="h-4 w-4 stroke-[2.5]" />
+                  <span>Current Active Tier</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSubscribe("basic")}
+                  disabled={loadingPlan !== null}
+                  className="w-full flex h-12 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF5500] shadow-lg shadow-black/10 hover:bg-orange-50 transition-colors cursor-pointer disabled:opacity-50 gap-1.5"
+                >
+                  {loadingPlan === "basic" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-[#FF5500]" />
+                      <span>Connecting Stripe...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{currentPlan === "pro" ? "Switch to Basic" : "Subscribe to Basic"}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* CARD 3: Pro Plan */}
+          <div
+            className={`relative flex flex-col justify-between rounded-3xl border bg-white p-6 sm:p-7 xl:p-8 shadow-lg shadow-orange-900/5 transition-transform hover:-translate-y-1.5 duration-300 ${
+              currentPlan === "pro"
+                ? "border-emerald-500 ring-2 ring-emerald-500/80 shadow-emerald-500/10"
+                : "border-orange-200/80"
+            }`}
+          >
+            {/* Top Badge Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#FF5500]">
+                <Crown className="h-5 w-5" />
+              </div>
+              {currentPlan === "pro" ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wider shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  YOUR ACTIVE PLAN
+                </span>
+              ) : (
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-[#FF5500] uppercase tracking-wider">
+                  PRO POWER
+                </span>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-xl font-bold text-zinc-900">
+                Pro Plan{" "}
+                <span className="block text-zinc-500 text-sm font-medium">
+                  Agency &amp; Brand Power
+                </span>
+              </h3>
+
+              <div className="mt-5 space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight">$24.99</span>
+                  <div className="flex flex-col text-[11px] leading-tight font-semibold">
+                    <span className="text-zinc-400 line-through">$49</span>
+                    <span className="text-zinc-500 whitespace-nowrap">/ month</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-bold text-[#FF5500] whitespace-nowrap">
+                    <Zap className="h-3.5 w-3.5 fill-current shrink-0" />
+                    <span>1,000 Credits / mo</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Feature list with Landing-page style circular dark checkmarks */}
+              <ul className="mt-8 space-y-3.5 border-t border-zinc-100 pt-6">
+                {[
+                  "1,000 AI Generation Credits every month",
+                  "Maximum VIP Dedicated GPU cloud priority",
+                  "Full commercial license & white-label ready",
+                  "Batch AI virtual try-on processing",
+                  "Direct access to all future beta & pro studio models",
+                  "Priority 24/7 dedicated creator support",
+                  "Stripe Customer Billing Portal & tax invoices",
+                ].map((feat, i) => (
+                  <li key={i} className="flex items-center gap-3 text-xs sm:text-sm text-zinc-700">
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </div>
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-8 pt-4">
+              {currentPlan === "pro" ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full flex h-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold cursor-default gap-1.5"
+                >
+                  <Check className="h-4 w-4 stroke-[2.5]" />
+                  <span>Current Active Tier</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSubscribe("pro")}
+                  disabled={loadingPlan !== null}
+                  className="w-full flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] hover:from-[#E64C00] hover:to-[#FF6A00] text-xs font-bold text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer disabled:opacity-50 gap-1.5"
+                >
+                  {loadingPlan === "pro" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-white" />
+                      <span>Connecting Stripe...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Upgrade to Pro</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 5. Invoices & Transaction History */}
-      <div className="space-y-4 pt-6 border-t border-orange-100/80">
+      {/* 5. Invoices & Transaction History (Fully Mobile Responsive Dual View) */}
+      <div id="invoices-section" className="space-y-4 pt-6 border-t border-orange-100/80 scroll-mt-24">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Receipt className="h-4 w-4 text-[#FF5500]" />
-            <h3 className="text-base font-black text-zinc-900">
+            <h3 className="text-base sm:text-lg font-black text-zinc-900">
               Invoices &amp; Payment History
             </h3>
           </div>
           <button
             type="button"
             onClick={fetchBillingHistory}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-500 hover:text-[#FF5500] transition self-start sm:self-auto cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-[#FF5500] transition self-start sm:self-auto cursor-pointer"
           >
-            <RefreshCw className="h-3 w-3" />
+            <RefreshCw className="h-3.5 w-3.5 text-[#FF5500]" />
             <span>Refresh History</span>
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-2xs">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-stone-50/70 border-b border-orange-100/70 text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
-              <tr>
-                <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4">Plan / Description</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Credits Allotted</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Receipt / Invoice</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-orange-100/60 font-medium text-zinc-700">
-              {transactionsLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-zinc-400">
-                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#FF5500] mb-1" />
-                    <span>Loading billing history...</span>
-                  </td>
-                </tr>
-              ) : transactions.length > 0 ? (
-                transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-orange-50/40 transition">
-                    <td className="py-3.5 px-4 text-zinc-500">
-                      {new Date(tx.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-zinc-900 capitalize">
+        {/* MOBILE VIEW: Stacked Responsive Cards (< md) */}
+        <div className="block md:hidden space-y-3">
+          {transactionsLoading ? (
+            <div className="rounded-2xl border border-orange-100 bg-white p-6 text-center text-zinc-400">
+              <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#FF5500] mb-2" />
+              <span className="text-xs">Loading billing history...</span>
+            </div>
+          ) : transactions.length > 0 ? (
+            transactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="rounded-2xl border border-orange-100 bg-white p-4 shadow-2xs space-y-3"
+              >
+                {/* Header: Date + Status */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-500 font-medium">
+                    {new Date(tx.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-bold capitalize">
+                    {tx.status || "completed"}
+                  </span>
+                </div>
+
+                {/* Plan + Price */}
+                <div className="flex items-center justify-between border-t border-orange-50 pt-2.5">
+                  <div>
+                    <h4 className="text-sm font-black text-zinc-900 capitalize">
                       {tx.plan} Subscription
-                    </td>
-                    <td className="py-3.5 px-4 font-black text-zinc-900">
-                      {tx.amount || (tx.plan === "pro" ? "$24.99" : "$9.99")}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-[#FF5500]">
-                      +{tx.credits_allotted} Credits
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
-                        {tx.status || "Settled"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        type="button"
-                        onClick={handleOpenCustomerPortal}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer"
-                        title="Download Stripe PDF receipt"
-                      >
-                        <Download className="h-3 w-3" />
-                        <span>Stripe PDF</span>
-                      </button>
+                    </h4>
+                    <span className="text-xs font-bold text-[#FF5500]">
+                      +{tx.credits_allotted} Credits Allotted
+                    </span>
+                  </div>
+                  <span className="text-base font-black text-zinc-900">
+                    {tx.amount || (tx.plan === "pro" ? "$24.99" : "$9.99")}
+                  </span>
+                </div>
+
+                {/* Download PDF Action */}
+                <div className="border-t border-orange-50 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={handleOpenCustomerPortal}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-orange-200/90 bg-orange-50/50 py-2 text-xs font-bold text-[#FF5500] hover:bg-orange-100/70 transition cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Download Stripe PDF Receipt</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-2xl border border-orange-100 bg-white p-6 text-center text-xs text-zinc-400">
+              No transactions yet. Free account bonuses and Stripe subscription payments will be listed here.
+            </div>
+          )}
+        </div>
+
+        {/* DESKTOP / TABLET VIEW: Full Data Table with Horizontal Scroll (>= md) */}
+        <div className="hidden md:block overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-2xs">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] text-left text-xs">
+              <thead className="bg-stone-50/70 border-b border-orange-100/70 text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Plan / Description</th>
+                  <th className="py-3 px-4">Amount</th>
+                  <th className="py-3 px-4">Credits Allotted</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Receipt / Invoice</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-orange-100/60 font-medium text-zinc-700">
+                {transactionsLoading ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-zinc-400">
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto text-[#FF5500] mb-1" />
+                      <span>Loading billing history...</span>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="py-6 px-4 text-center text-zinc-400">
-                    No transactions yet. Free account bonuses and Stripe subscription payments will be listed here.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ) : transactions.length > 0 ? (
+                  transactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-orange-50/40 transition">
+                      <td className="py-3.5 px-4 text-zinc-500 whitespace-nowrap">
+                        {new Date(tx.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-zinc-900 capitalize whitespace-nowrap">
+                        {tx.plan} Subscription
+                      </td>
+                      <td className="py-3.5 px-4 font-black text-zinc-900 whitespace-nowrap">
+                        {tx.amount || (tx.plan === "pro" ? "$24.99" : "$9.99")}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-[#FF5500] whitespace-nowrap">
+                        +{tx.credits_allotted} Credits
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-bold capitalize">
+                          {tx.status || "completed"}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={handleOpenCustomerPortal}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer"
+                          title="Download Stripe PDF receipt"
+                        >
+                          <Download className="h-3 w-3" />
+                          <span>Stripe PDF</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-6 px-4 text-center text-zinc-400">
+                      No transactions yet. Free account bonuses and Stripe subscription payments will be listed here.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
