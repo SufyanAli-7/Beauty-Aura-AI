@@ -104,6 +104,28 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Replace Next.js Default Favicon with Luxury BeautyAura Brand Favicon & Multi-DPI Icons
+- **User Request:** "is ka favicon change karo next js wala remove karo"
+- **Actions Taken:**
+  1. **Removed Default Next.js Assets:**
+     - Replaced default `app/favicon.ico` (15,086 bytes Next.js icon).
+     - Deleted leftover starter SVGs (`public/next.svg` and `public/vercel.svg`).
+  2. **Generated Brand Favicons & Multi-Resolution App Icons:**
+     - Extracted high-resolution BeautyAura luxury emblem (`public/beauty-aura-logo.png`).
+     - Applied smooth radial anti-aliasing with transparent outer glow background so the emblem renders cleanly on both dark and light browser tabs without an ugly white box.
+     - Generated multi-resolution Windows ICO (`16x16`, `32x32`, `48x48`, `64x64`, `256x256`) saved as:
+       - `app/favicon.ico`
+       - `public/favicon.ico`
+     - Generated high-DPI PNG icons:
+       - `app/icon.png` and `public/icon.png` (32x32 standard favicon)
+       - `app/apple-icon.png` and `public/apple-icon.png` (180x180 Apple touch icon)
+       - `public/icon-192.png` (192x192 Android / PWA icon)
+       - `public/icon-512.png` (512x512 Master high-res icon)
+  3. **Configured Metadata Icons (`app/layout.tsx`):**
+     - Updated `export const metadata: Metadata` to explicitly register `icon`, `apple`, and `shortcut` links.
+- **Verification:**
+  - `npm run build`: Compiled with 0 errors across 25 routes including static metadata routes `○ /icon.png` and `○ /apple-icon.png`.
+
 ### [2026-11-06] - Fix Session Stale Redirect Flash & Idle Database Loading State
 - **Root Cause Analysis:**
   1. **Expired JWT vs 7-Day Session Cookie:** In `proxy.ts`, `isTokenValid(accessToken)` only checked whether the short-lived JWT access token (`exp` <= 1 hour) was unexpired. When a user remained idle or returned after an hour, `isTokenValid` returned `false`. Because `accessToken` was present in the cookie, the flawed clause `(hasSessionCookie && (!accessToken || hasValidAccessToken))` evaluated to `false`, causing middleware to incorrectly treat active users as unauthenticated and issue an HTTP 307 redirect to `/sign-in?redirect=/dashboard/projects`.
