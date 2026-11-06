@@ -21,16 +21,13 @@ import {
   ExternalLink,
   Crown,
   ChevronDown,
-  ShieldCheck,
-  Camera,
-  Activity,
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
 // 1. Tool Options
-export type HairBeardToolId = "color" | "hairstyle" | "frizziness" | "beard";
+export type HairBeardToolId = "color" | "hairstyle" | "beard";
 
 interface HairBeardTool {
   id: HairBeardToolId;
@@ -60,15 +57,6 @@ const HAIR_BEARD_TOOLS: HairBeardTool[] = [
     image: "/ai-photo-editing-images/hairstyle.jpg",
     description: "Try curated women's and men's cuts including blunt bobs, wolf cuts, curly fades, textured crops, and braids.",
     icon: Scissors,
-  },
-  {
-    id: "frizziness",
-    title: "AI Hair Frizziness Detection",
-    tagline: "180° multi-angle trichology scan",
-    badge: "Trichology AI",
-    image: "/ai-photo-editing-images/hair-frizziness-detect.jpg",
-    description: "Scan hair texture, flyaway density, and cuticle alignment with 4-level frizz grading and salon care regimens.",
-    icon: Sparkles,
   },
   {
     id: "beard",
@@ -412,11 +400,6 @@ export default function HairBeardStudioPage() {
   const [selectedSample, setSelectedSample] = useState<string>("/normal-headshot/girl1.png");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  // Multi-angle state for Hair Frizziness Detection (front, right profile, left profile)
-  const [frizzFrontImage, setFrizzFrontImage] = useState<string | null>(null);
-  const [frizzRightImage, setFrizzRightImage] = useState<string | null>(null);
-  const [frizzLeftImage, setFrizzLeftImage] = useState<string | null>(null);
-
   // 3. Dynamic Look Controls State
   // Hair Color
   const [colorMode, setColorMode] = useState<"preset" | "custom">("preset");
@@ -436,9 +419,6 @@ export default function HairBeardStudioPage() {
 
   // Beard Style
   const [selectedBeardId, setSelectedBeardId] = useState<string>("all_circle");
-
-  // Hair Frizziness
-  const [frizzSensitivity, setFrizzSensitivity] = useState<"standard" | "high">("standard");
 
   // 4. Studio Generation & Canvas State
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -508,23 +488,6 @@ export default function HairBeardStudioPage() {
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string);
         setSourceType("upload");
-        setHasGenerated(false);
-        setErrorMessage(null);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Multi-angle file upload handler for Frizziness Detection
-  const handleAngleUpload = (angle: "front" | "right" | "left", e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        if (angle === "front") setFrizzFrontImage(dataUrl);
-        if (angle === "right") setFrizzRightImage(dataUrl);
-        if (angle === "left") setFrizzLeftImage(dataUrl);
         setHasGenerated(false);
         setErrorMessage(null);
       };
@@ -621,11 +584,6 @@ export default function HairBeardStudioPage() {
           templateId: selectedBeardId,
           lookName: `Beard - ${tpl?.title || selectedBeardId}`,
         };
-      } else if (selectedTool === "frizziness") {
-        lookDataPayload = {
-          sensitivity: frizzSensitivity,
-          lookName: "180° Hair Frizz Diagnostic Scan",
-        };
       }
 
       const userId = user?.id || "guest-user";
@@ -637,11 +595,6 @@ export default function HairBeardStudioPage() {
           userId,
           toolId: selectedTool,
           sourceImageUrl: activeSourceImage,
-          multiAngleUrls: {
-            front: frizzFrontImage || activeSourceImage,
-            right: frizzRightImage || activeSourceImage,
-            left: frizzLeftImage || activeSourceImage,
-          },
           lookData: lookDataPayload,
         }),
       });
@@ -721,7 +674,7 @@ export default function HairBeardStudioPage() {
             Hair &amp; Beard Studio
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-            Simulate salon hair colors, trending cuts, full beard styles &amp; 180° hair frizz diagnostics.
+            Simulate salon hair colors, trending cuts &amp; full beard styles.
           </p>
         </div>
 
@@ -782,7 +735,7 @@ export default function HairBeardStudioPage() {
                   Choose Hair &amp; Beard Tool
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-[#FF5500]">4 Features</span>
+              <span className="text-[11px] font-bold text-[#FF5500]">3 Features</span>
             </div>
 
             <div className="space-y-2.5">
@@ -937,88 +890,6 @@ export default function HairBeardStudioPage() {
                     />
                   </label>
                 )}
-
-                {/* Specific Multi-Angle slots if Frizziness Detection is selected */}
-                {selectedTool === "frizziness" && (
-                  <div className="rounded-2xl border border-orange-200/80 bg-orange-50/30 p-3 space-y-2.5">
-                    <div className="flex items-start gap-2">
-                      <Camera className="h-4 w-4 text-[#FF5500] shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-xs font-extrabold text-zinc-900 block">
-                          180° Multi-Angle Photo Calibration
-                        </span>
-                        <p className="text-[11px] text-zinc-600 leading-relaxed mt-0.5">
-                          Hair Frizz Analyzer requires 3 camera angles for follicle depth scan: Front (<span className="font-bold text-[#FF5500]">&lt;10°</span>), Right Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>), Left Profile (<span className="font-bold text-[#FF5500]">&gt;15°</span>).
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 pt-1">
-                      {/* Front Angle Slot */}
-                      <label className="relative flex flex-col items-center justify-center p-2 rounded-xl border border-orange-200/80 bg-white hover:bg-orange-50/40 transition cursor-pointer text-center min-h-[75px]">
-                        {frizzFrontImage ? (
-                          <div className="relative h-12 w-full rounded overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={frizzFrontImage} alt="Front" className="h-full w-full object-cover" />
-                          </div>
-                        ) : (
-                          <>
-                            <span className="text-[10px] font-bold text-zinc-800">Front (0°)</span>
-                            <span className="text-[9px] text-[#FF5500]">Upload</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleAngleUpload("front", e)}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {/* Right Angle Slot */}
-                      <label className="relative flex flex-col items-center justify-center p-2 rounded-xl border border-orange-200/80 bg-white hover:bg-orange-50/40 transition cursor-pointer text-center min-h-[75px]">
-                        {frizzRightImage ? (
-                          <div className="relative h-12 w-full rounded overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={frizzRightImage} alt="Right" className="h-full w-full object-cover" />
-                          </div>
-                        ) : (
-                          <>
-                            <span className="text-[10px] font-bold text-zinc-800">Right (&gt;15°)</span>
-                            <span className="text-[9px] text-[#FF5500]">Upload</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleAngleUpload("right", e)}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {/* Left Angle Slot */}
-                      <label className="relative flex flex-col items-center justify-center p-2 rounded-xl border border-orange-200/80 bg-white hover:bg-orange-50/40 transition cursor-pointer text-center min-h-[75px]">
-                        {frizzLeftImage ? (
-                          <div className="relative h-12 w-full rounded overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={frizzLeftImage} alt="Left" className="h-full w-full object-cover" />
-                          </div>
-                        ) : (
-                          <>
-                            <span className="text-[10px] font-bold text-zinc-800">Left (&gt;15°)</span>
-                            <span className="text-[9px] text-[#FF5500]">Upload</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleAngleUpload("left", e)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -1096,7 +967,6 @@ export default function HairBeardStudioPage() {
                   {selectedTool === "color" && "Color Palette & Shine"}
                   {selectedTool === "hairstyle" && "Curated Haircut Catalog"}
                   {selectedTool === "beard" && "Barber Beard Styles"}
-                  {selectedTool === "frizziness" && "Diagnostic Scan Settings"}
                 </h3>
               </div>
             </div>
@@ -1512,61 +1382,6 @@ export default function HairBeardStudioPage() {
               </div>
             )}
 
-            {/* D. TOOL 4: AI Hair Frizziness Detection */}
-            {selectedTool === "frizziness" && (
-              <div className="space-y-3.5">
-                <div className="rounded-2xl border border-orange-200/80 bg-orange-50/40 p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-[#FF5500]" />
-                    <span className="text-xs font-bold text-zinc-900">
-                      Trichology Frizz Grading Engine
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-zinc-600 leading-relaxed">
-                    Evaluates strand disorder, flyaway frequency, and cuticle lifting into 4 clinical tiers: Smooth, Slightly Frizzy, Moderately Frizzy, and Extremely Frizzy.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-700">Diagnostic Sensitivity:</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFrizzSensitivity("standard")}
-                      className={cn(
-                        "p-2 rounded-xl border text-left transition cursor-pointer",
-                        frizzSensitivity === "standard"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
-                          : "border-orange-100 bg-white"
-                      )}
-                    >
-                      <span className="text-xs font-bold text-zinc-900 block">Standard Scan</span>
-                      <span className="text-[10px] text-zinc-400">Strand surface flyaways</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFrizzSensitivity("high")}
-                      className={cn(
-                        "p-2 rounded-xl border text-left transition cursor-pointer",
-                        frizzSensitivity === "high"
-                          ? "bg-orange-50 border-[#FF5500] ring-1 ring-[#FF5500]"
-                          : "border-orange-100 bg-white"
-                      )}
-                    >
-                      <span className="text-xs font-bold text-zinc-900 block">Deep Cuticle Scan</span>
-                      <span className="text-[10px] text-zinc-400">Micro-porosity &amp; humidity</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-orange-100 bg-stone-50 p-2.5 text-[11px] text-zinc-500 space-y-1">
-                  <span className="font-bold text-zinc-700 block">Trichology Diagnostic Specs:</span>
-                  <p>• Requires 3 distinct views for full 180° strand depth modeling.</p>
-                  <p>• Output provides personalized defrizz salon product prescriptions.</p>
-                </div>
-              </div>
-            )}
-
             {/* Error Message Display */}
             {errorMessage && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-3 flex items-start gap-2.5">
@@ -1588,20 +1403,12 @@ export default function HairBeardStudioPage() {
                 {isGenerating ? (
                   <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                     <RefreshCw className="h-4 w-4 shrink-0 animate-spin" />
-                    <span>
-                      {selectedTool === "frizziness"
-                        ? "Analyzing Cuticles & Frizz..."
-                        : "Generating Transformation..."}
-                    </span>
+                    <span>Generating Transformation...</span>
                   </div>
                 ) : (
                   <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                     <Zap className="h-4 w-4 shrink-0 fill-current" />
-                    <span>
-                      {selectedTool === "frizziness"
-                        ? "Run Frizz Diagnostic (5 Credits)"
-                        : "Generate Hair & Beard (5 Credits)"}
-                    </span>
+                    <span>Generate Hair &amp; Beard (5 Credits)</span>
                   </div>
                 )}
               </button>
@@ -1629,7 +1436,7 @@ export default function HairBeardStudioPage() {
               </div>
 
               {/* View Mode Switcher (When result ready) */}
-              {hasGenerated && selectedTool !== "frizziness" && (
+              {hasGenerated && (
                 <div className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-stone-50/80 p-0.5">
                   <button
                     type="button"
@@ -1705,85 +1512,8 @@ export default function HairBeardStudioPage() {
                 </div>
               ) : hasGenerated ? (
                 /* CASE 2: Output View */
-                selectedTool === "frizziness" ? (
-                  /* Frizziness Trichology Diagnostic Output Card */
-                  <div className="w-full max-w-xl mx-auto space-y-4 p-2 sm:p-4 text-left">
-                    <div className="rounded-2xl border border-orange-200 bg-white p-5 shadow-sm space-y-4">
-                      <div className="flex items-center justify-between border-b border-orange-100 pb-3">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF5500]">
-                            Diagnostic Assessment
-                          </span>
-                          <h4 className="text-lg font-black text-zinc-900 mt-0.5">
-                            Hair Frizz Analysis Report
-                          </h4>
-                        </div>
-                        <div className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
-                          {analysisData?.frizz_level?.replace("_", " ").toUpperCase() || "MODERATELY FRIZZY"}
-                        </div>
-                      </div>
-
-                      {/* Score Metrics */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 text-center">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase block">Frizz Index</span>
-                          <span className="text-2xl font-black text-[#FF5500]">
-                            {analysisData?.frizz_score || 68}
-                          </span>
-                          <span className="text-[9px] text-zinc-400 block mt-0.5">Scale 0 - 100</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 text-center">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase block">Smoothness</span>
-                          <span className="text-2xl font-black text-emerald-600">
-                            {analysisData?.smoothness_index || 42}%
-                          </span>
-                          <span className="text-[9px] text-zinc-400 block mt-0.5">Cuticle Alignment</span>
-                        </div>
-                        <div className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 text-center">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase block">Flyaways</span>
-                          <span className="text-sm font-extrabold text-zinc-800 mt-1 block">
-                            {analysisData?.flyaway_density || "Moderate"}
-                          </span>
-                          <span className="text-[9px] text-zinc-400 block mt-0.5">Strand Lift</span>
-                        </div>
-                      </div>
-
-                      {/* Cuticle Details */}
-                      <div className="rounded-xl border border-orange-100 bg-stone-50 p-3 space-y-1.5 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Cuticle Status:</span>
-                          <span className="font-bold text-zinc-800">{analysisData?.cuticle_condition || "Partially Lifted"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Humidity Resistance:</span>
-                          <span className="font-bold text-zinc-800">{analysisData?.humidity_resistance || "Low Shield"}</span>
-                        </div>
-                      </div>
-
-                      {/* Recommended Care Products */}
-                      <div className="space-y-2 pt-1">
-                        <span className="text-xs font-black text-zinc-900 block">
-                          Tailored Anti-Frizz Prescriptions:
-                        </span>
-                        <div className="space-y-1.5">
-                          {(analysisData?.recommendations || [
-                            "Keratin Infused Smoothing Serum",
-                            "Sulfate-Free Moisture Bond Shampoo",
-                            "Thermal Heat Defense Shield (450°F Protection)",
-                          ]).map((rec: string, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-zinc-700">
-                              <ShieldCheck className="h-3.5 w-3.5 text-[#FF5500] shrink-0" />
-                              <span>{rec}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* Standard Image Output for Color, Cut, and Beard */
-                  <>
-                    {viewMode === "result" && (
+                <>
+                  {viewMode === "result" && (
                       <div className="relative h-full w-full flex items-center justify-center p-2">
                         <div className="relative h-full w-full max-h-[560px] aspect-[4/5] sm:aspect-[3/4] mx-auto overflow-hidden rounded-2xl shadow-xl border border-orange-200/70 bg-zinc-950">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1884,8 +1614,7 @@ export default function HairBeardStudioPage() {
                       </div>
                     )}
                   </>
-                )
-              ) : (
+                ) : (
                 /* CASE 3: Pre-generation State */
                 <div className="relative h-full w-full flex flex-col items-center justify-center p-6 text-center">
                   <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-orange-400/10 blur-3xl" />
@@ -1927,21 +1656,19 @@ export default function HairBeardStudioPage() {
                       <span>New Style</span>
                     </button>
 
-                    {selectedTool !== "frizziness" && (
-                      <button
-                        type="button"
-                        onClick={handleDownloadResult}
-                        disabled={isDownloading}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer disabled:opacity-60"
-                      >
-                        {isDownloading ? (
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Download className="h-3.5 w-3.5" />
-                        )}
-                        <span>{isDownloading ? "Downloading..." : "Download 4K Result"}</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handleDownloadResult}
+                      disabled={isDownloading}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/25 hover:opacity-95 transition cursor-pointer disabled:opacity-60"
+                    >
+                      {isDownloading ? (
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
+                      )}
+                      <span>{isDownloading ? "Downloading..." : "Download 4K Result"}</span>
+                    </button>
                   </>
                 )}
               </div>

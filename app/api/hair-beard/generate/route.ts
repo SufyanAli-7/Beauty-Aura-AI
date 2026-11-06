@@ -91,16 +91,16 @@ async function resolveToPublicUrl(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, toolId, sourceImageUrl, lookData, multiAngleUrls } = body;
+    const { userId, toolId, sourceImageUrl, lookData } = body;
 
-    if (!sourceImageUrl && (!multiAngleUrls || !multiAngleUrls.front)) {
+    if (!sourceImageUrl) {
       return NextResponse.json(
         { success: false, error: "Source portrait image is required." },
         { status: 400 }
       );
     }
 
-    if (!toolId || !["color", "hairstyle", "frizziness", "beard"].includes(toolId)) {
+    if (!toolId || !["color", "hairstyle", "beard"].includes(toolId)) {
       return NextResponse.json(
         { success: false, error: "Invalid or missing Hair & Beard tool ID." },
         { status: 400 }
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Resolve source image to a public URL
-    const primarySource = sourceImageUrl || multiAngleUrls?.front;
+    const primarySource = sourceImageUrl;
     const publicSourceUrl = await resolveToPublicUrl(
       primarySource,
       targetUserId,
@@ -283,73 +283,12 @@ export async function POST(req: NextRequest) {
         120000,
         "beauty"
       );
-    } else if (toolId === "frizziness") {
-      toolName = "AI Hair Frizziness Detection";
-
-      // Hair Frizziness Detection expects 3 photo URLs: front, right, left
-      const frontInput = multiAngleUrls?.front || sourceImageUrl;
-      const rightInput = multiAngleUrls?.right || sourceImageUrl;
-      const leftInput = multiAngleUrls?.left || sourceImageUrl;
-
-      const [publicFront, publicRight, publicLeft] = await Promise.all([
-        resolveToPublicUrl(frontInput, targetUserId, "frizz-front", admin),
-        resolveToPublicUrl(rightInput, targetUserId, "frizz-right", admin),
-        resolveToPublicUrl(leftInput, targetUserId, "frizz-left", admin),
-      ]);
-
-      console.log("[Hair & Beard API] Calling AI-Hair-Frizziness-Detection with 3 angles");
-
-      youcamResult = await callYouCamMCP(
-        "AI-Hair-Frizziness-Detection",
-        {
-          request: {
-            src_file_urls: [publicFront, publicRight, publicLeft],
-          },
-          polling: true,
-        },
-        120000,
-        "beauty"
-      );
-
-      // If detection completed with structured data:
-      if (youcamResult && youcamResult.data) {
-        analysisResult = youcamResult.data;
-      }
     }
 
     // Handle results
     let finalImageUrl = youcamResult?.imageUrl;
 
-    // For Frizziness Detection, if YouCam returned structured analysis data or if face angles were outside the strict 15° threshold:
-    if (toolId === "frizziness") {
-      if (!analysisResult) {
-        // Fallback or synthesised analysis metrics if angles require manual calibration
-        analysisResult = {
-          frizz_level: lookData?.simulatedLevel || "moderately_frizzy",
-          frizz_score: 68,
-          smoothness_index: 42,
-          humidity_resistance: "Low (Needs Defrizz Shield)",
-          flyaway_density: "Moderate to High",
-          cuticle_condition: "Partially Lifted Cuticles",
-          recommendations: [
-            "Keratin Infused Smoothing Serum",
-            "Sulfate-Free Moisture Bond Shampoo",
-            "Thermal Heat Defense Shield (450°F Protection)",
-          ],
-          source_angles_reviewed: {
-            front: "Valid (<10° frontal view)",
-            right_profile: "Calibrated (>15° sagittal view)",
-            left_profile: "Calibrated (>15° sagittal view)",
-          },
-        };
-      }
-      // For detection, use the source image as the visual reference if no heatmap image was generated
-      if (!finalImageUrl) {
-        finalImageUrl = publicSourceUrl;
-      }
-    }
-
-    if (!finalImageUrl && !analysisResult) {
+    if (!finalImageUrl) {
       console.error("[Hair & Beard API] Failed:", youcamResult);
       return NextResponse.json(
         {

@@ -109,12 +109,12 @@ export default function DashboardPage() {
     },
     {
       title: "Hair & Beard Salon",
-      description: "AI hair color virtual try-on, 80+ haircuts, 180° hair frizz detection & 15 beard styles.",
+      description: "AI hair color virtual try-on, 80+ haircuts & 15 beard styles.",
       href: "/dashboard/hair-beard",
       image: "/ai-photo-editing-images/beard-try-on.jpg",
       icon: Scissors,
       badge: "New AI Studio",
-      toolsCount: "4 Tools",
+      toolsCount: "3 Tools",
       gradient: "from-amber-600/10 to-orange-500/5",
     },
     {
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-emerald-600">Active</span>
-              <span className="text-xs font-semibold text-zinc-500">22 Tools</span>
+              <span className="text-xs font-semibold text-zinc-500">21 Tools</span>
             </div>
           </div>
 

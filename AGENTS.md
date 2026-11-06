@@ -69,14 +69,14 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, AI Body Reshape, AI Fitzpatrick Skin Type Analysis, and AI Skin Analysis with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
-  - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, Hair Frizziness Detection, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
+  - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
   - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
   - `app/api/extras/generate/route.ts`: YouCam Creators MCP generation route supporting Object Removal Pro, Background Removal, Photo Colorize, Image Extender, and Headshot Generator with automated InSForge storage caching and 5-credit deduction.
   - `lib/headshot-templates.ts`: 69 official YouCam Headshot Generator templates with categories (Suit, Shirt, Casual, Medical Attire, Blouse) and live CDN thumbnails.
   - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty, Fashion, and Creators MCP tools with automated polling, S3 resolution, and detection analysis data extraction.
   - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
-  - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 4 YouCam MCP tools, live 4K viewport, Before/After compare split slider, trichology diagnostic dashboard, and credit management.
+  - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 3 YouCam MCP tools (Hair Color, Hairstyle, Beard Style), live 4K viewport, Before/After compare split slider, and credit management.
   - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 5 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, 69 headshots, and synchronized studio layout.
   - `app/dashboard/skin-face/page.tsx`: Complete AI Skin, Face & Body Studio with 6 YouCam Beauty MCP tools (Abs Filter, Smile Generator, Aging Simulation, 3D Body Reshape, Fitzpatrick Mapping, 12-Point Skin Analysis), Before/After split slider, clinical dermatological report dashboards, curated models, and 4K export.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
@@ -84,6 +84,29 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Remove AI Hair Frizziness Detection & Synchronize Studio Counts
+- **Removed "AI Hair Frizziness Detection" Tool (`app/dashboard/hair-beard/page.tsx`):**
+  - Updated `HairBeardToolId` type to `"color" | "hairstyle" | "beard"`.
+  - Removed frizziness tool entry from `HAIR_BEARD_TOOLS`.
+  - Removed all multi-angle photo states (`frizzFrontImage`, `frizzRightImage`, `frizzLeftImage`), `frizzSensitivity`, and `handleAngleUpload`.
+  - Removed multi-angle upload UI in Step 2 and Frizz Grading Engine settings in Step 3.
+  - Removed trichology diagnostic assessment report block from canvas output, standardizing output on 4K before/after split slider and full viewport view.
+  - Updated tool count badge in Step 1 from `4 Features` to `3 Features`.
+  - Updated studio subtitle to: *"Simulate salon hair colors, trending cuts & full beard styles."*
+- **Synchronized Dashboard Overview (`app/dashboard/page.tsx`):**
+  - Updated "Hair & Beard Salon" explore card badge from `4 Tools` to `3 Tools`.
+  - Updated description to: *"AI hair color virtual try-on, 80+ haircuts & 15 beard styles."*
+  - Updated "AI Makeover Engine" active tool count stat from `22 Tools` to `21 Tools` (3 Beauty + 4 Fashion + 3 Hair & Beard + 6 Skin & Face + 5 AI Extras = 21).
+- **Backend Clean-up (`app/api/hair-beard/generate/route.ts`):**
+  - Removed `frizziness` from allowed tool IDs validation and dispatch handler.
+  - Simplified source photo handling to single portrait URL.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 9.0s with 0 errors.
+  - Chrome DevTools MCP DOM evaluation:
+    - `/dashboard`: verified `has21Tools: true`, `has22Tools: false`, `3 Tools` on Hair & Beard card, zero frizz references.
+    - `/dashboard/hair-beard`: verified `has3Features: true`, `has4Features: false`, tools count = 3, zero frizz references.
 
 ### [2026-11-06] - Fix Hair & Beard Studio "Insufficient Credits" Bug & Robust Fallback
 - **Root Cause Analysis:**
