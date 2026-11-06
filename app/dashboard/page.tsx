@@ -391,12 +391,6 @@ export default function DashboardPage() {
                   <div className="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-800">
                     {t.tool_name}
                   </div>
-                  {Array.isArray(t.settings?.multiUrls) && t.settings.multiUrls.length > 1 && (
-                    <div className="absolute top-2 right-2 rounded-full bg-[#FF5500] text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
-                      <Layers className="h-2.5 w-2.5" />
-                      <span>{t.settings.multiUrls.length} Stages</span>
-                    </div>
-                  )}
                   {/* Bottom-right: Creation time relative timestamp with frosted glass effect */}
                   <div className="absolute bottom-2 right-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/95 flex items-center gap-1.5 shadow-lg shadow-black/25">
                     <Clock className="h-2.5 w-2.5 text-orange-400" />

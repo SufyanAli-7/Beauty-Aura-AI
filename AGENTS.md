@@ -85,6 +85,20 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Harmonize Modal Scrollbar with Beauty Studio & Clean Up Project Cards
+- **Harmonized Modal Scrollbar Color (`app/dashboard/projects/page.tsx`):**
+  - Updated both scrollbars inside the transformation preview modal to use the exact custom warm orange/peach rounded scrollbar from `app/dashboard/beauty/page.tsx`:
+    - Modal Right Sidebar: `[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors`.
+    - Chronological Stages 4x4 Grid Box: `[scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors`.
+  - Eliminated browser default gray scrollbars across modal viewports.
+- **Removed Multi-Stage Badges & Subtitle from Project Cards (`app/dashboard/projects/page.tsx`, `app/dashboard/page.tsx`):**
+  - Removed `16 STAGES` badge pill from the top-right of project card thumbnails in `app/dashboard/projects/page.tsx` and `app/dashboard/page.tsx`.
+  - Removed `Includes 16 chronological stages` text under project card titles, keeping card presentation clean, minimal, and uniform with all other tools.
+  - Standardized hover quick-view overlay to `"View Modal"` across all cards.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 2.6s with 0 errors.
+
 ### [2026-11-06] - Add Multi-Stage Chronological Stages Gallery & Explorer to "My Projects"
 - **Context & Problem:**
   - AI Aging Simulation generates 16 chronological progression stages (from young to senior ages 12–70).

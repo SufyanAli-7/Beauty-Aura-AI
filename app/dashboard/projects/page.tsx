@@ -459,25 +459,13 @@ export default function ProjectsPage() {
                     <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                       <div className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-zinc-900 shadow-lg flex items-center gap-1.5 backdrop-blur-xs transform translate-y-1 group-hover:translate-y-0 transition-transform">
                         <Eye className="h-3.5 w-3.5 text-[#FF5500]" />
-                        <span>
-                          {isMultiStage && !item.parentItem
-                            ? `View All ${itemStages.length} Stages`
-                            : "View Modal"}
-                        </span>
+                        <span>View Modal</span>
                       </div>
                     </div>
 
                     <div className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-zinc-800">
                       {item.tool_name}
                     </div>
-
-                    {/* Multi-Stage Indicator Badge */}
-                    {isMultiStage && !item.parentItem && (
-                      <div className="absolute top-2 right-2 rounded-full bg-[#FF5500] text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
-                        <Layers className="h-2.5 w-2.5" />
-                        <span>{itemStages.length} Stages</span>
-                      </div>
-                    )}
 
                     {/* Bottom-right: Relative generation time with frosted glass badge */}
                     <div className="absolute bottom-2 right-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/95 flex items-center gap-1.5 shadow-lg shadow-black/25">
@@ -491,13 +479,6 @@ export default function ProjectsPage() {
                     <h4 className="text-xs font-bold text-zinc-900 truncate group-hover:text-[#FF5500] transition-colors">
                       {item.look_name || item.tool_name}
                     </h4>
-
-                    {isMultiStage && !item.parentItem && (
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-[#FF5500]">
-                        <Layers className="h-3 w-3 shrink-0" />
-                        <span>Includes {itemStages.length} chronological stages</span>
-                      </div>
-                    )}
 
                     <div className="flex items-center justify-between text-[11px] text-zinc-400">
                       <span>{new Date(item.created_at).toLocaleDateString()}</span>
@@ -776,7 +757,7 @@ export default function ProjectsPage() {
               </div>
 
               {/* Right: Info & Actions Sidebar */}
-              <div className="w-full md:w-96 lg:w-[420px] flex flex-col justify-between p-6 bg-white overflow-y-auto max-h-[45vh] md:max-h-[88vh] [scrollbar-width:thin]">
+              <div className="w-full md:w-96 lg:w-[420px] flex flex-col justify-between p-6 bg-white overflow-y-auto max-h-[45vh] md:max-h-[88vh] [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors">
                 <div className="space-y-4">
                   {/* Header with Close */}
                   <div className="flex items-start justify-between gap-3 border-b border-orange-100 pb-4">
@@ -894,7 +875,7 @@ export default function ProjectsPage() {
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-2 max-h-52 overflow-y-auto p-1.5 bg-stone-50/80 rounded-2xl border border-stone-200/80 [scrollbar-width:thin]">
+                      <div className="grid grid-cols-4 gap-2 max-h-52 overflow-y-auto p-1.5 bg-stone-50/80 rounded-2xl border border-stone-200/80 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors">
                         {modalStages.map((stageUrl, idx) => {
                           const isSelected =
                             selectedStageIndex === idx && modalView === "result";
