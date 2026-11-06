@@ -8,7 +8,6 @@ import {
   Scissors,
   Palette,
   Maximize2,
-  Crown,
   Upload,
   Zap,
   CheckCircle2,
@@ -29,12 +28,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
-import { HEADSHOT_TEMPLATES, HeadshotTemplate } from "@/lib/headshot-templates";
 
 // =============================================================================
 // 1. TOOL DEFINITIONS
 // =============================================================================
-export type ExtraToolId = "object-remove" | "bg-remove" | "colorize" | "extender" | "headshot";
+export type ExtraToolId = "object-remove" | "bg-remove" | "colorize" | "extender";
 
 interface ExtraTool {
   id: ExtraToolId;
@@ -83,15 +81,6 @@ const EXTRA_TOOLS: ExtraTool[] = [
     description: "Expand image borders beyond original boundaries for social banners, TikTok reels, and ultra-wide cinematic compositions.",
     icon: Maximize2,
   },
-  {
-    id: "headshot",
-    title: "AI Headshot Generator",
-    tagline: "69+ executive & editorial styles",
-    badge: "Corporate 4K",
-    image: "/ai-photo-editing-images/head-shot-generator.jpg",
-    description: "Transform casual selfies into LinkedIn-ready corporate headshots with tailored blazers, suits, and studio lighting.",
-    icon: Crown,
-  },
 ];
 
 // =============================================================================
@@ -135,32 +124,18 @@ const SAMPLE_SOURCES: SampleSource[] = [
     forTools: ["extender"],
   },
   {
-    id: "headshot-01",
-    name: "Lucas (Business)",
-    src: "/extras-samples/headshot-source-01.jpg",
-    hint: "Front-facing portrait with shoulders for executive headshots",
-    forTools: ["headshot"],
-  },
-  {
-    id: "headshot-02",
-    name: "Elena (Executive)",
-    src: "/extras-samples/headshot-source-02.jpg",
-    hint: "Front-facing portrait with shoulders for executive headshots",
-    forTools: ["headshot"],
-  },
-  {
     id: "boy1",
     name: "Lucas",
     src: "/normal-headshot/boy1.png",
     hint: "High-resolution portrait",
-    forTools: ["extender", "object-remove"],
+    forTools: ["bg-remove", "colorize", "extender", "object-remove"],
   },
   {
     id: "girl1",
     name: "Sophia",
     src: "/normal-headshot/girl1.png",
     hint: "High-resolution portrait",
-    forTools: ["headshot", "bg-remove", "colorize"],
+    forTools: ["bg-remove", "colorize", "extender", "object-remove"],
   },
 ];
 
@@ -195,9 +170,6 @@ const EXTENDER_ASPECTS = [
   { id: "1.5x", name: "1.5x Wide Panoramic", desc: "Balanced 25% boundary expansion on all edges", ratio: "3 / 2", visualW: "w-20", visualH: "h-14" },
 ];
 
-// Headshot Categories
-const HEADSHOT_CATEGORIES = ["All", "Suit", "Shirt", "Casual", "Medical Attire", "Blouse"];
-
 // AI Extras Pipeline Stages (World-Class Studio Loader)
 const EXTRAS_STAGES = [
   { id: "masking", label: "Segmentation & Mask", detail: "Isolating target subjects, outlines & canvas boundaries..." },
@@ -211,7 +183,7 @@ export default function ExtrasStudioPage() {
 
   // Studio Selection State
   const [selectedTool, setSelectedTool] = useState<ExtraToolId>("object-remove");
-  const [sourceType, setSourceType] = useState<"sample" | "upload">("sample");
+  const [sourceType, setSourceType] = useState<"sample" | "upload">("upload");
   const [selectedSampleId, setSelectedSampleId] = useState<string>("object-scene");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
@@ -237,22 +209,19 @@ export default function ExtrasStudioPage() {
   // 4. Extender
   const [selectedAspect, setSelectedAspect] = useState<string>("16:9");
 
-  // 5. Headshot
-  const [headshotCategory, setHeadshotCategory] = useState<string>("All");
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("male_dark_gray_suit");
-
   // Generation & Viewport States
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStageIndex, setGenerationStageIndex] = useState(0);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"result" | "split" | "original">("result");
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Layout Refs & Height Synchronization
+  // Layout Refs & Height Synchronization (Matching Beauty & Skin-Face Studios)
   const leftColRef = useRef<HTMLDivElement>(null);
   const canvasCardRef = useRef<HTMLDivElement>(null);
   const sliderContainerRef = useRef<HTMLDivElement>(null);
@@ -274,22 +243,28 @@ export default function ExtrasStudioPage() {
 
   // Synchronize left column maxHeight with Live Studio Canvas height
   useEffect(() => {
-    if (!isDesktop) {
-      setCanvasHeight(null);
-      return;
-    }
+    if (!canvasCardRef.current) return;
+
     const updateHeight = () => {
       if (canvasCardRef.current) {
-        setCanvasHeight(canvasCardRef.current.offsetHeight);
+        setCanvasHeight(canvasCardRef.current.getBoundingClientRect().height);
       }
     };
+
     updateHeight();
-    const observer = new ResizeObserver(updateHeight);
-    if (canvasCardRef.current) {
-      observer.observe(canvasCardRef.current);
-    }
-    return () => observer.disconnect();
-  }, [isDesktop, hasGenerated, selectedTool]);
+
+    const ro = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    ro.observe(canvasCardRef.current);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, [hasGenerated, selectedTool]);
 
   // Determine current active source image
   const getActiveSourceUrl = useCallback(() => {
@@ -515,12 +490,6 @@ export default function ExtrasStudioPage() {
           aspectRatio: selectedAspect,
           lookName: `Image Extender (${selectedAspect})`,
         };
-      } else if (selectedTool === "headshot") {
-        const tpl = HEADSHOT_TEMPLATES.find((t) => t.id === selectedTemplateId);
-        optionsPayload = {
-          templateId: selectedTemplateId,
-          lookName: `Executive Headshot - ${tpl?.title || selectedTemplateId}`,
-        };
       }
 
       const activeSource = getActiveSourceUrl();
@@ -552,6 +521,7 @@ export default function ExtrasStudioPage() {
         setVariationIndex(0);
       }
       setHasGenerated(true);
+      setViewMode("result");
 
       refreshCredits?.();
     } catch (err: any) {
@@ -593,14 +563,9 @@ export default function ExtrasStudioPage() {
     setErrorMessage(null);
     setGenerationProgress(0);
     setGenerationStageIndex(0);
+    setViewMode("result");
     handleClearMask();
   };
-
-  // Filtered headshot templates
-  const filteredHeadshotTemplates = HEADSHOT_TEMPLATES.filter((tpl) => {
-    if (headshotCategory === "All") return true;
-    return tpl.category.toLowerCase().includes(headshotCategory.toLowerCase());
-  });
 
   const activeSource = getActiveSourceUrl();
   const currentTool = EXTRA_TOOLS.find((t) => t.id === selectedTool) || EXTRA_TOOLS[0];
@@ -621,7 +586,7 @@ export default function ExtrasStudioPage() {
             AI Extras Studio
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-            Magic object erase, instant background removal, photo colorization, uncrop extender &amp; corporate headshots.
+            Magic inpainting brush, studio cutout, uncrop &amp; vintage photo colorizer.
           </p>
         </div>
 
@@ -664,14 +629,8 @@ export default function ExtrasStudioPage() {
            ========================================================================= */}
         <div
           ref={leftColRef}
-          style={{
-            maxHeight: isDesktop && canvasHeight ? `${canvasHeight}px` : undefined,
-          }}
-          className={cn(
-            "order-1 lg:order-none lg:col-span-5 xl:col-span-5 space-y-5",
-            isDesktop &&
-              "lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
-          )}
+          style={isDesktop && canvasHeight ? { maxHeight: `${canvasHeight}px` } : undefined}
+          className="order-1 lg:order-none lg:col-span-5 xl:col-span-5 space-y-5 lg:overflow-y-auto lg:pr-2.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-stone-100/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-orange-200/90 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#FF5500]/70 transition-colors"
         >
           {/* STEP 1: Choose Tool */}
           <div className="rounded-3xl border border-orange-100 bg-white p-5 shadow-xs space-y-3.5">
@@ -684,7 +643,7 @@ export default function ExtrasStudioPage() {
                   Choose AI Extras Tool
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-[#FF5500]">5 Features</span>
+              <span className="text-[11px] font-bold text-[#FF5500]">4 Features</span>
             </div>
 
             <div className="space-y-2.5">
@@ -808,7 +767,6 @@ export default function ExtrasStudioPage() {
                 <div className="grid grid-cols-4 gap-2">
                   {SAMPLE_SOURCES.map((sample) => {
                     const isSelected = selectedSampleId === sample.id && sourceType === "sample";
-                    const isRelevant = sample.forTools.includes(selectedTool);
                     return (
                       <button
                         key={sample.id}
@@ -824,8 +782,7 @@ export default function ExtrasStudioPage() {
                           "group relative aspect-square overflow-hidden rounded-xl border-2 transition-all cursor-pointer",
                           isSelected
                             ? "border-[#FF5500] ring-2 ring-[#FF5500]/30 shadow-xs scale-[0.98]"
-                            : "border-stone-200 hover:border-orange-200",
-                          !isRelevant && "opacity-60 hover:opacity-100"
+                            : "border-stone-200 hover:border-orange-200"
                         )}
                       >
                         <Image
@@ -848,7 +805,7 @@ export default function ExtrasStudioPage() {
                   })}
                 </div>
                 <p className="text-[10px] text-zinc-400 italic">
-                  Tip: Filtered samples match your selected {currentTool.title} feature.
+                  Tip: Select any curated high-resolution sample or switch to Upload Photo for your own image.
                 </p>
               </div>
             )}
@@ -918,14 +875,26 @@ export default function ExtrasStudioPage() {
                     <span>Clear Brush Mask</span>
                   </button>
 
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <label className="group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-stone-200/90 bg-stone-50/70 hover:bg-orange-50/50 hover:border-orange-300 transition-all cursor-pointer select-none">
+                    <div
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded-md border transition-all duration-150",
+                        removeShadow
+                          ? "border-[#FF5500] bg-[#FF5500] text-white shadow-2xs ring-2 ring-[#FF5500]/20"
+                          : "border-stone-300 bg-white group-hover:border-orange-300"
+                      )}
+                    >
+                      {removeShadow && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                    <span className="text-xs font-semibold text-zinc-700 group-hover:text-zinc-900">
+                      Erase Cast Shadows
+                    </span>
                     <input
                       type="checkbox"
                       checked={removeShadow}
                       onChange={(e) => setRemoveShadow(e.target.checked)}
-                      className="rounded text-[#FF5500] focus:ring-[#FF5500]"
+                      className="sr-only"
                     />
-                    <span className="text-xs font-bold text-zinc-700">Erase Cast Shadows</span>
                   </label>
                 </div>
               </div>
@@ -1128,78 +1097,6 @@ export default function ExtrasStudioPage() {
               </div>
             )}
 
-            {/* ===============================================================
-                TOOL 5: HEADSHOT GENERATOR CONTROLS
-               =============================================================== */}
-            {selectedTool === "headshot" && (
-              <div className="space-y-3.5">
-                {/* Category Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-                  {HEADSHOT_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setHeadshotCategory(cat)}
-                      className={cn(
-                        "px-3 py-1 text-xs font-bold rounded-full transition whitespace-nowrap cursor-pointer",
-                        headshotCategory === cat
-                          ? "bg-[#FF5500] text-white shadow-xs"
-                          : "bg-stone-100 text-zinc-600 hover:bg-orange-50"
-                      )}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                {/* 69 Official YouCam Headshot Templates Grid */}
-                <div className="max-h-60 overflow-y-auto pr-1 space-y-1.5 [scrollbar-width:thin] [scrollbar-color:#fed7aa_transparent]">
-                  <div className="grid grid-cols-3 gap-2">
-                    {filteredHeadshotTemplates.slice(0, 36).map((tpl) => {
-                      const isSelected = selectedTemplateId === tpl.id;
-                      return (
-                        <button
-                          key={tpl.id}
-                          type="button"
-                          onClick={() => setSelectedTemplateId(tpl.id)}
-                          className={cn(
-                            "group relative flex flex-col rounded-xl overflow-hidden border transition text-left cursor-pointer",
-                            isSelected
-                              ? "border-[#FF5500] ring-2 ring-[#FF5500]/30 shadow-xs"
-                              : "border-stone-200 hover:border-orange-200"
-                          )}
-                        >
-                          <div className="relative aspect-[3/4] w-full bg-stone-100">
-                            <Image
-                              src={tpl.thumb}
-                              alt={tpl.title}
-                              fill
-                              unoptimized
-                              sizes="96px"
-                              className="object-cover transition-transform group-hover:scale-105"
-                            />
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF5500] text-white">
-                                <Check className="h-2.5 w-2.5 stroke-[3]" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="p-1.5 bg-white">
-                            <span className="text-[10px] font-bold text-zinc-800 line-clamp-1">
-                              {tpl.title}
-                            </span>
-                            <span className="text-[9px] text-zinc-400 block line-clamp-1">
-                              {tpl.category}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Primary Action Button (Strictly Single-Line) */}
             <div className="pt-2">
               <button
@@ -1236,29 +1133,70 @@ export default function ExtrasStudioPage() {
         {/* =========================================================================
             RIGHT COLUMN: Live Studio Canvas & Interactive Viewport
            ========================================================================= */}
-        <div
-          ref={canvasCardRef}
-          className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 space-y-4"
-        >
-          <div className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 shadow-lg space-y-4">
+        <div className="order-2 lg:order-none lg:col-span-7 xl:col-span-7 space-y-4">
+          <div
+            ref={canvasCardRef}
+            className="relative overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 shadow-lg space-y-4"
+          >
             {/* Viewport Top Bar */}
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 px-1">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-black uppercase tracking-wider text-zinc-800">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-orange-100/80 pb-3 px-1">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="text-xs font-black uppercase tracking-wider text-zinc-800 whitespace-nowrap">
                   Live Studio Canvas
                 </span>
-                <span className="rounded-full bg-orange-100/90 text-[#FF5500] px-2 py-0.5 text-[10px] font-extrabold uppercase">
+                <span className="rounded-full bg-orange-100/90 text-[#FF5500] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide whitespace-nowrap">
                   {currentTool.badge}
                 </span>
               </div>
 
-              {hasGenerated && (
-                <div className="flex items-center gap-2">
+              {hasGenerated ? (
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {/* View Mode Switcher */}
+                  <div className="flex items-center gap-1 rounded-full border border-orange-200 bg-stone-50/80 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("result")}
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-xs font-bold transition cursor-pointer whitespace-nowrap",
+                        viewMode === "result"
+                          ? "bg-[#FF5500] text-white shadow-2xs"
+                          : "text-zinc-600 hover:text-zinc-900"
+                      )}
+                    >
+                      Result
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("split")}
+                      className={cn(
+                        "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition cursor-pointer whitespace-nowrap",
+                        viewMode === "split"
+                          ? "bg-[#FF5500] text-white shadow-2xs"
+                          : "text-zinc-600 hover:text-zinc-900"
+                      )}
+                    >
+                      <Columns2 className="h-3 w-3" />
+                      <span>Compare</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("original")}
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-xs font-bold transition cursor-pointer whitespace-nowrap",
+                        viewMode === "original"
+                          ? "bg-[#FF5500] text-white shadow-2xs"
+                          : "text-zinc-600 hover:text-zinc-900"
+                      )}
+                    >
+                      Original
+                    </button>
+                  </div>
+
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-700 hover:bg-stone-50 transition cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-700 hover:bg-stone-50 transition cursor-pointer whitespace-nowrap"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     <span>Reset</span>
@@ -1267,11 +1205,16 @@ export default function ExtrasStudioPage() {
                     type="button"
                     disabled={isDownloading}
                     onClick={handleDownload}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF5500] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#e04b00] transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF5500] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#e04b00] transition cursor-pointer whitespace-nowrap"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>{isDownloading ? "Saving..." : "Download 4K"}</span>
                   </button>
+                </div>
+              ) : (
+                <div className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1 shrink-0">
+                  <Sparkles className="h-3.5 w-3.5 text-[#FF5500]" />
+                  <span>4K Studio Output</span>
                 </div>
               )}
             </div>
@@ -1330,29 +1273,10 @@ export default function ExtrasStudioPage() {
                   </div>
                 </div>
               ) : hasGenerated && generatedImageUrl ? (
-                /* STATE B: POST-GENERATION RESULT WITH BEFORE/AFTER SLIDER */
-                <div
-                  ref={sliderContainerRef}
-                  className="relative h-full w-full select-none overflow-hidden cursor-ew-resize"
-                  onMouseDown={() => setIsDraggingSlider(true)}
-                  onTouchStart={() => setIsDraggingSlider(true)}
-                >
-                  {/* Before (Original) Image */}
-                  <Image
-                    src={activeSource}
-                    alt="Original Photo"
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 60vw"
-                    className="object-contain"
-                  />
-
-                  {/* After (Generated) Image with Dynamic Clip Path */}
-                  <div
-                    className="absolute inset-0 overflow-hidden"
-                    style={{
-                      clipPath: `inset(0 0 0 ${sliderPosition}%)`,
-                    }}
-                  >
+                /* STATE B: POST-GENERATION RESULT WITH VIEW MODES */
+                viewMode === "result" ? (
+                  /* MODE 1: PURE RESULT (No underlying original, clean transparent cutout or outpainted canvas) */
+                  <div className="relative h-full w-full flex items-center justify-center">
                     <Image
                       src={
                         extraVariations.length > 0 && extraVariations[variationIndex]
@@ -1365,26 +1289,101 @@ export default function ExtrasStudioPage() {
                       sizes="(max-width: 1024px) 100vw, 60vw"
                       className="object-contain"
                     />
-                  </div>
 
-                  {/* Draggable Divider Handle */}
-                  <div
-                    className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-2xl cursor-ew-resize"
-                    style={{ left: `${sliderPosition}%` }}
-                  >
-                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-900 shadow-xl border-2 border-[#FF5500]">
-                      <Columns2 className="h-4 w-4 text-[#FF5500]" />
+                    {/* Result Badge */}
+                    <div className="absolute top-3 right-3 z-10 rounded-full bg-[#FF5500] px-2.5 py-1 text-[10px] font-bold text-white shadow-md flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>
+                        {selectedTool === "bg-remove"
+                          ? selectedBackdrop === "transparent"
+                            ? "Transparent PNG Cutout"
+                            : `${BG_BACKDROPS.find((b) => b.id === selectedBackdrop)?.name || "Studio"} Backdrop`
+                          : selectedTool === "extender"
+                          ? `${selectedAspect} Outpainted Canvas`
+                          : selectedTool === "colorize"
+                          ? `${COLORIZE_PROFILES.find((p) => p.id === colorizeProfile)?.name || "Colorized"} 4K`
+                          : "AI Inpainted 4K"}
+                      </span>
                     </div>
                   </div>
+                ) : viewMode === "original" ? (
+                  /* MODE 2: ORIGINAL SOURCE ONLY */
+                  <div className="relative h-full w-full flex items-center justify-center">
+                    <Image
+                      src={activeSource}
+                      alt="Original Source"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                      className="object-contain"
+                    />
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
+                      Original Photo
+                    </div>
+                  </div>
+                ) : (
+                  /* MODE 3: SPLIT BEFORE/AFTER COMPARISON */
+                  <div
+                    ref={sliderContainerRef}
+                    className="relative h-full w-full select-none overflow-hidden cursor-ew-resize"
+                    onMouseDown={() => setIsDraggingSlider(true)}
+                    onTouchStart={() => setIsDraggingSlider(true)}
+                  >
+                    {/* Before (Original) Image Clipped to Left */}
+                    <div
+                      className="absolute inset-0 overflow-hidden"
+                      style={{
+                        clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
+                      }}
+                    >
+                      <Image
+                        src={activeSource}
+                        alt="Original Photo"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        className="object-contain"
+                      />
+                    </div>
 
-                  {/* Before / After Badges */}
-                  <div className="absolute top-3 left-3 z-10 rounded-full bg-black/70 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
-                    Original
+                    {/* After (Generated) Image with Dynamic Clip Path Clipped to Right */}
+                    <div
+                      className="absolute inset-0 overflow-hidden"
+                      style={{
+                        clipPath: `inset(0 0 0 ${sliderPosition}%)`,
+                      }}
+                    >
+                      <Image
+                        src={
+                          extraVariations.length > 0 && extraVariations[variationIndex]
+                            ? extraVariations[variationIndex]
+                            : generatedImageUrl
+                        }
+                        alt="AI Edit Result"
+                        fill
+                        unoptimized
+                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        className="object-contain"
+                      />
+                    </div>
+
+                    {/* Draggable Divider Handle */}
+                    <div
+                      className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-2xl cursor-ew-resize"
+                      style={{ left: `${sliderPosition}%` }}
+                    >
+                      <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-900 shadow-xl border-2 border-[#FF5500]">
+                        <Columns2 className="h-4 w-4 text-[#FF5500]" />
+                      </div>
+                    </div>
+
+                    {/* Before / After Badges */}
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-black/70 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
+                      Original
+                    </div>
+                    <div className="absolute top-3 right-3 z-10 rounded-full bg-[#FF5500] px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md">
+                      AI Transformation
+                    </div>
                   </div>
-                  <div className="absolute top-3 right-3 z-10 rounded-full bg-[#FF5500] px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md">
-                    AI Transformation
-                  </div>
-                </div>
+                )
               ) : (
                 /* STATE C: PRE-GENERATION SOURCE VIEWPORT WITH OBJECT REMOVER BRUSH CANVAS */
                 <div className="relative h-full w-full">

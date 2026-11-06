@@ -130,12 +130,12 @@ export default function DashboardPage() {
     },
     {
       title: "AI Extras & Studio Retouch",
-      description: "Magic eraser, 4K enhancer, studio relighting, background change & color grading.",
+      description: "Magic inpainting brush, studio cutout, uncrop & vintage photo colorizer.",
       href: "/dashboard/extras",
       image: "/ai-photo-editing-images/bg-change.jpg",
       icon: Layers,
       badge: "Essential",
-      toolsCount: "5 Tools",
+      toolsCount: "4 Tools",
       gradient: "from-purple-500/10 to-orange-500/5",
     },
   ];
@@ -224,7 +224,7 @@ export default function DashboardPage() {
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-emerald-600">Active</span>
-              <span className="text-xs font-semibold text-zinc-500">19 Tools</span>
+              <span className="text-xs font-semibold text-zinc-500">18 Tools</span>
             </div>
           </div>
 

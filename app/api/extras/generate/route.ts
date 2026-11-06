@@ -384,23 +384,6 @@ export async function POST(req: NextRequest) {
         120000,
         "creators"
       );
-    } else if (toolId === "headshot") {
-      toolName = "AI-Headshot-Generator";
-      const templateId = options?.templateId || "male_dark_gray_suit";
-      console.log(`[Extras API] Calling ${toolName} with template ${templateId}...`);
-      youcamResult = await callYouCamMCP(
-        toolName,
-        {
-          request: {
-            src_file_url: publicSource.url,
-            template_id: templateId,
-            output_count: 1,
-          },
-          polling: true,
-        },
-        120000,
-        "creators"
-      );
     }
 
     const finalImageUrl = youcamResult?.imageUrl;

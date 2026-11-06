@@ -247,7 +247,9 @@ export async function callYouCamMCP(
     // If task is still processing or needs manual polling
     if (!extractedUrl && !analysisData && taskId && status !== "failed") {
       console.log(`[YouCam MCP] Task ${taskId} is still in progress (${status}). Initiating polling on ${targetUrl}...`);
-      const polled = await pollTaskStatus(taskId, toolName, sessionId, 4, 2000, targetUrl);
+      const pollIntervalMs = 3000;
+      const pollAttempts = Math.min(50, Math.max(30, Math.floor(timeoutMs / pollIntervalMs)));
+      const polled = await pollTaskStatus(taskId, toolName, sessionId, pollAttempts, pollIntervalMs, targetUrl);
       if (polled.imageUrl) {
         extractedUrl = polled.imageUrl;
         status = "success";
@@ -297,8 +299,8 @@ async function pollTaskStatus(
   taskId: string,
   taskType: string,
   sessionId?: string | null,
-  maxAttempts = 4,
-  intervalMs = 2000,
+  maxAttempts = 40,
+  intervalMs = 3000,
   targetUrl = YOUCAM_BEAUTY_URL
 ): Promise<{ imageUrl?: string; urls?: string[]; data?: any; status?: string }> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -345,6 +347,13 @@ async function pollTaskStatus(
             const raw =
               result.structuredContent?.result ||
               (result.content?.[0]?.text ? JSON.parse(result.content[0].text) : null);
+
+            if (raw?.data?.task_status === "failed" || raw?.data?.error || raw?.error_message) {
+              const errMsg = raw?.data?.error || raw?.error_message || "Task failed on YouCam server";
+              console.error(`[YouCam Polling] Task ${taskId} failed:`, errMsg);
+              return { status: "failed" };
+            }
+
             if (raw?.data?.results?.url) {
               const urls = Array.isArray(raw.data.results.url)
                 ? raw.data.results.url

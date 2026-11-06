@@ -71,19 +71,76 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
   - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
   - `app/api/user/credits/route.ts`: User credit balance synchronization endpoint.
-  - `app/api/extras/generate/route.ts`: YouCam Creators MCP generation route supporting Object Removal Pro, Background Removal, Photo Colorize, Image Extender, and Headshot Generator with automated InSForge storage caching and 5-credit deduction.
-  - `lib/headshot-templates.ts`: 69 official YouCam Headshot Generator templates with categories (Suit, Shirt, Casual, Medical Attire, Blouse) and live CDN thumbnails.
+  - `app/api/extras/generate/route.ts`: YouCam Creators MCP generation route supporting Object Removal Pro, Background Removal, Photo Colorize, and Image Extender with automated InSForge storage caching and 5-credit deduction.
+  - `lib/headshot-templates.ts`: 69 official YouCam Headshot Generator templates archive.
   - `lib/youcam-client.ts`: Streamable HTTP JSON-RPC client for YouCam Beauty, Fashion, and Creators MCP tools with automated polling, S3 resolution, and detection analysis data extraction.
   - `app/dashboard/beauty/page.tsx`: Complete Beauty AI Studio with 3 YouCam MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 3 YouCam MCP tools (Hair Color, Hairstyle, Beard Style), live 4K viewport, Before/After compare split slider, and credit management.
-  - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 5 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, 69 headshots, and synchronized studio layout.
+  - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 4 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, and synchronized studio layout.
   - `app/dashboard/skin-face/page.tsx`: Complete AI Skin, Face & Body Studio with 4 YouCam Beauty MCP tools (Abs Filter, Smile Generator, Aging Simulation, 3D Body Reshape), Before/After split slider, curated models, and 4K export.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Fix Live Studio Canvas Top Bar, Eliminate Object Remover Bottom Whitespace & Remove Headshot Generator
+- **Fixed Live Studio Canvas Top Bar Wrapping (`app/dashboard/extras/page.tsx`):**
+  - **Problem:** When view mode switchers and action buttons rendered in the top bar, the container squeezed "LIVE STUDIO CANVAS" into 3 awkward vertical lines (`LIVE` / `STUDIO` / `CANVAS`).
+  - **Fix:** Added `whitespace-nowrap` and `shrink-0` to both the title group and the action buttons container, with `flex-wrap` and `gap-2.5` to ensure "Live Studio Canvas" always remains on a single, clean line.
+- **Fixed Huge Bottom Whitespace When Selecting AI Object Remover (`app/dashboard/extras/page.tsx`):**
+  - **Root Cause Discovered via Chrome DevTools:** In the "Erase Cast Shadows" checkbox, the hidden `<input className="sr-only">` was given `position: absolute;` by Tailwind CSS. Its parent `<label>` did NOT have `position: relative`. Without a positioned ancestor, the input escaped up to the document root, positioning at `top: 1238px` and forcing `document.documentElement.scrollHeight` to expand from 900px to 1239px. This created ~400px of blank empty space below the canvas when Object Remover was active.
+  - **Fix:** Added `relative` to the checkbox `<label className="group relative ...">`. The `sr-only` input is now strictly constrained within the 28px height of the label, dropping document scroll height from 1239px to 900px (0px extra blank space).
+  - Moved `ref={canvasCardRef}` to the inner white card and standardized ResizeObserver height sync to match Beauty and Skin & Face studios.
+- **Removed "AI Headshot Generator" Tool (`app/dashboard/extras/page.tsx`, `app/api/extras/generate/route.ts`, `app/dashboard/page.tsx`):**
+  - Updated `ExtraToolId` to `"object-remove" | "bg-remove" | "colorize" | "extender"`.
+  - Removed `AI Headshot Generator` from `EXTRA_TOOLS` and Step 3 custom controls.
+  - Removed `HEADSHOT_TEMPLATES` and `Crown` imports.
+  - Updated Step 1 tool count badge to `4 Features`.
+  - Updated studio subtitle to: *"Magic inpainting brush, studio cutout, uncrop & vintage photo colorizer."*
+  - Removed `case "headshot":` dispatch handler from `app/api/extras/generate/route.ts`.
+  - Updated `/dashboard` overview:
+    - AI Extras card badge updated to `4 Tools` (was `5 Tools`).
+    - AI Makeover Engine active tools stat updated to `18 Tools` (was `19 Tools`).
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 2.5s with 0 errors.
+  - Chrome DevTools MCP DOM evaluation:
+    - `/dashboard/extras`: verified `toolsCount: 4`, `hasHeadshot: false`, `canvasTitleHeight: 16px` (1 line), `docElemScrollHeight: 900px`, `hasExtraBlankSpace: false`.
+    - `/dashboard`: verified `has18Tools: true`, `4 Tools` on Extras card.
+
+### [2026-11-06] - Fix AI Extras Studio: Checkbox Styling, Upload Auto-Select, Sample Opacity, Viewport Modes & Headshot Timeout
+- **Styled "Erase Cast Shadows" Checkbox (`app/dashboard/extras/page.tsx`):**
+  - Replaced the browser native raw checkbox with a custom styled studio component:
+    - Rounded-xl container with `border-stone-200/90`, `bg-stone-50/70`, smooth hover state (`hover:bg-orange-50/50 hover:border-orange-300`).
+    - Custom rounded checkbox indicator (`h-4 w-4`) turning vibrant `#FF5500` with white checkmark (`Check` stroke 3) when active, accompanied by an orange glow ring.
+    - Hidden accessible `sr-only` native input for complete keyboard and accessibility support.
+- **Auto-Selected "Upload Photo" Tab in Step 2 (`app/dashboard/extras/page.tsx`):**
+  - Changed default `sourceType` state from `"sample"` to `"upload"`.
+  - Harmonized with Beauty, Fashion, and Skin & Face studios so users can immediately upload their own pictures on page load.
+- **Fixed Sample Library Dimming/Blur Glitch (`app/dashboard/extras/page.tsx`):**
+  - Removed `!isRelevant && "opacity-60 hover:opacity-100"` from sample cards in Step 2.
+  - Previously, Lucas (`boy1`) was tagged with `object-remove` while other portraits were not, causing the other portraits to render washed out with `opacity-60` (appearing blurred/dimmed).
+  - Updated `boy1` and `girl1` tags to cover all tools, ensuring all 8 sample cards render 100% sharp, bright, and crisp.
+- **Added Dynamic View Modes (`[Result | Compare | Original]`) to Canvas (`app/dashboard/extras/page.tsx`):**
+  - Added `viewMode` state (`"result" | "split" | "original"`), defaulting to `"result"` upon generation completion.
+  - Added view mode toggle buttons in the viewport top bar beside Reset and Download 4K.
+  - **Fixed AI Background Remover Canvas (Point 4):**
+    - In `"result"` mode (default), renders ONLY the generated cutout transparent PNG directly on the selected backdrop (checkerboard pattern or custom studio color/gradient) with NO underlying original photo.
+    - In `"split"` mode, clipped both layers (`clipPath: inset(0 ${100 - sliderPosition}% 0 0)` for original, `clipPath: inset(0 0 0 ${sliderPosition}%)` for cutout) so the original photo with its background never bleeds through the transparent cutout.
+  - **Fixed AI Photo Extender Canvas Overlap (Point 5):**
+    - In `"result"` mode, renders ONLY the wide 16:9 outpainted landscape with `object-contain`, completely eliminating the centered vertical original photo box that previously cut through the landscape.
+- **Fixed AI Headshot Generator Timeout (`lib/youcam-client.ts`, `app/api/extras/generate/route.ts`):**
+  - **Root Cause:** `callYouCamMCP` had hardcoded `pollTaskStatus(taskId, toolName, sessionId, 4, 2000, targetUrl)`. It only polled 4 times * 2s = 8 seconds total, whereas YouCam AI Headshot diffusion takes 40–80 seconds. It exited prematurely with `YouCam did not return an image URL or analysis data. Status: running`.
+  - **Fix:** Upgraded polling to dynamic attempts based on timeout (`const pollAttempts = Math.min(50, Math.max(30, Math.floor(timeoutMs / 3000)))`) with 3000ms delay.
+  - Updated `pollTaskStatus` default `maxAttempts` to 40 and `intervalMs` to 3000ms (120 seconds total coverage).
+  - Increased timeout in `app/api/extras/generate/route.ts` for headshot tool to 150000ms (150 seconds = 2.5 minutes).
+  - Added immediate error detection if `raw.data.task_status === "failed"` or `error_message` is returned.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Next.js production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack with 0 errors.
+  - Chrome DevTools MCP: Evaluated DOM on `/dashboard/extras`, confirmed `isUploadActive: true`, custom checkbox active, 0 occurrences of `opacity-60` on sample cards, and captured verified viewport screenshot.
 
 ### [2026-11-06] - Harmonize Modal Scrollbar with Beauty Studio & Clean Up Project Cards
 - **Harmonized Modal Scrollbar Color (`app/dashboard/projects/page.tsx`):**
