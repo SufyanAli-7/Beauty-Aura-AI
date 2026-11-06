@@ -300,7 +300,7 @@ export function DashboardSidebar({
                     {creditsRemaining}
                   </span>
                   <span className="text-xs font-semibold text-zinc-500">
-                    / 50 credits
+                    / {profile?.plan === "pro" ? 1000 : profile?.plan === "basic" ? 450 : 50} credits
                   </span>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export function DashboardSidebar({
               onClick={onMobileClose}
               className="inline-flex items-center gap-1 rounded-lg bg-white/90 border border-orange-200/80 px-2.5 py-1 text-xs font-bold text-[#FF5500] shadow-2xs hover:bg-[#FF5500] hover:text-white transition-all duration-200"
             >
-              <span>Refill</span>
+              <span>Manage</span>
               <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -322,12 +322,12 @@ export function DashboardSidebar({
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FFA033] transition-all duration-500"
                 style={{
-                  width: `${Math.min(100, Math.max(5, (creditsRemaining / 50) * 100))}%`,
+                  width: `${Math.min(100, Math.max(5, (creditsRemaining / (profile?.plan === "pro" ? 1000 : profile?.plan === "basic" ? 450 : 50)) * 100))}%`,
                 }}
               />
             </div>
             <div className="mt-1 flex justify-between text-[10px] font-medium text-zinc-500">
-              <span>Free Plan Tier</span>
+              <span className="capitalize">{profile?.plan ? `${profile.plan} Plan Tier` : "Free Plan Tier"}</span>
               <span>Renews monthly</span>
             </div>
           </div>

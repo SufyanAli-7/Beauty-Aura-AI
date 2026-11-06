@@ -166,9 +166,9 @@ export function DashboardHeader({
                     {userEmail}
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.2 text-[9px] font-bold text-orange-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.2 text-[9px] font-bold text-orange-700 capitalize">
                       <ShieldCheck className="h-2.5 w-2.5" />
-                      Free Plan
+                      {profile?.plan ? `${profile.plan} Plan` : "Free Plan"}
                     </span>
                   </div>
                 </div>

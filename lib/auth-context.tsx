@@ -10,6 +10,11 @@ export interface UserProfile {
   name: string | null;
   avatar_url: string | null;
   credits?: number;
+  plan?: string;
+  subscription_status?: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  plan_period_end?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -86,6 +91,12 @@ export async function syncUserToDatabase(
       if (existingUser.credits == null) {
         updates.credits = 50;
       }
+      if (!existingUser.plan) {
+        updates.plan = "free";
+      }
+      if (!existingUser.subscription_status) {
+        updates.subscription_status = "active";
+      }
       if (avatarUrl && !existingUser.avatar_url) {
         updates.avatar_url = avatarUrl;
       }
@@ -112,6 +123,8 @@ export async function syncUserToDatabase(
           name: displayName,
           avatar_url: avatarUrl,
           credits: 50,
+          plan: "free",
+          subscription_status: "active",
         },
       ])
       .select()

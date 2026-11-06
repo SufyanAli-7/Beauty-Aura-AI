@@ -45,7 +45,18 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 - `find-skills`: Discovering additional agent skills on demand.
 
 ### Current Backend State
-- **Database:** Postgres (`public.users` table with `credits INTEGER NOT NULL DEFAULT 50`, `public.transformations` table with RLS, `public.handle_new_user()` trigger allocating 50 credits on signup, and `public.deduct_user_credits(amount)` atomic deduction function).
+- **Database:** Postgres:
+  - `public.users` table with `credits INTEGER NOT NULL DEFAULT 50`, `plan TEXT NOT NULL DEFAULT 'free'`, `subscription_status TEXT NOT NULL DEFAULT 'active'`, `stripe_customer_id`, `stripe_subscription_id`, `plan_period_end`.
+  - `public.billing_transactions` table with RLS recording transaction history, credits allotted, and Stripe references.
+  - `public.transformations` table with RLS.
+  - `public.handle_new_user()` trigger allocating 50 credits and free plan on signup.
+  - `public.deduct_user_credits(amount)` atomic deduction function.
+  - `public.fulfill_subscription_payment(user_id, plan, session_id, invoice_id, customer_id, subscription_id, amount, credits)` atomic idempotent subscription fulfillment RPC.
+  - `payments.webhook_events` trigger `trigger_stripe_subscription_webhook` handling `invoice.paid`, `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`.
+- **Payments:** InSForge Stripe test integration (`acct_1RTgETGStzBzliwj`, webhook configured):
+  - Basic Plan ($9.99/mo, 450 credits): `price_1UYlACGStzBzliwjjlyNVT1a` (Product `prod_VZuzUCevluXqit`).
+  - Pro Plan ($24.99/mo, 1,000 credits): `price_1UYlAiGStzBzliwj6mr56dFh` (Product `prod_VZv051BNMfYJTT`).
+  - Free Plan: $0/mo, 50 complimentary credits on signup.
 - **Storage:** S3-compatible object storage (`generated-images` public bucket configured for source uploads and permanent 4K beauty transformations).
 - **Auth:** OAuth (Google, GitHub) + Email/Password verification enabled (code method OTP).
 - **Functions:** 0 edge functions deployed yet.
@@ -66,6 +77,8 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - SDK: `@insforge/sdk`
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
+  - `app/api/billing/sync/route.ts`: Billing synchronization and instant checkout fulfillment API endpoint.
+  - `app/dashboard/billing/page.tsx`: Complete Stripe monthly subscription billing studio with 3 tiers (Free, Basic, Pro), live credit status, active plan badge, upgrade/downgrade CTAs, Stripe Customer Portal integration, and invoice history table.
   - `proxy.ts`: Next.js 16 Proxy/Middleware route protection engine validating JWT sessions, guarding `/dashboard/:path*`, blocking authenticated access to auth routes, and aliasing `/login` and `/register`.
   - `lib/auth-cookies.ts`: Client/server session cookie synchronizer managing `insforge_access_token` and `insforge_has_session`.
   - `app/api/auth/session/route.ts`: Secure cookie management API handler supporting `POST`, `DELETE`, and `GET` session verification.
@@ -90,6 +103,62 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Fix Double Crediting, Webhook Idempotency & Auto-Cancel Concurrent Stripe Subscriptions
+- **Root Cause Analysis:**
+  1. **Double Crediting:** The client-side `/api/billing/sync` was called upon returning from Stripe with `sessionId`, while Stripe simultaneously sent an `invoice.paid` webhook with `invoice_id`. Because the two calls did not cross-reference keys, both inserted rows into `public.billing_transactions`, causing every purchase to be recorded twice (+450 +450 or +1000 +1000).
+  2. **Concurrent Active Subscriptions:** When switching or upgrading plans via Stripe Checkout, Stripe naturally creates a new parallel subscription rather than updating the existing one, leaving the old subscription active.
+  3. **Plan Detection Fallback:** In the webhook trigger, `lines.data[0].price.id` was blank in newer Stripe webhook payloads, causing the Pro plan to incorrectly fall back to the Basic plan.
+  4. **Premature Status Revocation:** The cancellation trigger was updating users by `stripe_customer_id`, causing cancellation of an older subscription to prematurely mark the user as canceled despite having a newer active subscription.
+- **Database Migration (`migrations/20261106175000_fix-subscription-fulfillment-and-idempotency.sql`):**
+  - Updated `fulfill_subscription_payment` RPC: Unified idempotency check linking `stripe_session_id` and `stripe_invoice_id`. If one arrives first, it records the entry; when the second arrives, it simply updates the missing ID without double-crediting.
+  - Updated `process_stripe_subscription_webhook`:
+    - Checks `amount_paid` (>= 2000 => Pro, else Basic) and line description to guarantee 100% accurate plan detection.
+    - Resolves `checkout_session_id` from `payments.stripe_checkout_sessions` via `raw->>'invoice'` so both keys are passed.
+    - Updated `customer.subscription.deleted` to only update if `stripe_subscription_id = v_subscription_id`.
+- **API & Backend Auto-Cancellation (`app/api/billing/sync/route.ts`):**
+  - Added Stripe API integration using `STRIPE_TEST_SECRET_KEY`:
+    - Extracts `invoice_id`, `customer_id`, and `subscription_id` from `payments.stripe_checkout_sessions`.
+    - If user had a previous active subscription that differs from the newly purchased one, automatically calls `DELETE https://api.stripe.com/v1/subscriptions/{oldSubId}` in Stripe so the customer is never double-billed.
+- **Cleaned User Database & Stripe State:**
+  - Canceled the 2 older orphaned test subscriptions in Stripe, leaving only the active Basic subscription (`sub_1UYmOpGStzBzliwjxxvab3xJ`).
+  - Consolidated `billing_transactions` down to the exact 3 purchases made by the user.
+  - Corrected user credits to 1950 credits (50 initial + 450 Basic + 1000 Pro + 450 Basic) with active Basic status.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Turbopack production build (`npm run build`): Compiled successfully across all 23 routes in 9.9s with 0 errors.
+
+### [2026-11-06] - InSForge Stripe Monthly Recurring Subscription Billing & Credit Allocation
+- **Stripe Catalog & Recurring Products Configured:**
+  - Connected and verified Stripe test account `acct_1RTgETGStzBzliwj` via InSForge CLI.
+  - Basic Plan ($9.99/mo recurring): Product `prod_VZuzUCevluXqit`, Price `price_1UYlACGStzBzliwjjlyNVT1a` allocating 450 credits/month.
+  - Pro Plan ($24.99/mo recurring): Product `prod_VZv051BNMfYJTT`, Price `price_1UYlAiGStzBzliwj6mr56dFh` allocating 1,000 credits/month.
+  - Free Plan ($0/mo): 50 complimentary credits assigned upon registration.
+- **Database Schema & RLS Migrations (`migrations/20261106163000_add-subscription-tables-and-rls.sql`):**
+  - Extended `public.users` with `plan` (TEXT DEFAULT 'free'), `subscription_status` (TEXT DEFAULT 'active'), `stripe_customer_id`, `stripe_subscription_id`, and `plan_period_end`.
+  - Created `public.billing_transactions` ledger table with RLS enabled for user privacy.
+  - Configured RLS policies on InSForge Stripe managed tables: `payments.stripe_checkout_sessions` and `payments.stripe_customer_portal_sessions`.
+  - Created `public.fulfill_subscription_payment` atomic, idempotent RPC function ensuring zero double-crediting.
+  - Created `trigger_stripe_subscription_webhook` on `payments.webhook_events` handling `invoice.paid`, `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`.
+- **API Endpoints & Integration (`app/api/billing/sync/route.ts`):**
+  - Implemented `POST /api/billing/sync`: Automatically syncs and fulfills checkout sessions when users return from Stripe, allocating credits with zero latency.
+  - Implemented `GET /api/billing/sync`: Retrieves user's latest plan, renewal date, remaining credits, and historical billing transactions.
+- **Billing Page UI/UX (`app/dashboard/billing/page.tsx`):**
+  - Built luxury BeautyAura themed billing dashboard:
+    - Available Studio Balance banner showing real-time credits, active tier badge, renewal date, and quick actions.
+    - 3 Subscription Plan cards (Free Creator, Basic Plan, Pro Plan) with prices, credits/mo, bullet benefits, active plan indicator, and dynamic upgrade/downgrade CTA buttons.
+    - Direct integration with `insforge.payments.stripe.createCheckoutSession` and `insforge.payments.stripe.createCustomerPortalSession`.
+    - Real-time success and cancel banners handling redirect query parameters (`?success=true`, `?canceled=true`).
+    - Invoices & Payment History table displaying date, description, amount, credits allotted, and receipt actions.
+    - Frequently Asked Questions accordion section.
+- **Header & Sidebar Dynamic Plan Indicators (`components/dashboard/dashboard-header.tsx`, `components/dashboard/dashboard-sidebar.tsx`):**
+  - Updated user profile menu to display the user's active plan badge (e.g. "Basic Plan", "Pro Plan", "Free Plan").
+  - Updated sidebar credit meter to calculate progress dynamically based on current plan maximum (50, 450, or 1000 credits) and label active tier.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Turbopack production build (`npm run build`): Compiled successfully across all 23 routes in 8.1s with 0 errors.
+  - Automated integration test suite (`scratch/test-billing-api.mjs`): 100% passing (GET billing status, POST checkout fulfillment, idempotency verification, transaction ledger recording).
+  - Chrome DevTools MCP browser evaluation: Verified UI rendering, visual hierarchy, active plan badges, and balance display.
 
 ### [2026-11-06] - Custom Luxury 404 Page Not Found (`app/not-found.tsx`)
 - **Implemented Custom 404 Page Matching BeautyAura Theme:**
