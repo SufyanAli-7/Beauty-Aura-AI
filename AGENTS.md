@@ -90,6 +90,25 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Fix Instant Navigation Dropped Segment Warning & Deploy Cool Luxury Loader (Zero Text)
+- **Resolved Next.js 16 Instant Navigation Segment Warning (`app/dashboard/layout.tsx`):**
+  - **Root Cause:** Next.js 16 static compiler checks layouts for instant navigation / partial prefetching. An early `if (loading) return <div />` return previously dropped `{children}` (`page.tsx`) from the initial layout segment render tree.
+  - **Fix:** Structured `DashboardLayout` so `{children}` is always rendered inside `<main>`, while unauthenticated or validating states render a full-screen fixed overlay (`fixed inset-0 z-50 bg-[#FAF7F2]`). This completely eliminates the `instant-unrendered-segment` warning during builds and dev server compilations.
+- **Created Cool Luxury Loader Component (`components/ui/cool-loader.tsx`):**
+  - Built a sleek, high-tech animated loader:
+    - Soft ambient radial glow halo (`bg-gradient-to-tr from-[#FF5500]/25 via-amber-400/20 to-transparent blur-2xl animate-pulse`).
+    - Outer orbital spinning gradient ring (`border-2 border-t-[#FF5500] border-r-amber-400 animate-spin`).
+    - Inner counter-rotating orbital ring (`border-2 border-b-[#FF5500] border-l-orange-300 animate-spin reverse`).
+    - Floating luxury emblem tile with BeautyAura logo.
+    - **Zero text:** Removed all text strings (`"Verifying Studio Credentials..."`, `"Already signed in..."`) across all refresh, login, and redirect loading states.
+- **Integrated Across Studio & Auth Screens (`app/dashboard/layout.tsx`, `app/sign-in/page.tsx`, `app/sign-up/page.tsx`, `app/auth/callback/page.tsx`):**
+  - Dashboard refresh screen now displays the cool luxury loader with zero text.
+  - Sign-in and Sign-up redirect screens and `<Suspense>` fallbacks unified with `<CoolLoader size="lg" />`.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully with 0 errors and zero dropped segment warnings across all 22 routes in Turbopack.
+  - Automated test suite (`scratch/test-route-protection.mjs`): 11/11 tests passing.
+
 ### [2026-11-06] - Full Route Protection & Complete Authentication Security
 - **Server-Side Next.js Proxy/Middleware Protection (`proxy.ts`):**
   - Protected all `/dashboard` and `/dashboard/:path*` routes:

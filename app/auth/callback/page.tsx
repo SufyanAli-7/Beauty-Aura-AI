@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { insforge } from "@/lib/insforge";
 import { syncUserToDatabase } from "@/lib/auth-context";
 import { syncAuthCookies } from "@/lib/auth-cookies";
+import { CoolLoader } from "@/components/ui/cool-loader";
 import { Sparkles, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/landing/logo";
@@ -128,7 +129,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
-          <div className="h-10 w-10 animate-spin rounded-full border-3 border-orange-200 border-t-[#FF5500]" />
+          <CoolLoader size="lg" />
         </div>
       }
     >

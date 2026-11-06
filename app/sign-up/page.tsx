@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, syncUserToDatabase } from "@/lib/auth-context";
 import { Logo } from "@/components/landing/logo";
+import { CoolLoader } from "@/components/ui/cool-loader";
 import {
   User,
   Mail,
@@ -213,13 +214,7 @@ function SignUpContent() {
   if (!loading && user && !isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FFFDFB]">
-        <div className="flex flex-col items-center gap-3">
-          <Logo />
-          <div className="flex items-center gap-2 text-stone-600 text-sm font-semibold">
-            <Loader2 className="w-4 h-4 animate-spin text-[#FF5500]" />
-            <span>Already signed in. Redirecting to studio...</span>
-          </div>
-        </div>
+        <CoolLoader size="lg" />
       </div>
     );
   }
@@ -511,7 +506,7 @@ export default function SignUpPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#FF5500]" />
+          <CoolLoader size="lg" />
         </div>
       }
     >
