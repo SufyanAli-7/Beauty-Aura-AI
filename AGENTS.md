@@ -70,6 +70,7 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `lib/auth-cookies.ts`: Client/server session cookie synchronizer managing `insforge_access_token` and `insforge_has_session`.
   - `app/api/auth/session/route.ts`: Secure cookie management API handler supporting `POST`, `DELETE`, and `GET` session verification.
   - `app/dashboard/layout.tsx`: Client-side authentication guard with branded loading screen and zero-flash redirect.
+  - `app/not-found.tsx`: Custom branded 404 Page Not Found with BeautyAura luxury aesthetic, glowing 404 gradient, quick AI Studio directory, and return actions.
   - `app/sign-in/page.tsx` & `app/sign-up/page.tsx`: Official authentication pages with client-side login guards and dynamic redirects.
   - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, and AI Body Reshape with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
@@ -89,6 +90,24 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Custom Luxury 404 Page Not Found (`app/not-found.tsx`)
+- **Implemented Custom 404 Page Matching BeautyAura Theme:**
+  - Designed custom `app/not-found.tsx` with BeautyAura's luxury aesthetic:
+    - Soft warm background (`bg-[#FAF7F2]`) with radiant amber/orange ambient blur glows (`from-[#FF5500]/15 via-amber-300/15`).
+    - Top header with official interactive [`Logo`](file:///c:/Users/user/Desktop/ai-virtual-try-on/components/landing/logo.tsx) and quick "Go to Studio" link.
+    - Central frosted glass card with signature double-offset wireframe borders (`rotate-[2.5deg]`, `rotate-[-2deg]`).
+    - Radiant 404 typography with `#FF5500` to amber gradient fill and floating sparkle indicators.
+    - Status pill badge: `"404 Error • Page Not Found"` with pulsing live indicator.
+    - Direct action CTAs:
+      - Primary: `"Return to Studio"` (gradient button linking to `/dashboard`).
+      - Secondary: `"Homepage"` (linking to `/`).
+      - Utility: `"Go Back"` (`router.back()`).
+    - Quick AI Studio Shortcuts directory: Instant one-click pills for all 5 Studios (Beauty & Makeup, Fashion Try-On, Hair & Beard, Skin & Body, AI Extras).
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 22 routes in Turbopack in 13.6s with 0 errors.
+  - Chrome DevTools MCP browser verification: Successfully navigated to non-existent route (`http://localhost:3000/this-page-does-not-exist`), confirming full layout rendering, typography, studio pills, and responsive styling.
 
 ### [2026-11-06] - Fix Instant Navigation Dropped Segment Warning & Deploy Cool Luxury Loader (Zero Text)
 - **Resolved Next.js 16 Instant Navigation Segment Warning (`app/dashboard/layout.tsx`):**
