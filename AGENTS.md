@@ -104,6 +104,37 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Fix Session Stale Redirect Flash & Idle Database Loading State
+- **Root Cause Analysis:**
+  1. **Expired JWT vs 7-Day Session Cookie:** In `proxy.ts`, `isTokenValid(accessToken)` only checked whether the short-lived JWT access token (`exp` <= 1 hour) was unexpired. When a user remained idle or returned after an hour, `isTokenValid` returned `false`. Because `accessToken` was present in the cookie, the flawed clause `(hasSessionCookie && (!accessToken || hasValidAccessToken))` evaluated to `false`, causing middleware to incorrectly treat active users as unauthenticated and issue an HTTP 307 redirect to `/sign-in?redirect=/dashboard/projects`.
+  2. **1-Second Flash of Sign-In Page:** Upon landing on `/sign-in`, the client-side InSForge SDK retrieved the active session via refresh token, detected that the user was logged in, and instantly called `router.replace(redirect)` while syncing cookies via `POST /api/auth/session`, creating an annoying 1-second sign-in flash.
+  3. **Idle Database Query Hang in My Transformations:** When navigating to "My Transformations" after a long period of inactivity, the client attempted a PostgREST query with an expired JWT token. Since PostgREST returned `401` with an unhandled error code, the request failed or hung without refreshing, leaving the page indefinitely in a spinning state.
+- **Fixes Applied:**
+  - **Middleware Route Protection (`proxy.ts`):**
+    - Updated `isAuthenticated` calculation:
+      ```ts
+      const hasValidAccessToken = accessToken ? isTokenValid(accessToken) : false;
+      const isAuthenticated = Boolean(
+        hasValidAccessToken ||
+        hasSessionCookie ||
+        refreshToken
+      );
+      ```
+    - Users with an active 7-day session cookie (`insforge_has_session=true`) are recognized as authenticated, granting seamless access to dashboard routes without any redirect or flash of `/sign-in`.
+  - **Proactive Token Refresh Engine (`lib/auth-context.tsx`):**
+    - Implemented `isJwtExpiringSoon(token, leewaySeconds = 300)` helper.
+    - Added `ensureValidSession()` callback that automatically triggers `insforge.auth.refreshSession()` whenever the JWT is nearing expiration.
+    - Registered `window.addEventListener("focus")` and `document.addEventListener("visibilitychange")` listeners so returning to the tab immediately refreshes the auth token before user interactions.
+    - Added a 5-minute background interval `setInterval` to keep tokens perpetually active during prolonged sessions.
+  - **Transformations Loading & Refresh (`app/dashboard/projects/page.tsx`):**
+    - Added proactive token validation before database query execution in `loadTransformations()`.
+    - Added a dedicated "Refresh" button in the projects header.
+  - **Next.js 16 Scroll Behavior Fix (`app/layout.tsx`):**
+    - Added `data-scroll-behavior="smooth"` to `<html>` to resolve the Next.js 16 hydration warning.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Turbopack production build (`npm run build`): Compiled successfully across all 23 routes in 14.4s with 0 errors.
+
 ### [2026-11-06] - Pricing Typography Wrap & Alignment Fix (`$49 / month` Split Bug)
 - **Eliminated Pricing Text Wrap & Border Bleed:**
   - **Identified Issue:** In the pricing cards, `$24.99` (rendered at `text-4xl xl:text-5xl`) along with strikethrough `$49` and `/ Per Month` in a flat flex row exceeded the card's column width on 1024px-1280px viewports, causing `/ month` to break awkwardly onto a second line right at the border.

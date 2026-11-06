@@ -26,12 +26,15 @@ export function proxy(request: NextRequest) {
   const hasSessionCookie = request.cookies.get("insforge_has_session")?.value === "true";
   const refreshToken = request.cookies.get("insforge_refresh_token")?.value;
 
-  // Validate active session
+  // Validate active session:
+  // A user is authenticated if they have a non-expired access token, a refresh token,
+  // or an active 7-day session cookie (in which case the client SDK refreshes the access token).
   const hasValidAccessToken = accessToken ? isTokenValid(accessToken) : false;
-  const isAuthenticated =
+  const isAuthenticated = Boolean(
     hasValidAccessToken ||
-    Boolean(refreshToken) ||
-    (hasSessionCookie && (!accessToken || hasValidAccessToken));
+    hasSessionCookie ||
+    refreshToken
+  );
 
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isAuthRoute =

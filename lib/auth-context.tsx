@@ -4,6 +4,25 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { insforge } from "@/lib/insforge";
 import { syncAuthCookies } from "@/lib/auth-cookies";
 
+/**
+ * Checks if a JWT token is expired or will expire within the given leeway window (seconds).
+ */
+export function isJwtExpiringSoon(token: string | null | undefined, leewaySeconds = 300): boolean {
+  if (!token) return true;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (payload.exp && typeof payload.exp === "number") {
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp <= now + leewaySeconds;
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -207,6 +226,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Proactively ensure active session has a valid, non-expired JWT access token
+  const ensureValidSession = useCallback(async (): Promise<boolean> => {
+    try {
+      const currentToken = (insforge.auth as any)?.tokenManager?.getAccessToken?.() || null;
+      if (!currentToken || isJwtExpiringSoon(currentToken, 300)) {
+        const { data, error } = await insforge.auth.refreshSession();
+        if (!error && data?.accessToken) {
+          syncAuthCookies(data.accessToken, data.user?.id || user?.id);
+          return true;
+        }
+      }
+      return true;
+    } catch (e) {
+      console.warn("Session auto-refresh warning:", e);
+      return false;
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -217,20 +254,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     void init();
 
-    // Subscribe to auth state changes
+    // 1. Subscribe to auth state changes from InsForge SDK
     const unsubscribe = insforge.auth.onAuthStateChange(async () => {
       if (!cancelled) {
         await hydrateAuth();
       }
     });
 
+    // 2. Periodic background token refresh check every 5 minutes
+    const refreshInterval = setInterval(() => {
+      if (!cancelled && typeof window !== "undefined") {
+        void ensureValidSession();
+      }
+    }, 5 * 60 * 1000);
+
+    // 3. Proactively refresh token whenever user switches back to tab or computer wakes from sleep
+    const handleWakeup = () => {
+      if (!cancelled && typeof document !== "undefined" && document.visibilityState === "visible") {
+        void ensureValidSession();
+      }
+    };
+
+    window.addEventListener("focus", handleWakeup);
+    document.addEventListener("visibilitychange", handleWakeup);
+
     return () => {
       cancelled = true;
+      clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleWakeup);
+      document.removeEventListener("visibilitychange", handleWakeup);
       if (typeof unsubscribe === "function") {
         unsubscribe();
       }
     };
-  }, [hydrateAuth]);
+  }, [hydrateAuth, ensureValidSession]);
 
   // Sign In with Email & Password
   const signInWithEmail = async (email: string, password: string) => {

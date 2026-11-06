@@ -23,7 +23,7 @@ import {
   Play,
   Pause,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, isJwtExpiringSoon } from "@/lib/auth-context";
 import { insforge } from "@/lib/insforge";
 
 interface TransformationItem {
@@ -233,31 +233,39 @@ export default function ProjectsPage() {
   };
 
   // Fetch transformations from database
-  useEffect(() => {
-    async function loadTransformations() {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const { data, error } = await insforge.database
-          .from("transformations")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (!error && data) {
-          setTransformations(data as TransformationItem[]);
-        }
-      } catch (err) {
-        console.error("Error loading transformations:", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadTransformations = React.useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
     }
+    try {
+      setLoading(true);
 
-    loadTransformations();
+      // Verify token is fresh before querying database
+      const currentToken = (insforge.auth as any)?.tokenManager?.getAccessToken?.();
+      if (currentToken && isJwtExpiringSoon(currentToken, 120)) {
+        await insforge.auth.refreshSession().catch(() => {});
+      }
+
+      const { data, error } = await insforge.database
+        .from("transformations")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setTransformations(data as TransformationItem[]);
+      }
+    } catch (err) {
+      console.error("Error loading transformations:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    void loadTransformations();
+  }, [loadTransformations]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -341,13 +349,26 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        <Link
-          href="/dashboard/beauty"
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:opacity-95 transition"
-        >
-          <Plus className="h-4 w-4" />
-          <span>New Makeover</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void loadTransformations()}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-xs sm:text-sm font-bold text-zinc-700 shadow-2xs hover:bg-orange-50 transition cursor-pointer disabled:opacity-50"
+            title="Reload transformations"
+          >
+            <RefreshCw className={`h-4 w-4 text-[#FF5500] ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+
+          <Link
+            href="/dashboard/beauty"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:opacity-95 transition"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Makeover</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Tabs */}
