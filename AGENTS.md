@@ -104,6 +104,28 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Deploy Frontend Production Release to InsForge Hosting
+- **User Request:** "is ko insforge per delopy karo"
+- **Actions Taken:**
+  1. **Deployment Environment Secrets Configuration:**
+     - Configured persistent encrypted environment variables using `npx -y @insforge/cli deployments env set`:
+       - `NEXT_PUBLIC_INSFORGE_URL`
+       - `NEXT_PUBLIC_INSFORGE_ANON_KEY`
+       - `INSFORGE_API_KEY`
+       - `STRIPE_TEST_SECRET_KEY`
+       - `NEXT_YOUCAM_API_KEY`
+       - `NEXT_YOUCAM_SECRET_KEY`
+  2. **Created `.vercelignore`:**
+     - Excluded local development files (`.agents/`, `migrations/`, `scratch/`, `AGENTS.md`) from the deployment bundle.
+  3. **Executed Production Deployment:**
+     - Ran `npx -y @insforge/cli deployments deploy .`
+     - Successfully uploaded 219 files and triggered cloud build.
+     - Build succeeded in 34s and deployed live.
+  4. **Live Verification:**
+     - **Live Production URL:** `https://m5294326.insforge.site`
+     - **Deployment ID:** `b99c5cb8-81b6-437c-8b2c-b94c99df0a94`
+     - Verified HTTP 200 responses on homepage (`/`), `/favicon.ico`, `/icon.png`, and `/apple-icon.png`.
+
 ### [2026-11-06] - Landing Page Yearly Pricing Marked as "Coming Soon"
 - **User Request:** "landing page year price ko coming soon kar doo"
 - **Changes Applied (`components/landing/pricing.tsx`):**
