@@ -20,22 +20,54 @@ import {
   Maximize2,
   Calendar,
   Zap,
+  Play,
+  Pause,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { insforge } from "@/lib/insforge";
 
 interface TransformationItem {
   id: string;
+  user_id?: string;
   tool_id: string;
   tool_name: string;
   source_image_url: string;
   result_image_url: string;
+  storage_key?: string | null;
   look_name?: string;
   created_at: string;
   credits_deducted: number;
+  settings?: {
+    toolId?: string;
+    toolName?: string;
+    multiUrls?: string[];
+    extraOutputs?: string[];
+    analysisData?: {
+      age?: number;
+      age_min?: number;
+      age_max?: number;
+      agd_idx?: number;
+      num_of_photos?: number;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+  initialStageIndex?: number;
+  parentItem?: TransformationItem;
 }
 
 const ITEMS_PER_PAGE = 16;
+
+function getStages(item: TransformationItem | null): string[] {
+  if (!item) return [];
+  if (Array.isArray(item.settings?.multiUrls) && item.settings.multiUrls.length > 0) {
+    return item.settings.multiUrls;
+  }
+  if (Array.isArray(item.settings?.extraOutputs) && item.settings.extraOutputs.length > 0) {
+    return item.settings.extraOutputs;
+  }
+  return item.result_image_url ? [item.result_image_url] : [];
+}
 
 // Relative time formatter (e.g. "Just now", "5 min ago", "1h ago", "1d ago")
 function formatTimeAgo(dateString: string): string {
@@ -80,12 +112,31 @@ export default function ProjectsPage() {
   // Modal preview state
   const [selectedItem, setSelectedItem] = useState<TransformationItem | null>(null);
   const [modalView, setModalView] = useState<"result" | "source">("result");
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number>(0);
+  const [isPlayingTimeLapse, setIsPlayingTimeLapse] = useState<boolean>(false);
+  const [downloadingAll, setDownloadingAll] = useState<boolean>(false);
+  const [showAllStagesInGrid, setShowAllStagesInGrid] = useState<boolean>(false);
 
-  // Keyboard Escape listener to close modal & prevent background scroll
+  // Keyboard Escape & Arrow Left/Right listener to navigate stages & close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setSelectedItem(null);
+        setIsPlayingTimeLapse(false);
+      } else if (e.key === "ArrowLeft" && selectedItem) {
+        const stages = getStages(selectedItem);
+        if (stages.length > 1) {
+          setIsPlayingTimeLapse(false);
+          setModalView("result");
+          setSelectedStageIndex((prev) => (prev > 0 ? prev - 1 : stages.length - 1));
+        }
+      } else if (e.key === "ArrowRight" && selectedItem) {
+        const stages = getStages(selectedItem);
+        if (stages.length > 1) {
+          setIsPlayingTimeLapse(false);
+          setModalView("result");
+          setSelectedStageIndex((prev) => (prev < stages.length - 1 ? prev + 1 : 0));
+        }
       }
     };
     if (selectedItem) {
@@ -98,11 +149,34 @@ export default function ProjectsPage() {
     };
   }, [selectedItem]);
 
-  const handleDownload = async (item: TransformationItem) => {
+  // Time-lapse auto-play effect
+  useEffect(() => {
+    if (!isPlayingTimeLapse || !selectedItem) return;
+    const stages = getStages(selectedItem);
+    if (stages.length <= 1) {
+      setIsPlayingTimeLapse(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setSelectedStageIndex((prev) => (prev + 1) % stages.length);
+    }, 450);
+
+    return () => clearInterval(timer);
+  }, [isPlayingTimeLapse, selectedItem]);
+
+  const handleDownload = async (
+    item: TransformationItem,
+    customUrl?: string,
+    customFilename?: string
+  ) => {
+    const url = customUrl || item.result_image_url;
+    const downloadKey = customUrl ? `${item.id}-${url}` : item.id;
     try {
-      setDownloadingId(item.id);
-      const filename = `beautyaura-${item.tool_id}-${item.id.slice(0, 8)}.jpg`;
-      const response = await fetch(item.result_image_url);
+      setDownloadingId(downloadKey);
+      const filename =
+        customFilename || `beautyaura-${item.tool_id}-${item.id.slice(0, 8)}.jpg`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Fetch failed");
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
@@ -117,9 +191,44 @@ export default function ProjectsPage() {
         window.URL.revokeObjectURL(blobUrl);
       }, 1000);
     } catch {
-      window.open(item.result_image_url, "_blank");
+      window.open(url, "_blank");
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDownloadAllStages = async (
+    item: TransformationItem,
+    stages: string[]
+  ) => {
+    try {
+      setDownloadingAll(true);
+      for (let i = 0; i < stages.length; i++) {
+        const url = stages[i];
+        const filename = `beautyaura-${item.tool_id}-stage-${i + 1}-${item.id.slice(0, 6)}.jpg`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const blob = await res.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.style.display = "none";
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(blobUrl);
+            }, 1000);
+          }
+        } catch {
+          window.open(url, "_blank");
+        }
+        await new Promise((r) => setTimeout(r, 350));
+      }
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -152,10 +261,12 @@ export default function ProjectsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await insforge.database.from("transformations").delete().eq("id", id);
-      setTransformations((prev) => prev.filter((item) => item.id !== id));
-      if (selectedItem?.id === id) {
+      const realId = id.includes("-stage-") ? id.split("-stage-")[0] : id;
+      await insforge.database.from("transformations").delete().eq("id", realId);
+      setTransformations((prev) => prev.filter((item) => item.id !== realId));
+      if (selectedItem?.id === id || selectedItem?.id === realId) {
         setSelectedItem(null);
+        setIsPlayingTimeLapse(false);
       }
     } catch (err) {
       console.error("Failed to delete transformation:", err);
@@ -167,7 +278,7 @@ export default function ProjectsPage() {
     setCurrentPage(1);
   };
 
-  const filteredTransformations =
+  const baseFiltered =
     filter === "all"
       ? transformations
       : transformations.filter((t) => {
@@ -181,6 +292,31 @@ export default function ProjectsPage() {
           }
           return t.tool_id.startsWith(filter) || t.tool_id === filter;
         });
+
+  // If showAllStagesInGrid is enabled, expand transformations with multiUrls into separate cards
+  const filteredTransformations = React.useMemo(() => {
+    if (!showAllStagesInGrid) return baseFiltered;
+
+    const expanded: TransformationItem[] = [];
+    for (const item of baseFiltered) {
+      const stages = getStages(item);
+      if (stages.length > 1) {
+        stages.forEach((stageUrl, idx) => {
+          expanded.push({
+            ...item,
+            id: `${item.id}-stage-${idx + 1}`,
+            result_image_url: stageUrl,
+            look_name: `${item.look_name || item.tool_name} (Stage ${idx + 1} of ${stages.length})`,
+            initialStageIndex: idx,
+            parentItem: item,
+          });
+        });
+      } else {
+        expanded.push(item);
+      }
+    }
+    return expanded;
+  }, [baseFiltered, showAllStagesInGrid]);
 
   // Pagination calculation: 16 cards per page
   const totalPages = Math.ceil(filteredTransformations.length / ITEMS_PER_PAGE) || 1;
@@ -239,9 +375,29 @@ export default function ProjectsPage() {
           ))}
         </div>
 
-        <span className="text-xs font-bold text-zinc-400">
-          Showing {filteredTransformations.length} {filteredTransformations.length === 1 ? "transformation" : "transformations"}
-        </span>
+        <div className="flex items-center gap-3">
+          {/* Toggle to explode multi-stage projects into individual cards */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowAllStagesInGrid((prev) => !prev);
+              setCurrentPage(1);
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition cursor-pointer border ${
+              showAllStagesInGrid
+                ? "bg-orange-500 text-white border-orange-500 shadow-xs"
+                : "bg-white border-orange-200 text-zinc-700 hover:bg-orange-50"
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span>{showAllStagesInGrid ? "Showing All Stages" : "Show All Stages"}</span>
+          </button>
+
+          <span className="text-xs font-bold text-zinc-400">
+            Showing {filteredTransformations.length}{" "}
+            {filteredTransformations.length === 1 ? "transformation" : "transformations"}
+          </span>
+        </div>
       </div>
 
       {/* Grid or Empty State */}
@@ -274,88 +430,115 @@ export default function ProjectsPage() {
         <>
           {/* Transformations Grid (16 items per page) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {paginatedItems.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => {
-                  setSelectedItem(item);
-                  setModalView("result");
-                }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
-              >
-                {/* Image Thumbnail */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 mb-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.result_image_url}
-                    alt={item.tool_name}
-                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                  />
+            {paginatedItems.map((item) => {
+              const itemStages = getStages(item);
+              const isMultiStage = itemStages.length > 1;
 
-                  {/* Hover Quick View Overlay */}
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <div className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-zinc-900 shadow-lg flex items-center gap-1.5 backdrop-blur-xs transform translate-y-1 group-hover:translate-y-0 transition-transform">
-                      <Eye className="h-3.5 w-3.5 text-[#FF5500]" />
-                      <span>View Modal</span>
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    const itemToOpen = item.parentItem || item;
+                    setSelectedItem(itemToOpen);
+                    setModalView("result");
+                    setSelectedStageIndex(item.initialStageIndex ?? 0);
+                    setIsPlayingTimeLapse(false);
+                  }}
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-orange-100 bg-white p-3 shadow-xs hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                >
+                  {/* Image Thumbnail */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 mb-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.result_image_url}
+                      alt={item.tool_name}
+                      className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+
+                    {/* Hover Quick View Overlay */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                      <div className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-zinc-900 shadow-lg flex items-center gap-1.5 backdrop-blur-xs transform translate-y-1 group-hover:translate-y-0 transition-transform">
+                        <Eye className="h-3.5 w-3.5 text-[#FF5500]" />
+                        <span>
+                          {isMultiStage && !item.parentItem
+                            ? `View All ${itemStages.length} Stages`
+                            : "View Modal"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-zinc-800">
+                      {item.tool_name}
+                    </div>
+
+                    {/* Multi-Stage Indicator Badge */}
+                    {isMultiStage && !item.parentItem && (
+                      <div className="absolute top-2 right-2 rounded-full bg-[#FF5500] text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
+                        <Layers className="h-2.5 w-2.5" />
+                        <span>{itemStages.length} Stages</span>
+                      </div>
+                    )}
+
+                    {/* Bottom-right: Relative generation time with frosted glass badge */}
+                    <div className="absolute bottom-2 right-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/95 flex items-center gap-1.5 shadow-lg shadow-black/25">
+                      <Clock className="h-2.5 w-2.5 text-orange-400" />
+                      <span>{formatTimeAgo(item.created_at)}</span>
                     </div>
                   </div>
 
-                  <div className="absolute top-2 left-2 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-zinc-800">
-                    {item.tool_name}
-                  </div>
+                  {/* Info & Actions */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-zinc-900 truncate group-hover:text-[#FF5500] transition-colors">
+                      {item.look_name || item.tool_name}
+                    </h4>
 
-                  {/* Bottom-right: Relative generation time with frosted glass badge */}
-                  <div className="absolute bottom-2 right-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/95 flex items-center gap-1.5 shadow-lg shadow-black/25">
-                    <Clock className="h-2.5 w-2.5 text-orange-400" />
-                    <span>{formatTimeAgo(item.created_at)}</span>
-                  </div>
-                </div>
+                    {isMultiStage && !item.parentItem && (
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-[#FF5500]">
+                        <Layers className="h-3 w-3 shrink-0" />
+                        <span>Includes {itemStages.length} chronological stages</span>
+                      </div>
+                    )}
 
-                {/* Info & Actions */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-zinc-900 truncate group-hover:text-[#FF5500] transition-colors">
-                    {item.look_name || item.tool_name}
-                  </h4>
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      <span>-5 Credits</span>
+                    </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                    <span>-5 Credits</span>
-                  </div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between border-t border-orange-100/70 pt-2.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(item);
+                        }}
+                        disabled={downloadingId === item.id}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer disabled:opacity-50"
+                      >
+                        {downloadingId === item.id ? (
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Download className="h-3 w-3" />
+                        )}
+                        <span>{downloadingId === item.id ? "Saving..." : "Download"}</span>
+                      </button>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between border-t border-orange-100/70 pt-2.5">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(item);
-                      }}
-                      disabled={downloadingId === item.id}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer disabled:opacity-50"
-                    >
-                      {downloadingId === item.id ? (
-                        <RefreshCw className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Download className="h-3 w-3" />
-                      )}
-                      <span>{downloadingId === item.id ? "Saving..." : "Download"}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      title="Delete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(item.id);
-                      }}
-                      className="p-1 text-zinc-400 hover:text-rose-600 transition cursor-pointer"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                      <button
+                        type="button"
+                        title="Delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item.id);
+                        }}
+                        className="p-1 text-zinc-400 hover:text-rose-600 transition cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Pagination Controls */}
@@ -441,193 +624,393 @@ export default function ProjectsPage() {
       )}
 
       {/* Modal Preview Dialog */}
-      {selectedItem && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={() => setSelectedItem(null)}
-        >
+      {selectedItem && (() => {
+        const modalStages = getStages(selectedItem);
+        const modalHasMultipleStages = modalStages.length > 1;
+        const currentStageUrl =
+          modalHasMultipleStages && modalStages[selectedStageIndex]
+            ? modalStages[selectedStageIndex]
+            : selectedItem.result_image_url;
+
+        const activeDisplayUrl =
+          modalView === "result"
+            ? currentStageUrl
+            : selectedItem.source_image_url || currentStageUrl;
+
+        return (
           <div
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-orange-100 flex flex-col md:flex-row animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => {
+              setSelectedItem(null);
+              setIsPlayingTimeLapse(false);
+            }}
           >
-            {/* Left: Image Viewport */}
-            <div className="relative flex-1 bg-zinc-950 flex items-center justify-center min-h-[340px] md:min-h-[520px] max-h-[50vh] md:max-h-[85vh] p-4 select-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={
-                  modalView === "result"
-                    ? selectedItem.result_image_url
-                    : selectedItem.source_image_url || selectedItem.result_image_url
-                }
-                alt={selectedItem.tool_name}
-                className="max-h-full max-w-full object-contain rounded-xl shadow-lg transition-all duration-200"
-              />
+            <div
+              className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-orange-100 flex flex-col md:flex-row animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Left: Image Viewport */}
+              <div className="relative flex-1 bg-zinc-950 flex items-center justify-center min-h-[340px] md:min-h-[520px] max-h-[50vh] md:max-h-[88vh] p-4 select-none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={activeDisplayUrl}
+                  alt={selectedItem.tool_name}
+                  className="max-h-full max-w-full object-contain rounded-xl shadow-lg transition-all duration-200"
+                />
 
-              {/* View Switcher: Transformed vs Original if source image exists */}
-              {selectedItem.source_image_url && (
-                <div className="absolute top-4 left-4 z-10 flex items-center rounded-full bg-black/60 p-1 backdrop-blur-md border border-white/20">
-                  <button
-                    type="button"
-                    onClick={() => setModalView("result")}
-                    className={`rounded-full px-3 py-1 text-[11px] font-bold transition cursor-pointer ${
-                      modalView === "result"
-                        ? "bg-[#FF5500] text-white shadow-xs"
-                        : "text-white/80 hover:text-white"
-                    }`}
+                {/* Left & Right Stage Navigation Arrows */}
+                {modalHasMultipleStages && modalView === "result" && (
+                  <>
+                    <button
+                      type="button"
+                      title="Previous Stage (ArrowLeft)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPlayingTimeLapse(false);
+                        setSelectedStageIndex((prev) =>
+                          prev > 0 ? prev - 1 : modalStages.length - 1
+                        );
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20 hover:bg-[#FF5500] hover:border-transparent transition-all cursor-pointer shadow-lg"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      title="Next Stage (ArrowRight)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPlayingTimeLapse(false);
+                        setSelectedStageIndex((prev) =>
+                          prev < modalStages.length - 1 ? prev + 1 : 0
+                        );
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20 hover:bg-[#FF5500] hover:border-transparent transition-all cursor-pointer shadow-lg"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+
+                {/* View Switcher: Transformed vs Original if source image exists */}
+                {selectedItem.source_image_url && (
+                  <div className="absolute top-4 left-4 z-10 flex items-center rounded-full bg-black/60 p-1 backdrop-blur-md border border-white/20">
+                    <button
+                      type="button"
+                      onClick={() => setModalView("result")}
+                      className={`rounded-full px-3 py-1 text-[11px] font-bold transition cursor-pointer ${
+                        modalView === "result"
+                          ? "bg-[#FF5500] text-white shadow-xs"
+                          : "text-white/80 hover:text-white"
+                      }`}
+                    >
+                      {modalHasMultipleStages
+                        ? `Stage ${selectedStageIndex + 1}`
+                        : "Transformed"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModalView("source")}
+                      className={`rounded-full px-3 py-1 text-[11px] font-bold transition cursor-pointer ${
+                        modalView === "source"
+                          ? "bg-[#FF5500] text-white shadow-xs"
+                          : "text-white/80 hover:text-white"
+                      }`}
+                    >
+                      Original
+                    </button>
+                  </div>
+                )}
+
+                {/* Top Right: Time-Lapse Play/Pause & View Full Resolution */}
+                <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                  {modalHasMultipleStages && modalView === "result" && (
+                    <button
+                      type="button"
+                      onClick={() => setIsPlayingTimeLapse((prev) => !prev)}
+                      title={isPlayingTimeLapse ? "Pause Time-Lapse" : "Play Aging Time-Lapse"}
+                      className={`rounded-full p-2 text-white backdrop-blur-md border transition cursor-pointer ${
+                        isPlayingTimeLapse
+                          ? "bg-[#FF5500] border-transparent shadow-md ring-2 ring-orange-300"
+                          : "bg-black/60 border-white/20 hover:bg-black/80"
+                      }`}
+                    >
+                      {isPlayingTimeLapse ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4 fill-white" />
+                      )}
+                    </button>
+                  )}
+
+                  <a
+                    href={currentStageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open high-res in new tab"
+                    className="rounded-full bg-black/60 p-2 text-white/90 backdrop-blur-md border border-white/20 hover:bg-black/80 hover:text-white transition cursor-pointer"
                   >
-                    Transformed
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModalView("source")}
-                    className={`rounded-full px-3 py-1 text-[11px] font-bold transition cursor-pointer ${
-                      modalView === "source"
-                        ? "bg-[#FF5500] text-white shadow-xs"
-                        : "text-white/80 hover:text-white"
-                    }`}
-                  >
-                    Original
-                  </button>
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 </div>
-              )}
 
-              {/* View Full Resolution in New Tab */}
-              <a
-                href={selectedItem.result_image_url}
-                target="_blank"
-                rel="noreferrer"
-                title="Open high-res in new tab"
-                className="absolute top-4 right-4 z-10 rounded-full bg-black/60 p-2 text-white/90 backdrop-blur-md border border-white/20 hover:bg-black/80 hover:text-white transition cursor-pointer"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-
-              {/* Bottom badge on image */}
-              <div className="absolute bottom-4 left-4 rounded-full bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 text-xs font-semibold text-white/95 flex items-center gap-1.5 shadow-md">
-                <Clock className="h-3 w-3 text-orange-400" />
-                <span>{formatTimeAgo(selectedItem.created_at)}</span>
-              </div>
-            </div>
-
-            {/* Right: Info & Actions Sidebar */}
-            <div className="w-full md:w-80 lg:w-96 flex flex-col justify-between p-6 bg-white overflow-y-auto max-h-[40vh] md:max-h-[85vh]">
-              <div className="space-y-5">
-                {/* Header with Close */}
-                <div className="flex items-start justify-between gap-3 border-b border-orange-100 pb-4">
-                  <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#FF5500]">
-                      {selectedItem.tool_name}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-black text-zinc-900 leading-snug">
-                      {selectedItem.look_name || selectedItem.tool_name}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    title="Close"
-                    onClick={() => setSelectedItem(null)}
-                    className="rounded-full p-1.5 text-zinc-400 hover:bg-orange-50 hover:text-zinc-700 transition cursor-pointer"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Details List */}
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-center justify-between py-1.5 border-b border-zinc-100">
-                    <span className="text-zinc-500">Tool</span>
-                    <span className="font-bold text-zinc-800">{selectedItem.tool_name}</span>
+                {/* Bottom badges on image */}
+                <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+                  <div className="rounded-full bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 text-xs font-semibold text-white/95 flex items-center gap-1.5 shadow-md">
+                    <Clock className="h-3 w-3 text-orange-400" />
+                    <span>{formatTimeAgo(selectedItem.created_at)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1.5 border-b border-zinc-100">
-                    <span className="text-zinc-500">Created Date</span>
-                    <span className="font-bold text-zinc-800">
-                      {new Date(selectedItem.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-1.5 border-b border-zinc-100">
-                    <span className="text-zinc-500">Exact Time</span>
-                    <span className="font-bold text-zinc-800">
-                      {new Date(selectedItem.created_at).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-1.5 border-b border-zinc-100">
-                    <span className="text-zinc-500">Credits Deducted</span>
-                    <span className="font-bold text-[#FF5500]">-5 Credits</span>
-                  </div>
-
-                  {selectedItem.source_image_url && (
-                    <div className="pt-2">
-                      <span className="block text-[11px] font-semibold text-zinc-500 mb-2">
-                        Original Source Photo
+                  {modalHasMultipleStages && modalView === "result" && (
+                    <div className="rounded-full bg-[#FF5500]/90 backdrop-blur-md border border-white/30 px-3 py-1 text-xs font-bold text-white flex items-center gap-1.5 shadow-md">
+                      <Sparkles className="h-3 w-3" />
+                      <span>
+                        Stage {selectedStageIndex + 1} of {modalStages.length}
                       </span>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={selectedItem.source_image_url}
-                        alt="Source"
-                        onClick={() => setModalView("source")}
-                        className={`h-16 w-16 object-cover rounded-xl border-2 cursor-pointer transition ${
-                          modalView === "source"
-                            ? "border-[#FF5500] ring-2 ring-orange-200"
-                            : "border-zinc-200 hover:border-orange-300"
-                        }`}
-                      />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-2.5 pt-6 border-t border-orange-100 mt-6">
-                <button
-                  type="button"
-                  onClick={() => handleDownload(selectedItem)}
-                  disabled={downloadingId === selectedItem.id}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition cursor-pointer disabled:opacity-50"
-                >
-                  {downloadingId === selectedItem.id ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
+              {/* Right: Info & Actions Sidebar */}
+              <div className="w-full md:w-96 lg:w-[420px] flex flex-col justify-between p-6 bg-white overflow-y-auto max-h-[45vh] md:max-h-[88vh] [scrollbar-width:thin]">
+                <div className="space-y-4">
+                  {/* Header with Close */}
+                  <div className="flex items-start justify-between gap-3 border-b border-orange-100 pb-4">
+                    <div className="space-y-1">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#FF5500]">
+                        {selectedItem.tool_name}
+                      </span>
+                      <h3 className="text-base sm:text-lg font-black text-zinc-900 leading-snug">
+                        {selectedItem.look_name || selectedItem.tool_name}
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      title="Close"
+                      onClick={() => {
+                        setSelectedItem(null);
+                        setIsPlayingTimeLapse(false);
+                      }}
+                      className="rounded-full p-1.5 text-zinc-400 hover:bg-orange-50 hover:text-zinc-700 transition cursor-pointer"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* Details List */}
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between py-1 border-b border-zinc-100">
+                      <span className="text-zinc-500">Tool</span>
+                      <span className="font-bold text-zinc-800">{selectedItem.tool_name}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-b border-zinc-100">
+                      <span className="text-zinc-500">Created Date</span>
+                      <span className="font-bold text-zinc-800">
+                        {new Date(selectedItem.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-b border-zinc-100">
+                      <span className="text-zinc-500">Exact Time</span>
+                      <span className="font-bold text-zinc-800">
+                        {new Date(selectedItem.created_at).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-b border-zinc-100">
+                      <span className="text-zinc-500">Credits Deducted</span>
+                      <span className="font-bold text-[#FF5500]">-5 Credits</span>
+                    </div>
+
+                    {selectedItem.settings?.analysisData?.age_min && (
+                      <div className="flex items-center justify-between py-1 border-b border-zinc-100">
+                        <span className="text-zinc-500">Age Simulation Range</span>
+                        <span className="font-bold text-zinc-800">
+                          {selectedItem.settings.analysisData.age_min} →{" "}
+                          {selectedItem.settings.analysisData.age_max ?? 70} years
+                        </span>
+                      </div>
+                    )}
+
+                    {selectedItem.source_image_url && (
+                      <div className="pt-1">
+                        <span className="block text-[11px] font-semibold text-zinc-500 mb-1.5">
+                          Original Source Photo
+                        </span>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={selectedItem.source_image_url}
+                          alt="Source"
+                          onClick={() => setModalView("source")}
+                          className={`h-14 w-14 object-cover rounded-xl border-2 cursor-pointer transition ${
+                            modalView === "source"
+                              ? "border-[#FF5500] ring-2 ring-orange-200"
+                              : "border-zinc-200 hover:border-orange-300"
+                          }`}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chronological Stages 4x4 Grid matching the Studio UI */}
+                  {modalHasMultipleStages && (
+                    <div className="space-y-2 pt-2 border-t border-orange-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Layers className="h-3.5 w-3.5 text-[#FF5500]" />
+                          <span className="text-xs font-black text-zinc-900">
+                            Chronological Stages ({modalStages.length})
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsPlayingTimeLapse((prev) => !prev)}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer"
+                        >
+                          {isPlayingTimeLapse ? (
+                            <>
+                              <Pause className="h-3 w-3" />
+                              <span>Pause</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-3 w-3 fill-[#FF5500]" />
+                              <span>Play Time-Lapse</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 max-h-52 overflow-y-auto p-1.5 bg-stone-50/80 rounded-2xl border border-stone-200/80 [scrollbar-width:thin]">
+                        {modalStages.map((stageUrl, idx) => {
+                          const isSelected =
+                            selectedStageIndex === idx && modalView === "result";
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setIsPlayingTimeLapse(false);
+                                setSelectedStageIndex(idx);
+                                setModalView("result");
+                              }}
+                              className={`group relative aspect-[3/4] overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
+                                isSelected
+                                  ? "border-[#FF5500] ring-2 ring-orange-400 shadow-md scale-[1.02]"
+                                  : "border-stone-200 hover:border-orange-300 opacity-80 hover:opacity-100 hover:scale-[1.01]"
+                              }`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={stageUrl}
+                                alt={`Stage ${idx + 1}`}
+                                className="h-full w-full object-cover"
+                              />
+                              <div
+                                className={`absolute bottom-0 inset-x-0 py-0.5 text-center text-[9px] font-black transition-colors ${
+                                  isSelected
+                                    ? "bg-[#FF5500] text-white"
+                                    : "bg-black/75 text-white/90"
+                                }`}
+                              >
+                                Stage {idx + 1}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
-                  <span>{downloadingId === selectedItem.id ? "Saving..." : "Download High-Res"}</span>
-                </button>
+                </div>
 
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <Link
-                    href={getStudioLink(selectedItem.tool_id)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline"
-                  >
-                    <Sparkles className="h-3 w-3" />
-                    <span>Open in Studio</span>
-                  </Link>
-
+                {/* Action Buttons */}
+                <div className="space-y-2 pt-4 border-t border-orange-100 mt-4">
+                  {/* Download Active Stage */}
                   <button
                     type="button"
-                    onClick={() => handleDelete(selectedItem.id)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-rose-600 transition cursor-pointer"
+                    onClick={() =>
+                      handleDownload(
+                        selectedItem,
+                        currentStageUrl,
+                        `beautyaura-${selectedItem.tool_id}-${modalHasMultipleStages ? `stage-${selectedStageIndex + 1}-` : ""}${selectedItem.id.slice(0, 8)}.jpg`
+                      )
+                    }
+                    disabled={downloadingId === selectedItem.id || Boolean(downloadingId)}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF5500] to-[#FF7A1A] py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition cursor-pointer disabled:opacity-50"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>Delete</span>
+                    {downloadingId ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    <span>
+                      {downloadingId
+                        ? "Saving..."
+                        : modalHasMultipleStages
+                        ? `Download Stage ${selectedStageIndex + 1}`
+                        : "Download High-Res"}
+                    </span>
                   </button>
+
+                  {/* Download All Stages Button */}
+                  {modalHasMultipleStages && (
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadAllStages(selectedItem, modalStages)}
+                      disabled={downloadingAll}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#FF5500] py-2 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                    >
+                      {downloadingAll ? (
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Layers className="h-3.5 w-3.5" />
+                      )}
+                      <span>
+                        {downloadingAll
+                          ? "Saving All Stages..."
+                          : `Download All ${modalStages.length} Stages`}
+                      </span>
+                    </button>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Link
+                      href={getStudioLink(selectedItem.tool_id)}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF5500] hover:underline"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      <span>Open in Studio</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(selectedItem.id)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-rose-600 transition cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
