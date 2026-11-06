@@ -865,10 +865,13 @@ export default function HairBeardStudioPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setUploadedImage(null)}
-                      className="px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 rounded-lg transition"
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setHasGenerated(false);
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                     >
-                      Change
+                      Clear
                     </button>
                   </div>
                 ) : (

@@ -85,6 +85,11 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-06] - Hair & Beard Studio: Update Upload Action Label to "Clear"
+- **Updated Button Label (`app/dashboard/hair-beard/page.tsx`):**
+  - Changed uploaded custom portrait card action button from `"Change"` to `"Clear"`.
+  - Added `setHasGenerated(false)` on click so that clearing the uploaded photo also cleanly resets the generated canvas view.
+
 ### [2026-11-06] - Fix Live Studio Canvas Top Bar, Eliminate Object Remover Bottom Whitespace & Remove Headshot Generator
 - **Fixed Live Studio Canvas Top Bar Wrapping (`app/dashboard/extras/page.tsx`):**
   - **Problem:** When view mode switchers and action buttons rendered in the top bar, the container squeezed "LIVE STUDIO CANVAS" into 3 awkward vertical lines (`LIVE` / `STUDIO` / `CANVAS`).
