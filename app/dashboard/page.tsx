@@ -119,12 +119,12 @@ export default function DashboardPage() {
     },
     {
       title: "AI Skin, Face & Body",
-      description: "Abs filter, smile generator, age progression, 3D body contouring & dermatology.",
+      description: "Abs filter, smile generator, age progression & 3D body contouring.",
       href: "/dashboard/skin-face",
       image: "/ai-photo-editing-images/ai-skin-analaysis.webp",
       icon: Smile,
-      badge: "6 AI Engines",
-      toolsCount: "6 Tools",
+      badge: "4 AI Engines",
+      toolsCount: "4 Tools",
       gradient: "from-amber-500/10 to-orange-500/5",
     },
     {
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-emerald-600">Active</span>
-              <span className="text-xs font-semibold text-zinc-500">21 Tools</span>
+              <span className="text-xs font-semibold text-zinc-500">19 Tools</span>
             </div>
           </div>
 

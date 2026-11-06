@@ -66,7 +66,7 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - SDK: `@insforge/sdk`
   - Client instance: `lib/insforge.ts` (`export const insforge = createClient(...)`, `export function getInsforgeAdmin()`)
 - **Key Files & Folders:**
-  - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, AI Body Reshape, AI Fitzpatrick Skin Type Analysis, and AI Skin Analysis with automated InSForge storage caching and 5-credit deduction.
+  - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, and AI Body Reshape with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
   - `app/api/hair-beard/generate/route.ts`: YouCam Hair & Beard MCP generation route supporting Hair Color Virtual Try-On, Hairstyle Virtual Try-On, and Beard Style Generator with automated InSForge storage caching and 5-credit deduction.
@@ -78,12 +78,36 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/dashboard/fashion/page.tsx`: Complete Fashion AI Studio with 4 YouCam Fashion MCP tools, live 4K viewport, and credit management.
   - `app/dashboard/hair-beard/page.tsx`: Complete Hair & Beard AI Studio with 3 YouCam MCP tools (Hair Color, Hairstyle, Beard Style), live 4K viewport, Before/After compare split slider, and credit management.
   - `app/dashboard/extras/page.tsx`: Complete AI Extras Studio with 5 YouCam Creators MCP tools, interactive brush inpainting, background cutout replacement, colorize multi-variations, aspect outpainter, 69 headshots, and synchronized studio layout.
-  - `app/dashboard/skin-face/page.tsx`: Complete AI Skin, Face & Body Studio with 6 YouCam Beauty MCP tools (Abs Filter, Smile Generator, Aging Simulation, 3D Body Reshape, Fitzpatrick Mapping, 12-Point Skin Analysis), Before/After split slider, clinical dermatological report dashboards, curated models, and 4K export.
+  - `app/dashboard/skin-face/page.tsx`: Complete AI Skin, Face & Body Studio with 4 YouCam Beauty MCP tools (Abs Filter, Smile Generator, Aging Simulation, 3D Body Reshape), Before/After split slider, curated models, and 4K export.
   - `app/dashboard/projects/page.tsx`: My Transformations page querying `public.transformations` from InSForge database.
 
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-06] - Remove Fitzpatrick Skin Type Mapping & AI Clinical Skin Analysis
+- **Removed Dermatology Diagnostic Tools (`app/dashboard/skin-face/page.tsx`):**
+  - Updated `SkinBodyToolId` type to `"abs" | "smile" | "aging" | "body_reshape"`.
+  - Removed "Fitzpatrick Skin Type Mapping" and "AI Clinical Skin Analysis" tool entries from `SKIN_BODY_TOOLS`.
+  - Removed `FITZPATRICK_SCALE_DATA` dictionary and state hooks (`fitzpatrickFocus`, `diagnosticScanType`).
+  - Removed Step 3 custom controls for Fitzpatrick focus options/scale and Skin Analysis 12-point scan scope.
+  - Removed `Sun` and `HeartPulse` icons from imports.
+  - Updated Step 1 tool count badge from `6 Studio Engines` to `4 Studio Engines`.
+  - Updated studio subtitle to: *"Sculpt athletic abs, transform smile expressions, simulate aging & contour 3D body proportions."*
+- **Synchronized Dashboard Overview (`app/dashboard/page.tsx`):**
+  - Updated "AI Skin, Face & Body" explore card:
+    - Badge updated to `4 AI Engines` (was `6 AI Engines`).
+    - Tool count updated to `4 Tools` (was `6 Tools`).
+    - Description updated to: *"Abs filter, smile generator, age progression & 3D body contouring."*
+  - Updated "AI Makeover Engine" active tool count stat from `21 Tools` to `19 Tools` (3 Beauty + 4 Fashion + 3 Hair & Beard + 4 Skin & Face + 5 AI Extras = 19).
+- **Backend Clean-up (`app/api/skin-face/generate/route.ts`):**
+  - Removed `case "fitzpatrick":` and `case "skin_analysis":` handlers, standardizing the route exclusively for visual rendering tools.
+- **Verification:**
+  - TypeScript check (`npx tsc --noEmit`): 0 errors.
+  - Production build (`npm run build`): Compiled successfully across all 21 routes in Turbopack in 6.5s with 0 errors.
+  - Chrome DevTools MCP DOM evaluation:
+    - `/dashboard`: verified `has19Tools: true`, `has21Tools: false`, `4 Tools` on Skin & Face card, 0 fitzpatrick references.
+    - `/dashboard/skin-face`: verified `has4Engines: true`, `has6Engines: false`, tools count = 4, 0 fitzpatrick/clinical references.
 
 ### [2026-11-06] - Remove AI Hair Frizziness Detection & Synchronize Studio Counts
 - **Removed "AI Hair Frizziness Detection" Tool (`app/dashboard/hair-beard/page.tsx`):**

@@ -21,8 +21,6 @@ import {
   ExternalLink,
   Columns2,
   Maximize2,
-  Sun,
-  HeartPulse,
   Info,
   Zap,
   RefreshCw,
@@ -32,15 +30,13 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
 // =============================================================================
-// 1. TOOL DEFINITIONS (6 AI TOOLS)
+// 1. TOOL DEFINITIONS (4 AI TOOLS)
 // =============================================================================
 export type SkinBodyToolId =
   | "abs"
   | "smile"
   | "aging"
-  | "body_reshape"
-  | "fitzpatrick"
-  | "skin_analysis";
+  | "body_reshape";
 
 interface SkinBodyTool {
   id: SkinBodyToolId;
@@ -89,24 +85,6 @@ const SKIN_BODY_TOOLS: SkinBodyTool[] = [
     description: "Effortlessly refine anatomical proportions: sculpt the waist, contour hips and arms, flatten the belly, and lengthen legs.",
     icon: Activity,
   },
-  {
-    id: "fitzpatrick",
-    title: "Fitzpatrick Skin Type Mapping",
-    tagline: "Photometric UV response & phototype I-VI classification",
-    badge: "Photometric",
-    image: "/ai-photo-editing-images/skin-type-analaysis.webp",
-    description: "Accurately classify skin melanin index across the clinical Fitzpatrick Scale (I to VI) to forecast UV sensitivity and SPF needs.",
-    icon: Sun,
-  },
-  {
-    id: "skin_analysis",
-    title: "AI Clinical Skin Analysis",
-    tagline: "12-point dermatological scan for wrinkles, pores & texture",
-    badge: "Clinical AI",
-    image: "/ai-photo-editing-images/ai-skin-analaysis.webp",
-    description: "Comprehensive medical-grade scan evaluating wrinkle depth, pore visibility, hydration, redness, dark circles, and sebum levels.",
-    icon: HeartPulse,
-  },
 ];
 
 // =============================================================================
@@ -137,85 +115,7 @@ const SAMPLE_MODELS: SampleModel[] = [
 ];
 
 // =============================================================================
-// 3. FITZPATRICK SCALE REFERENCE METADATA
-// =============================================================================
-const FITZPATRICK_SCALE_DATA: Record<
-  string,
-  {
-    title: string;
-    skinType: string;
-    sunReaction: string;
-    spf: string;
-    melanin: string;
-    color: string;
-    bgBadge: string;
-    recommendation: string;
-  }
-> = {
-  I: {
-    title: "Type I - Pale / Ivory",
-    skinType: "Very Fair, porcelain skin",
-    sunReaction: "Always burns severely, never tans, high freckling propensity",
-    spf: "SPF 50+ Broad Spectrum (Daily Essential)",
-    melanin: "Very Low (Minimal photoprotection)",
-    color: "#FDE68A",
-    bgBadge: "bg-amber-100 text-amber-900 border-amber-300",
-    recommendation: "High UV sensitivity. Reapply mineral sunscreen every 2 hours; incorporate topical Vitamin C and avoid peak solar midday UV.",
-  },
-  II: {
-    title: "Type II - Fair / Beige",
-    skinType: "Fair skin, usually blue/green eyes, light hair",
-    sunReaction: "Burns easily, tans minimally and with difficulty",
-    spf: "SPF 50+ Broad Spectrum",
-    melanin: "Low Melanin Index",
-    color: "#FCD34D",
-    bgBadge: "bg-yellow-100 text-yellow-900 border-yellow-300",
-    recommendation: "Susceptible to erythema and photo-aging. Utilize broad-spectrum antioxidant protection and daily PA++++ UV defense.",
-  },
-  III: {
-    title: "Type III - Light Brown / Golden",
-    skinType: "Medium-fair to golden undertone",
-    sunReaction: "Burns moderately, gradually tans to light bronze",
-    spf: "SPF 30 to 50 Broad Spectrum",
-    melanin: "Moderate Melanin Balance",
-    color: "#F59E0B",
-    bgBadge: "bg-orange-100 text-orange-900 border-orange-300",
-    recommendation: "Balanced melanin response with moderate risk of post-inflammatory hyperpigmentation. Prioritize niacinamide and barrier ceramides.",
-  },
-  IV: {
-    title: "Type IV - Medium Brown / Olive",
-    skinType: "Olive or Mediterranean undertone",
-    sunReaction: "Burns minimally, tans easily to moderate brown",
-    spf: "SPF 30 Broad Spectrum",
-    melanin: "High-Moderate Melanin",
-    color: "#D97706",
-    bgBadge: "bg-amber-200 text-amber-950 border-amber-400",
-    recommendation: "High natural photoprotection, but predisposed to dark spots. Apply gentle exfoliation and tinted sunscreen with iron oxides for visible light defense.",
-  },
-  V: {
-    title: "Type V - Dark Brown",
-    skinType: "Deep brown skin tone",
-    sunReaction: "Very rarely burns, tans very easily and profusely",
-    spf: "SPF 30 Broad Spectrum",
-    melanin: "High Melanin Density",
-    color: "#B45309",
-    bgBadge: "bg-orange-200 text-orange-950 border-orange-400",
-    recommendation: "Natural resistance to UV sunburn; prioritize hydration, azelaic acid for evening tone, and non-comedogenic mineral sunscreens without white cast.",
-  },
-  VI: {
-    title: "Type VI - Deep Bronze / Noir",
-    skinType: "Deepest pigmented skin",
-    sunReaction: "Never burns, deeply pigmented melanin matrix",
-    spf: "SPF 30 Hydrating Gel Sunscreen",
-    melanin: "Maximum Natural Photoprotection",
-    color: "#78350F",
-    bgBadge: "bg-stone-200 text-stone-900 border-stone-400",
-    recommendation: "Robust photoprotection against sunburn. Focus on lipid barrier reinforcement, hyaluronic acid hydration, and uniform hyperpigmentation defense.",
-  },
-};
-
-// =============================================================================
-// 4. PIPELINE STAGES (WORLD-CLASS STUDIO LOADER)
+// 3. PIPELINE STAGES (WORLD-CLASS STUDIO LOADER)
 // =============================================================================
 const STUDIO_STAGES = [
   { id: "detect", label: "Anatomical Detection", detail: "Detecting facial landmarks, posture geometry & skin contours..." },
@@ -263,11 +163,6 @@ export default function SkinFaceStudioPage() {
     breast: 0,
   });
 
-  // E. Fitzpatrick Skin Type Analysis Focus
-  const [fitzpatrickFocus, setFitzpatrickFocus] = useState<string>("spf");
-
-  // F. Skin Analysis View Mode & Scan Scope
-  const [diagnosticScanType, setDiagnosticScanType] = useState<"full" | "anti_aging" | "clarity">("full");
   const [analysisData, setAnalysisData] = useState<any>(null);
 
   // 4. Viewport & View Mode States (Result | Split / Compare | Original)
@@ -483,10 +378,6 @@ export default function SkinFaceStudioPage() {
         payload.settings = { simulationType: "time-lapse" };
       } else if (selectedTool === "body_reshape") {
         payload.settings = { features: bodyFeatures };
-      } else if (selectedTool === "fitzpatrick") {
-        payload.settings = { focus: fitzpatrickFocus };
-      } else if (selectedTool === "skin_analysis") {
-        payload.settings = { scanType: diagnosticScanType };
       }
 
       const res = await fetch("/api/skin-face/generate", {
@@ -567,7 +458,7 @@ export default function SkinFaceStudioPage() {
             AI Skin &amp; Face &amp; Body Studio
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-            Sculpt athletic abs, transform smile expressions, simulate aging, contour 3D body proportions, and conduct clinical dermatological scans.
+            Sculpt athletic abs, transform smile expressions, simulate aging &amp; contour 3D body proportions.
           </p>
         </div>
 
@@ -624,7 +515,7 @@ export default function SkinFaceStudioPage() {
                 </h3>
               </div>
               <span className="text-[11px] font-bold text-[#FF5500]">
-                6 Studio Engines
+                4 Studio Engines
               </span>
             </div>
 
@@ -1288,117 +1179,6 @@ export default function SkinFaceStudioPage() {
                       className="w-full accent-[#FF5500] cursor-pointer"
                     />
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* E. Dynamic Controls: AI Fitzpatrick Skin Type Analysis */}
-            {selectedTool === "fitzpatrick" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-zinc-700 block mb-2">
-                    Dermatological Report Focus
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {[
-                      { id: "spf", label: "SPF & PA Rating" },
-                      { id: "melanin", label: "Melanin Index" },
-                      { id: "sunburn", label: "UV Burn Risk" },
-                    ].map((f) => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setFitzpatrickFocus(f.id)}
-                        className={cn(
-                          "py-2 px-2.5 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer",
-                          fitzpatrickFocus === f.id
-                            ? "bg-orange-50 border-[#FF5500] text-[#FF5500]"
-                            : "bg-stone-50 border-stone-200 text-zinc-700 hover:bg-stone-100"
-                        )}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-zinc-600 block mb-1.5">
-                    Fitzpatrick Scale Spectrum (Types I - VI)
-                  </label>
-                  <div className="grid grid-cols-6 gap-1 h-3 rounded-md overflow-hidden border border-stone-200 mb-1.5">
-                    <div className="bg-[#FDE68A]" title="Type I - Very Fair" />
-                    <div className="bg-[#FCD34D]" title="Type II - Fair" />
-                    <div className="bg-[#F59E0B]" title="Type III - Medium" />
-                    <div className="bg-[#D97706]" title="Type IV - Olive" />
-                    <div className="bg-[#B45309]" title="Type V - Brown" />
-                    <div className="bg-[#78350F]" title="Type VI - Deep" />
-                  </div>
-                  <div className="flex justify-between text-[9px] text-zinc-400 font-bold">
-                    <span>Type I (Burns)</span>
-                    <span>Type VI (Deep)</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* F. Dynamic Controls: AI Skin Analysis */}
-            {selectedTool === "skin_analysis" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-zinc-700 block mb-2">
-                    Diagnostic Scan Scope
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setDiagnosticScanType("full")}
-                      className={cn(
-                        "p-2.5 rounded-xl border text-center transition-all cursor-pointer",
-                        diagnosticScanType === "full"
-                          ? "bg-orange-50 border-[#FF5500] text-[#FF5500]"
-                          : "bg-white border-stone-200 hover:border-orange-200 text-zinc-700"
-                      )}
-                    >
-                      <p className="text-xs font-bold">12-Point Scan</p>
-                      <p className="text-[9px] text-zinc-500 mt-0.5">Full Clinical</p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDiagnosticScanType("anti_aging")}
-                      className={cn(
-                        "p-2.5 rounded-xl border text-center transition-all cursor-pointer",
-                        diagnosticScanType === "anti_aging"
-                          ? "bg-orange-50 border-[#FF5500] text-[#FF5500]"
-                          : "bg-white border-stone-200 hover:border-orange-200 text-zinc-700"
-                      )}
-                    >
-                      <p className="text-xs font-bold">Anti-Aging</p>
-                      <p className="text-[9px] text-zinc-500 mt-0.5">Wrinkle Depth</p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDiagnosticScanType("clarity")}
-                      className={cn(
-                        "p-2.5 rounded-xl border text-center transition-all cursor-pointer",
-                        diagnosticScanType === "clarity"
-                          ? "bg-orange-50 border-[#FF5500] text-[#FF5500]"
-                          : "bg-white border-stone-200 hover:border-orange-200 text-zinc-700"
-                      )}
-                    >
-                      <p className="text-xs font-bold">Clarity &amp; Pore</p>
-                      <p className="text-[9px] text-zinc-500 mt-0.5">Blemish &amp; Oil</p>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-1.5 rounded-xl bg-orange-50/50 p-2.5 text-[11px] text-zinc-500">
-                  <Info className="h-3.5 w-3.5 shrink-0 text-[#FF5500] mt-0.5" />
-                  <span>
-                    Dermal scanning evaluates micro-relief, follicular pores, sebum balance, dark circles, and erythema redness.
-                  </span>
                 </div>
               </div>
             )}
