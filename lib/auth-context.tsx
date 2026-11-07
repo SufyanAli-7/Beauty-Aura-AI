@@ -49,6 +49,9 @@ export interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ data?: any; error?: any }>;
   verifyEmailOtp: (email: string, otp: string, name?: string) => Promise<{ data?: any; error?: any }>;
   resendVerification: (email: string) => Promise<{ data?: any; error?: any }>;
+  sendResetPasswordEmail: (email: string) => Promise<{ data?: any; error?: any }>;
+  exchangeResetPasswordToken: (email: string, code: string) => Promise<{ data?: any; error?: any }>;
+  resetPassword: (newPassword: string, otp: string) => Promise<{ data?: any; error?: any }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -65,6 +68,9 @@ const AuthContext = createContext<AuthContextType>({
   signUpWithEmail: async () => ({ error: new Error("AuthContext not initialized") }),
   verifyEmailOtp: async () => ({ error: new Error("AuthContext not initialized") }),
   resendVerification: async () => ({ error: new Error("AuthContext not initialized") }),
+  sendResetPasswordEmail: async () => ({ error: new Error("AuthContext not initialized") }),
+  exchangeResetPasswordToken: async () => ({ error: new Error("AuthContext not initialized") }),
+  resetPassword: async () => ({ error: new Error("AuthContext not initialized") }),
   signInWithGoogle: async () => {},
   signOut: async () => {},
   refreshUser: async () => {},
@@ -357,6 +363,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // Send Reset Password Email
+  const sendResetPasswordEmail = async (email: string) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    return insforge.auth.sendResetPasswordEmail({
+      email,
+      redirectTo: `${origin}/reset-password`,
+    });
+  };
+
+  // Exchange 6-digit OTP code for reset token
+  const exchangeResetPasswordToken = async (email: string, code: string) => {
+    return insforge.auth.exchangeResetPasswordToken({
+      email,
+      code,
+    });
+  };
+
+  // Reset password with token
+  const resetPassword = async (newPassword: string, otp: string) => {
+    return insforge.auth.resetPassword({
+      newPassword,
+      otp,
+    });
+  };
+
   // Google OAuth Sign In
   const signInWithGoogle = async () => {
     const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
@@ -395,6 +426,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUpWithEmail,
         verifyEmailOtp,
         resendVerification,
+        sendResetPasswordEmail,
+        exchangeResetPasswordToken,
+        resetPassword,
         signInWithGoogle,
         signOut,
         refreshUser,

@@ -305,7 +305,12 @@ function SignInContent() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-zinc-700">Password</label>
-                    <span className="text-[11px] text-zinc-400">Min. 6 characters</span>
+                    <Link
+                      href="/forgot-password"
+                      className="text-[11px] font-semibold text-[#FF5500] hover:text-[#E64C00] hover:underline transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
                   </div>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-400">

@@ -85,6 +85,10 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
   - `app/dashboard/layout.tsx`: Client-side authentication guard with branded loading screen and zero-flash redirect.
   - `app/not-found.tsx`: Custom branded 404 Page Not Found with BeautyAura luxury aesthetic, glowing 404 gradient, quick AI Studio directory, and return actions.
   - `app/sign-in/page.tsx` & `app/sign-up/page.tsx`: Official authentication pages with client-side login guards and dynamic redirects.
+  - `app/forgot-password/page.tsx`: Dedicated password recovery portal supporting InsForge 6-digit OTP code recovery, direct step-by-step password update, and resend timers.
+  - `app/reset-password/page.tsx`: Secure password reset landing page handling both direct URL magic-link tokens (`?token=...&insforge_status=ready`) and manual OTP code verification with real-time feedback.
+  - `app/forgot-password/page.tsx`: Dedicated password recovery portal supporting InsForge 6-digit OTP code recovery, direct step-by-step password update, and resend timers.
+  - `app/reset-password/page.tsx`: Secure password reset landing page handling both direct URL magic-link tokens (`?token=...&insforge_status=ready`) and manual OTP code verification with real-time feedback.
   - `app/api/skin-face/generate/route.ts`: YouCam Beauty MCP generation route supporting AI Abs Filter, AI Smile, AI Aging Simulation, and AI Body Reshape with automated InSForge storage caching and 5-credit deduction.
   - `app/api/beauty/generate/route.ts`: YouCam MCP API generation route with InSForge storage caching and credit deduction.
   - `app/api/fashion/generate/route.ts`: YouCam Fashion MCP generation route supporting Clothes, Bag, Shoes, and Hat virtual try-on with automated InSForge storage resolution and credit tracking.
@@ -103,6 +107,25 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 ---
 
 ## Recent Session Change Log
+
+### [2026-11-07] - Implement Forgot Password & Reset Password Recovery Flow
+- **User Request:** "is may forget password wala feature add karo"
+- **Actions Taken:**
+  1. **Built Forgot Password Studio (`app/forgot-password/page.tsx`):**
+     - Designed luxury BeautyAura authentication layout with ambient glow and signature sketchbook wireframe borders.
+     - Multi-step interactive flow: Step 1 (email request) -> Step 2 (6-digit OTP code entry, new password creation with visibility toggle, confirm password match check, 60-second resend cooldown timer) -> Step 3 (success confirmation badge & automatic redirect to sign-in).
+  2. **Built Dedicated Reset Password Landing (`app/reset-password/page.tsx`):**
+     - Handles direct link verification query params (`token`, `insforge_status`, `insforge_type`, `insforge_error`).
+     - Seamless dual support: if accessed via direct token link, prompts only for new password; if accessed with manual code, prompts for email, 6-digit code, and new password.
+  3. **Updated Sign-In Experience (`app/sign-in/page.tsx`):**
+     - Added sleek "Forgot password?" recovery link above the password field pointing directly to `/forgot-password`.
+  4. **Extended Auth Context (`lib/auth-context.tsx`):**
+     - Added `sendResetPasswordEmail(email)`, `exchangeResetPasswordToken(email, code)`, and `resetPassword(newPassword, otp)` helpers using InsForge SDK.
+  5. **Protected Routes & Aliases (`proxy.ts`):**
+     - Added `/forgot-password` and `/reset-password` to Next.js 16 Proxy middleware.
+- **Verification:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled successfully across all 27 routes with Turbopack.
 
 ### [2026-11-06] - Push Project to GitHub Repository (https://github.com/SufyanAli-7/Beauty-Aura-AI.git)
 - **User Request:** "git remote add origin https://github.com/SufyanAli-7/Beauty-Aura-AI.git; git branch -M main; git push -u origin main; is repo per push karo ye project"

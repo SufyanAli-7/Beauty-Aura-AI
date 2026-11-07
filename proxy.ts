@@ -41,7 +41,9 @@ export function proxy(request: NextRequest) {
     pathname === "/sign-in" ||
     pathname === "/sign-up" ||
     pathname === "/login" ||
-    pathname === "/register";
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password";
 
   // 1. Handling URL aliases: /login and /register
   if (pathname === "/login") {
@@ -94,5 +96,7 @@ export const config = {
     "/sign-up",
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
   ],
 };
