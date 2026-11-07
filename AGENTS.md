@@ -108,6 +108,16 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-07] - Redeploy Updated Production Build to InsForge Hosting
+- **User Request:** "ye already insforge per deploy hai is ko update karo"
+- **Actions Taken:**
+  1. Executed `npx -y @insforge/cli deployments deploy .`.
+  2. Uploaded 222 files; cloud build completed in 22 seconds.
+  3. Verified HTTP 200 on live endpoints: `/`, `/sign-in`, `/forgot-password`, `/reset-password`.
+- **Deployment Details:**
+  - **Live URL:** https://m5294326.insforge.site
+  - **Deployment ID:** `8f3046b7-3f7d-4ff4-ae74-6ba4b81c08fb`
+
 ### [2026-11-07] - Implement Forgot Password & Reset Password Recovery Flow
 - **User Request:** "is may forget password wala feature add karo"
 - **Actions Taken:**
