@@ -108,6 +108,24 @@ Agent skills are linked in `.agents/skills` and `~/.gemini/config/skills`:
 
 ## Recent Session Change Log
 
+### [2026-11-07] - Fix Production Google OAuth Redirect URL Allowlist
+- **User Request:** "in a production google say login nae hoo rha https://m5294326.ap-southeast.insforge.app/api/auth/oauth/google?prompt=select_account&redirect_uri=https%3A%2F%2Fm5294326.insforge.site%2Fauth%2Fcallback&code_challenge=... 400 (Bad Request)"
+- **Root Cause:**
+  - In `insforge.toml`, `allowed_redirect_urls` only contained localhost URLs (`http://localhost:3000`, `http://127.0.0.1:3000`).
+  - Production origin `https://m5294326.insforge.site` and `https://m5294326.insforge.site/auth/callback` were not allowlisted, causing InsForge auth server to reject the OAuth initiation with HTTP 400 (`INVALID_INPUT: not in the allowed redirect URLs`).
+- **Fix Applied:**
+  1. Updated `insforge.toml` to allowlist all production endpoints:
+     - `https://m5294326.insforge.site`
+     - `https://m5294326.insforge.site/auth/callback`
+     - `https://m5294326.insforge.site/sign-in`
+     - `https://m5294326.insforge.site/sign-up`
+     - `https://m5294326.insforge.site/forgot-password`
+     - `https://m5294326.insforge.site/reset-password`
+  2. Applied configuration live to InsForge BaaS backend via `npx -y @insforge/cli config apply --auto-approve`.
+- **Verification:**
+  - Tested live endpoint: `https://m5294326.ap-southeast.insforge.app/api/auth/oauth/google?redirect_uri=https://m5294326.insforge.site/auth/callback`
+  - Returned HTTP 200 OK with valid Google Accounts OAuth URL (`authUrl`).
+
 ### [2026-11-07] - Redeploy Updated Production Build to InsForge Hosting
 - **User Request:** "ye already insforge per deploy hai is ko update karo"
 - **Actions Taken:**

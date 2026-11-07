@@ -4,7 +4,14 @@ allowed_redirect_urls = [
   "http://localhost:3000/auth/callback",
   "http://localhost:3000/sign-in",
   "http://localhost:3000/sign-up",
-  "http://127.0.0.1:3000"
+  "http://localhost:3000/reset-password",
+  "http://127.0.0.1:3000",
+  "https://m5294326.insforge.site",
+  "https://m5294326.insforge.site/auth/callback",
+  "https://m5294326.insforge.site/sign-in",
+  "https://m5294326.insforge.site/sign-up",
+  "https://m5294326.insforge.site/reset-password",
+  "https://m5294326.insforge.site/forgot-password"
 ]
 require_email_verification = true
 verify_email_method = "code"
